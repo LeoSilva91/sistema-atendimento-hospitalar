@@ -1,16 +1,16 @@
-# 🏥 Sistema de Atendimento Hospitalar
+#  Sistema de Atendimento Hospitalar
 
 Um sistema completo de gerenciamento de fila hospitalar desenvolvido em JavaScript vanilla, implementando triagem médica por prioridade, gestão de pacientes e painel público de chamadas.
 
-## 📋 Sobre o Projeto
+##  Sobre o Projeto
 
 Este sistema foi desenvolvido para otimizar o fluxo de atendimento em unidades de saúde, implementando um sistema de triagem baseado no **Protocolo de Manchester** com classificação por cores e gerenciamento inteligente de filas por prioridade.
 
-### 🎯 Objetivo
+###  Objetivo
 
 Digitalizar e automatizar o processo de atendimento hospitalar, desde o cadastro do paciente até a conclusão da consulta médica, garantindo que casos mais graves sejam priorizados adequadamente.
 
-## ✨ Funcionalidades Principais
+##  Funcionalidades Principais
 
 ### 👤 **1. Cadastro de Paciente**
 - Formulário completo com dados pessoais e médicos
