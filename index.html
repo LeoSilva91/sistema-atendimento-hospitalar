@@ -11,16 +11,18 @@
         <header>
             <h1>Sistema de Atendimento Hospitalar</h1>
             <nav>
-                <button class="nav-btn active" data-section="cadastro">Cadastro</button>
+                <button class="nav-btn" data-section="cadastro">Cadastro</button>
                 <button class="nav-btn" data-section="triagem">Painel Triagem</button>
                 <button class="nav-btn" data-section="avaliacao">Avaliação</button>
                 <button class="nav-btn" data-section="medico">Painel Médico</button>
+                <button class="nav-btn" data-section="evolucao">Evolução Médica</button>
+                <button class="nav-btn" data-section="fichas">Fichas</button>
                 <button class="nav-btn" data-section="painel">Painel Público</button>
             </nav>
         </header>
 
         <!-- Seção de Cadastro -->
-        <section id="cadastro" class="section active">
+        <section id="cadastro" class="section">
             <h2>Cadastro de Paciente</h2>
             <form id="cadastroForm">
                 <div class="form-row">
@@ -296,6 +298,193 @@
             <div id="filaEspera">
                 <h3>Fila de Espera Prioritária</h3>
                 <div id="listaFilaEspera"></div>
+            </div>
+        </section>
+
+        <!-- Seção de Fichas -->
+        <section id="fichas" class="section">
+            <h2>Emissão de Fichas de Atendimento</h2>
+            
+            <div class="fichas-controls">
+                <div class="form-group">
+                    <label for="buscarPaciente">Buscar Paciente:</label>
+                    <div class="busca-container">
+                        <input type="text" id="buscarPaciente" placeholder="Digite o nome ou ID do paciente">
+                        <button id="buscarPacienteBtn" class="btn btn-primary">Buscar</button>
+                    </div>
+                </div>
+                
+                <div class="filtros-fichas">
+                    <label>Filtrar por Status:</label>
+                    <select id="filtroStatus">
+                        <option value="todos">Todos</option>
+                        <option value="aguardando-triagem">Aguardando Triagem</option>
+                        <option value="em-triagem">Em Triagem</option>
+                        <option value="aguardando-medico">Aguardando Médico</option>
+                        <option value="em-atendimento">Em Atendimento</option>
+                        <option value="atendido">Atendido</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="listaFichas" class="lista-fichas">
+                <p class="text-center">Use a busca para encontrar pacientes e gerar fichas.</p>
+            </div>
+
+            <div id="fichaGerada" class="ficha-gerada hidden">
+                <h3>Ficha de Atendimento</h3>
+                <div id="conteudoFicha"></div>
+                <div class="acoes-ficha">
+                    <button id="imprimirFicha" class="btn btn-primary">Imprimir Ficha</button>
+                    <button id="salvarFicha" class="btn btn-success">Salvar Ficha</button>
+                    <button id="fecharFicha" class="btn btn-warning">Fechar</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção de Evolução Médica -->
+        <section id="evolucao" class="section">
+            <h2>Evolução Médica</h2>
+            
+            <div class="evolucao-controls">
+                <button id="iniciarEvolucao" class="btn btn-primary">Iniciar Evolução</button>
+                <button id="finalizarEvolucao" class="btn btn-success hidden">Finalizar Evolução</button>
+            </div>
+
+            <div id="pacienteEvolucao" class="paciente-evolucao hidden">
+                <h3>Paciente em Evolução</h3>
+                <div id="dadosPacienteEvolucao"></div>
+                
+                <form id="evolucaoForm" class="evolucao-form">
+                    <div class="evolucao-section">
+                        <h4>Evolução Clínica</h4>
+                        <div class="form-group">
+                            <label for="queixaAtual">Queixa Atual:</label>
+                            <textarea id="queixaAtual" placeholder="Descreva a queixa atual do paciente" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="exameFisico">Exame Físico:</label>
+                            <textarea id="exameFisico" placeholder="Descreva o exame físico realizado" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="hipoteseDiagnostica">Hipótese Diagnóstica:</label>
+                            <textarea id="hipoteseDiagnostica" placeholder="Descreva a hipótese diagnóstica" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="conduta">Conduta:</label>
+                            <textarea id="conduta" placeholder="Descreva a conduta médica" required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="evolucao-section">
+                        <h4>Prescrição de Medicamentos <span class="opcional">(Opcional)</span></h4>
+                        <p class="info-text">Preencha apenas se houver prescrição de medicamentos. Deixe em branco se não houver prescrições.</p>
+                        <div id="medicamentosLista">
+                            <div class="medicamento-item">
+                                <button type="button" class="btn-remover" onclick="this.parentElement.remove()">Remover</button>
+                                <h5>Medicamento 1</h5>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="medicamento1">Medicamento:</label>
+                                        <input type="text" id="medicamento1" placeholder="Nome do medicamento">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="dosagem1">Dosagem:</label>
+                                        <input type="text" id="dosagem1" placeholder="Ex: 500mg">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="posologia1">Posologia:</label>
+                                        <input type="text" id="posologia1" placeholder="Ex: 1 comprimido 3x ao dia">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="duracao1">Duração:</label>
+                                        <input type="text" id="duracao1" placeholder="Ex: 7 dias">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="observacoes1">Observações:</label>
+                                    <textarea id="observacoes1" placeholder="Observações sobre o medicamento"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="adicionarMedicamento" class="btn btn-secondary">+ Adicionar Medicamento</button>
+                    </div>
+
+                    <div class="evolucao-section">
+                        <h4>Solicitação de Exames <span class="opcional">(Opcional)</span></h4>
+                        <p class="info-text">Preencha apenas se houver solicitação de exames. Deixe em branco se não houver solicitações.</p>
+                        <div id="examesLista">
+                            <div class="exame-item">
+                                <button type="button" class="btn-remover" onclick="this.parentElement.remove()">Remover</button>
+                                <h5>Exame 1</h5>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="exame1">Exame:</label>
+                                        <input type="text" id="exame1" placeholder="Nome do exame">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="urgencia1">Urgência:</label>
+                                        <select id="urgencia1">
+                                            <option value="">Selecione a urgência</option>
+                                            <option value="eletivo">Eletivo</option>
+                                            <option value="urgente">Urgente</option>
+                                            <option value="emergencial">Emergencial</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="justificativa1">Justificativa:</label>
+                                    <textarea id="justificativa1" placeholder="Justificativa para solicitação do exame"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="adicionarExame" class="btn btn-secondary">+ Adicionar Exame</button>
+                    </div>
+
+                    <div class="evolucao-section">
+                        <h4>Orientações e Encaminhamentos</h4>
+                        <div class="form-group">
+                            <label for="orientacoes">Orientações ao Paciente:</label>
+                            <textarea id="orientacoes" placeholder="Orientações gerais ao paciente"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="encaminhamento">Encaminhamento:</label>
+                            <select id="encaminhamento">
+                                <option value="">Selecione o encaminhamento</option>
+                                <option value="alta">Alta</option>
+                                <option value="internacao">Internação</option>
+                                <option value="especialista">Encaminhamento para Especialista</option>
+                                <option value="retorno">Retorno</option>
+                                <option value="observacao">Observação</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="dataRetorno">Data de Retorno (se aplicável):</label>
+                            <input type="date" id="dataRetorno">
+                        </div>
+                    </div>
+
+                    <div class="evolucao-actions">
+                        <button type="submit" class="btn btn-primary">Salvar Evolução</button>
+                        <button type="button" class="btn btn-warning" onclick="sistema.cancelarEvolucao()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="historicoEvolucoes" class="historico-evolucoes">
+                <h3>Histórico de Evoluções</h3>
+                
+                <div class="busca-evolucoes">
+                    <div class="form-group">
+                        <label for="buscarEvolucao">Buscar por paciente:</label>
+                        <input type="text" id="buscarEvolucao" placeholder="Digite o nome do paciente">
+                    </div>
+                    <button id="buscarEvolucaoBtn" class="btn btn-primary">Buscar</button>
+                </div>
+                
+                <div id="listaEvolucoes"></div>
             </div>
         </section>
 
