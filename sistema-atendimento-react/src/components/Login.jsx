@@ -1,12 +1,24 @@
 import React, { useState } from 'react';
 import { useSistemaAtendimento } from '../utils/HospitalContext';
+import { PrimeReactProvider } from 'primereact/api';
+import { InputText } from 'primereact/inputtext';
+import { Password } from 'primereact/password';
+import { Dropdown } from 'primereact/dropdown';
+import { Button } from 'primereact/button';
+import { ProgressSpinner } from 'primereact/progressspinner';
+import { Card } from 'primereact/card';
+import { Divider } from 'primereact/divider';
+import { FloatLabel } from 'primereact/floatlabel';
+
+// Importar estilos do PrimeIcons
+import 'primeicons/primeicons.css';
 
 const Login = () => {
   const { login } = useSistemaAtendimento();
   const [formData, setFormData] = useState({
     usuario: '',
     senha: '',
-    tipo: ''
+    tipo: null
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +28,13 @@ const Login = () => {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleTipoChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      tipo: e.value
     }));
   };
 
@@ -37,7 +56,7 @@ const Login = () => {
         'admin': { usuario: 'admin', senha: '123456' }
       };
       
-      const credencial = credenciaisValidas[formData.tipo];
+      const credencial = credenciaisValidas[formData.tipo.value];
       
       if (credencial && 
           credencial.usuario === formData.usuario && 
@@ -45,7 +64,7 @@ const Login = () => {
         
         login({
           nome: formData.usuario,
-          tipo: formData.tipo,
+          tipo: formData.tipo.value,
           timestamp: new Date().toISOString()
         });
       } else {
@@ -59,145 +78,177 @@ const Login = () => {
   };
 
   const tiposUsuario = [
-    { value: 'recepcionista', label: 'Recepcionista', icon: '📋', description: 'Cadastro de pacientes' },
-    { value: 'medico', label: 'Médico', icon: '🩺', description: 'Atendimento médico' },
-    { value: 'admin', label: 'Administrador', icon: '👑', description: 'Acesso completo' }
+    { value: 'recepcionista', label: 'Recepcionista', icon: 'pi pi-id-card', description: 'Cadastro de pacientes' },
+    { value: 'medico', label: 'Médico', icon: 'pi pi-user-md', description: 'Atendimento médico' },
+    { value: 'admin', label: 'Administrador', icon: 'pi pi-shield', description: 'Acesso completo' }
   ];
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="bg-blue-600 text-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <span className="text-3xl">🏥</span>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Sistema Hospitalar</h1>
-          <p className="text-gray-600">Faça login para acessar o sistema</p>
-        </div>
-
-        {/* Formulário de Login */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Seleção do Tipo de Usuário */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Tipo de Usuário
-              </label>
-              <div className="grid grid-cols-1 gap-3">
-                {tiposUsuario.map((tipo) => (
-                  <label
-                    key={tipo.value}
-                    className={`cursor-pointer border-2 rounded-lg p-4 transition-all ${
-                      formData.tipo === tipo.value
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="tipo"
-                      value={tipo.value}
-                      checked={formData.tipo === tipo.value}
-                      onChange={handleInputChange}
-                      className="sr-only"
-                    />
-                    <div className="flex items-center space-x-3">
-                      <span className="text-2xl">{tipo.icon}</span>
-                      <div>
-                        <div className="font-medium text-gray-800">{tipo.label}</div>
-                        <div className="text-sm text-gray-500">{tipo.description}</div>
-                      </div>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Usuário */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nome de Usuário
-              </label>
-              <input
-                type="text"
-                name="usuario"
-                value={formData.usuario}
-                onChange={handleInputChange}
-                placeholder="Digite seu usuário"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-
-            {/* Senha */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Senha
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  name="senha"
-                  value={formData.senha}
-                  onChange={handleInputChange}
-                  placeholder="Digite sua senha"
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? '🙈' : '👁️'}
-                </button>
-              </div>
-            </div>
-
-            {/* Botão de Login */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-blue-400 transition-colors"
-            >
-              {isLoading ? (
-                <div className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Entrando...
-                </div>
-              ) : (
-                'Entrar no Sistema'
-              )}
-            </button>
-          </form>
-
-          {/* Credenciais de Demonstração */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Credenciais de Demonstração:</h3>
-            <div className="space-y-2 text-xs text-gray-600">
-              <div className="bg-gray-50 p-3 rounded">
-                <strong>Recepcionista:</strong> recepcionista / 123456
-              </div>
-              <div className="bg-gray-50 p-3 rounded">
-                <strong>Médico:</strong> medico / 123456
-              </div>
-              <div className="bg-gray-50 p-3 rounded">
-                <strong>Admin:</strong> admin / 123456
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-8 text-sm text-gray-500">
-          Sistema de Atendimento Hospitalar v2.0
-        </div>
+  const itemTemplate = (option) => (
+    <div className="flex items-center space-x-3">
+      <i className={`${option.icon} text-xl text-blue-600`}></i>
+      <div>
+        <div className="font-medium text-gray-800">{option.label}</div>
+        <div className="text-sm text-gray-500">{option.description}</div>
       </div>
     </div>
+  );
+
+  const selectedItemTemplate = (option) => (
+    <div className="flex items-center space-x-3">
+      <i className={`${option.icon} text-xl text-blue-600`}></i>
+      <span className="font-medium">{option.label}</span>
+    </div>
+  );
+
+  return (
+    <PrimeReactProvider>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="bg-blue-600 text-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <i className="pi pi-building text-3xl"></i>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Sistema Hospitalar</h1>
+            <p className="text-gray-600">Faça login para acessar o sistema</p>
+          </div>
+
+          {/* Formulário de Login */}
+          <Card className="shadow-xl border-0">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Seleção do Tipo de Usuário com Dropdown */}
+              <div>
+                <FloatLabel>
+                  <Dropdown
+                    id="tipo"
+                    value={formData.tipo}
+                    onChange={handleTipoChange}
+                    options={tiposUsuario}
+                    optionLabel="label"
+                    placeholder="Selecione o tipo de usuário"
+                    itemTemplate={itemTemplate}
+                    selectedItemTemplate={selectedItemTemplate}
+                    className="w-full"
+                    pt={{
+                      root: { className: 'w-full' },
+                      input: { className: 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent' },
+                      trigger: { className: 'absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400' }
+                    }}
+                    required
+                  />
+                  <label htmlFor="tipo" className="flex items-center">
+                    <i className="pi pi-users mr-2"></i>
+                    Tipo de Usuário
+                  </label>
+                </FloatLabel>
+              </div>
+
+              {/* Usuário com FloatLabel */}
+              <div>
+                <FloatLabel>
+                  <InputText
+                    id="usuario"
+                    name="usuario"
+                    value={formData.usuario}
+                    onChange={handleInputChange}
+                    className="w-full"
+                    pt={{
+                      root: { className: 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent' }
+                    }}
+                    required
+                  />
+                  <label htmlFor="usuario" className="flex items-center">
+                    <i className="pi pi-user mr-2"></i>
+                    Nome de Usuário
+                  </label>
+                </FloatLabel>
+              </div>
+
+              {/* Senha com FloatLabel */}
+              <div>
+                <FloatLabel>
+                  <Password
+                    id="senha"
+                    name="senha"
+                    value={formData.senha}
+                    onChange={handleInputChange}
+                    toggleMask
+                    feedback={false}
+                    className="w-full"
+                    pt={{
+                      root: { className: 'w-full' },
+                      input: { className: 'w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent' },
+                      toggleButton: { className: 'absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600' }
+                    }}
+                    required
+                  />
+                  <label htmlFor="senha" className="flex items-center">
+                    <i className="pi pi-lock mr-2"></i>
+                    Senha
+                  </label>
+                </FloatLabel>
+              </div>
+
+              {/* Botão de Login */}
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full"
+                pt={{
+                  root: { className: 'w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-blue-400 transition-colors' }
+                }}
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <ProgressSpinner 
+                      style={{ width: '20px', height: '20px' }} 
+                      strokeWidth="4"
+                      className="mr-3"
+                    />
+                    Entrando...
+                  </div>
+                ) : (
+                  <>
+                    <i className="pi pi-sign-in mr-2"></i>
+                    Entrar no Sistema
+                  </>
+                )}
+              </Button>
+            </form>
+
+            <Divider />
+
+            {/* Credenciais de Demonstração */}
+            <div className="mt-6">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">
+                <i className="pi pi-info-circle mr-2"></i>
+                Credenciais de Demonstração:
+              </h3>
+              <div className="space-y-2 text-xs text-gray-600">
+                <div className="bg-gray-50 p-3 rounded flex items-center">
+                  <i className="pi pi-id-card mr-2 text-blue-600"></i>
+                  <strong>Recepcionista:</strong> recepcionista / 123456
+                </div>
+                <div className="bg-gray-50 p-3 rounded flex items-center">
+                  <i className="pi pi-user-md mr-2 text-green-600"></i>
+                  <strong>Médico:</strong> medico / 123456
+                </div>
+                <div className="bg-gray-50 p-3 rounded flex items-center">
+                  <i className="pi pi-shield mr-2 text-purple-600"></i>
+                  <strong>Admin:</strong> admin / 123456
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Footer */}
+          <div className="text-center mt-8 text-sm text-gray-500">
+            <i className="pi pi-heart mr-1 text-red-500"></i>
+            Sistema de Atendimento Hospitalar v2.0
+          </div>
+        </div>
+      </div>
+    </PrimeReactProvider>
   );
 };
 
