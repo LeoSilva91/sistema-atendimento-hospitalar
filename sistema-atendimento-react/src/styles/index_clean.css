@@ -1,0 +1,245 @@
+@import "tailwindcss";
+
+/* ===== VARIÁVEIS CSS CUSTOMIZADAS ===== */
+:root {
+  /* Cores do Sistema Hospitalar */
+  --color-hospital-primary: #2563eb;
+  --color-hospital-secondary: #64748b;
+  --color-emergency: #dc2626;
+  --color-urgent: #f59e0b;
+  --color-low-priority: #16a34a;
+  
+  /* Gradientes */
+  --gradient-hospital: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  --gradient-emergency: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  
+  /* Sombras */
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-elevated: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  /* Transições */
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== ESTILOS GLOBAIS BASE ===== */
+body {
+  background-color: rgb(249 250 251);
+  color: rgb(17 24 39);
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings com melhor tipografia */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+
+h1 {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+/* Componentes customizados usando variáveis CSS */
+.btn-hospital {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: var(--transition-smooth);
+  outline: none;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: var(--color-hospital-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #1d4ed8;
+}
+
+.btn-emergency {
+  background-color: var(--color-emergency);
+  color: white;
+}
+
+.btn-emergency:hover {
+  background-color: #b91c1c;
+}
+
+.btn-success {
+  background-color: var(--color-low-priority);
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #15803d;
+}
+
+/* Cards do Sistema */
+.card-hospital {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-card);
+  border: 1px solid rgb(229 231 235);
+  transition: var(--transition-smooth);
+}
+
+.card-hospital:hover {
+  box-shadow: var(--shadow-elevated);
+}
+
+/* Badges de Prioridade */
+.badge-emergency {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  background-color: rgb(254 226 226);
+  color: rgb(153 27 27);
+  border: 1px solid rgb(252 165 165);
+}
+
+.badge-urgent {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  background-color: rgb(254 243 199);
+  color: rgb(146 64 14);
+  border: 1px solid rgb(253 230 138);
+}
+
+.badge-low-priority {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  background-color: rgb(220 252 231);
+  color: rgb(21 128 61);
+  border: 1px solid rgb(134 239 172);
+}
+
+/* Inputs customizados */
+.input-hospital {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgb(209 213 219);
+  border-radius: 0.5rem;
+  outline: none;
+  transition: var(--transition-smooth);
+}
+
+.input-hospital:focus {
+  border-color: var(--color-hospital-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Alertas do Sistema */
+.alert-success {
+  background-color: rgb(240 253 244);
+  border: 1px solid rgb(187 247 208);
+  color: rgb(21 128 61);
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.alert-warning {
+  background-color: rgb(254 252 232);
+  border: 1px solid rgb(254 240 138);
+  color: rgb(146 64 14);
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.alert-error {
+  background-color: rgb(254 242 242);
+  border: 1px solid rgb(252 165 165);
+  color: rgb(153 27 27);
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.alert-info {
+  background-color: rgb(239 246 255);
+  border: 1px solid rgb(147 197 253);
+  color: rgb(30 64 175);
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+/* Utilitários personalizados */
+.bg-gradient-hospital {
+  background: var(--gradient-hospital);
+}
+
+.bg-gradient-emergency {
+  background: var(--gradient-emergency);
+}
+
+.shadow-hospital {
+  box-shadow: var(--shadow-card);
+}
+
+.shadow-hospital-elevated {
+  box-shadow: var(--shadow-elevated);
+}
+
+/* Scrollbar customizada */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(243 244 246);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(209 213 219);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(156 163 175);
+}
+
+/* Responsividade */
+@media (max-width: 640px) {
+  .card-hospital {
+    margin: 0 0.5rem;
+  }
+  
+  .btn-hospital {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* Acessibilidade - respeitar preferências de movimento reduzido */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
