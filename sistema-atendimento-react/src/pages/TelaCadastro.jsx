@@ -398,31 +398,31 @@ const TelaCadastro = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">CPF *</label>
               <InputText name="cpf" value={formData.cpf} onChange={(e) => { const formatted = formatCPF(e.target.value); setFormData(prev => ({ ...prev, cpf: formatted })); if (errors.cpf) { setErrors(prev => ({ ...prev, cpf: '' })); } }} className={`w-full ${errors.cpf ? 'p-invalid' : ''}`} placeholder="000.000.000-00" maxLength="14" />
               {errors.cpf && <small className="p-error">{errors.cpf}</small>}
-            </div>
-            <div>
+        </div>
+                    <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">RG *</label>
               <InputText name="rg" value={formData.rg} onChange={handleInputChange} className={`w-full ${errors.rg ? 'p-invalid' : ''}`} placeholder="000000000" />
               {errors.rg && <small className="p-error">{errors.rg}</small>}
-            </div>
-            <div>
+                    </div>
+                    <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Mãe *</label>
               <InputText name="nomeMae" value={formData.nomeMae} onChange={handleInputChange} className={`w-full ${errors.nomeMae ? 'p-invalid' : ''}`} placeholder="Digite o nome completo da mãe" />
               {errors.nomeMae && <small className="p-error">{errors.nomeMae}</small>}
-            </div>
-            <div>
+                    </div>
+                    <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Sexo *</label>
               <Dropdown value={formData.sexo} onChange={(e) => handleDropdownChange(e, 'sexo')} options={opcoesSexo} optionLabel="label" optionValue="value" placeholder="Selecione o sexo" className={`w-full ${errors.sexo ? 'p-invalid' : ''}`} />
               {errors.sexo && <small className="p-error">{errors.sexo}</small>}
-            </div>
-            <div>
+                    </div>
+                    <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Telefone *</label>
               <InputText name="telefone" value={formData.telefone} onChange={(e) => { const formatted = formatPhone(e.target.value); setFormData(prev => ({ ...prev, telefone: formatted })); if (errors.telefone) { setErrors(prev => ({ ...prev, telefone: '' })); } }} className={`w-full ${errors.telefone ? 'p-invalid' : ''}`} placeholder="(00) 00000-0000" maxLength="15" />
               {errors.telefone && <small className="p-error">{errors.telefone}</small>}
-            </div>
-            <div>
+                    </div>
+                    <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
               <InputText name="email" value={formData.email} onChange={handleInputChange} className="w-full" placeholder="email@exemplo.com" />
-            </div>
+                    </div>
             <div className="md:col-span-2">
               <div className="flex gap-2 items-end">
                 <div className="flex-[2_2_0%]">
@@ -437,21 +437,21 @@ const TelaCadastro = () => {
                     <Button icon="pi pi-search" loading={isCepLoading} type="button" onClick={buscarEnderecoPorCep} className="!px-2 !py-2" />
                   </div>
                 </div>
-              </div>
-            </div>
+                    </div>
+                  </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Contato de Emergência *</label>
               <InputText name="contatoEmergencia" value={formData.contatoEmergencia} onChange={(e) => { const formatted = formatPhone(e.target.value); setFormData(prev => ({ ...prev, contatoEmergencia: formatted })); if (errors.contatoEmergencia) { setErrors(prev => ({ ...prev, contatoEmergencia: '' })); } }} className={`w-full ${errors.contatoEmergencia ? 'p-invalid' : ''}`} placeholder="(00) 00000-0000" maxLength="15" />
               {errors.contatoEmergencia && <small className="p-error">{errors.contatoEmergencia}</small>}
-            </div>
-            <div>
+                </div>
+                  <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Convênio</label>
               <Dropdown value={formData.convenio} onChange={(e) => handleDropdownChange(e, 'convenio')} options={opcoesConvenio} optionLabel="label" optionValue="value" placeholder="Selecione o convênio" className="w-full" />
-            </div>
+                  </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Número da Carteirinha</label>
               <InputText name="numeroCarteirinha" value={formData.numeroCarteirinha} onChange={handleInputChange} className="w-full" placeholder="Número da carteirinha" />
-            </div>
+                    </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Motivo da Visita *</label>
               <InputTextarea name="motivoVisita" value={formData.motivoVisita} onChange={handleInputChange} rows="3" className={`w-full ${errors.motivoVisita ? 'p-invalid' : ''}`} placeholder="Descreva o motivo da visita e sintomas principais..." />
@@ -484,13 +484,13 @@ const TelaCadastro = () => {
                 <span className="flex items-center"><i className="pi pi-check mr-2" />Registrar Paciente</span>
               )}
             </Button>
-          </div>
+                </div>
         </form>
         {/* Modal da Ficha do Paciente */}
         <Dialog 
-          header={null} 
+          header={<span className="text-xl font-bold text-gray-800">Ficha do Paciente</span>} 
           visible={showModal} 
-          style={{ width: '100%', maxWidth: 500 }} 
+          style={{ width: '100%', maxWidth: 600 }} 
           modal 
           onHide={() => setShowModal(false)} 
           className="p-0" 
@@ -499,37 +499,36 @@ const TelaCadastro = () => {
           closeOnEscape={true}
         >
           {pacienteCadastrado && (
-            <div className="p-0" ref={printRef}>
+            <div className="p-6" ref={printRef}>
               {/* Cabeçalho do modal */}
-              <div className="flex flex-col items-center justify-center border-b border-gray-100 pb-4 mb-4">
-                <i className="pi pi-user text-3xl text-neutral-500 mb-2" />
-                <h2 className="text-xl font-bold text-neutral-800 mb-1">Ficha do Paciente</h2>
-                <span className="text-xs text-gray-400">Aguardando Triagem</span>
-              </div>
-              {/* Corpo do modal */}
-              <div className="space-y-2 text-base">
-                <div className="text-gray-500"><span>Prontuário:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.numeroProntuario}</span></div>
-                <div className="text-gray-500"><span>ID:</span><span className="font-semibold text-neutral-800">#{pacienteCadastrado.id}</span></div>
-                <div className="text-gray-500"><span>Nome:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.nome}</span></div>
-                <div className="text-gray-500"><span>CPF:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.cpf}</span></div>
-                <div className="text-gray-500"><span>Data Nasc.:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.dataNascimento}</span></div>
-                <div className="text-gray-500"><span>Sexo:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.sexo === 'M' ? 'Masculino' : pacienteCadastrado.sexo === 'F' ? 'Feminino' : 'Outro'}</span></div>
-                <div className="text-gray-500"><span>Telefone:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.telefone}</span></div>
-                <div className="text-gray-500"><span>Convênio:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.convenio}</span></div>
-                <div className="text-gray-500"><span>Hora Cadastro:</span><span className="font-semibold text-neutral-800">{new Date(pacienteCadastrado.horaCadastro).toLocaleTimeString("pt-BR")}</span></div>
-                <div className="text-gray-500"><span>RG:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.rg}</span></div>
-                <div className="text-gray-500"><span>Nome da Mãe:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.nomeMae}</span></div>
-                <div className="text-gray-500"><span>Endereço:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.endereco}</span></div>
-                <div className="text-gray-500"><span>Contato Emergência:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.contatoEmergencia}</span></div>
-                <div className="flex flex-col mt-2">
-                  <span className="text-gray-500 mb-1">Motivo da Visita:</span>
-                  <span className="bg-gray-50 rounded p-2 text-neutral-800 text-sm border border-gray-100">{pacienteCadastrado.motivoVisita}</span>
+              <div className="mb-4">
+                <h2 className="text-2xl font-bold text-gray-800 mb-1">{pacienteCadastrado.nome}</h2>
+                <div className="text-gray-700 text-base mb-2">
+                  <span className="font-bold">Idade:</span> {pacienteCadastrado.dataNascimento ? (new Date().getFullYear() - new Date(pacienteCadastrado.dataNascimento).getFullYear()) : '-'} anos
+                  <span className="font-bold ml-4">Sexo:</span> {pacienteCadastrado.sexo === 'M' ? 'Masculino' : pacienteCadastrado.sexo === 'F' ? 'Feminino' : 'Outro'}
+                  <span className="font-bold ml-4">Prontuário:</span> {pacienteCadastrado.numeroProntuario}
                 </div>
               </div>
-              {/* Rodapé do modal */}
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-gray-800 mb-1">Dados Pessoais</h3>
+                <div className="space-y-1 text-base">
+                  <div><span className="font-bold">CPF:</span> {pacienteCadastrado.cpf}</div>
+                  <div><span className="font-bold">RG:</span> {pacienteCadastrado.rg}</div>
+                  <div><span className="font-bold">Nome da Mãe:</span> {pacienteCadastrado.nomeMae}</div>
+                  <div><span className="font-bold">Telefone:</span> {pacienteCadastrado.telefone}</div>
+                  <div><span className="font-bold">Convênio:</span> {pacienteCadastrado.convenio}</div>
+                  <div><span className="font-bold">Endereço:</span> {pacienteCadastrado.endereco}</div>
+                  <div><span className="font-bold">Contato Emergência:</span> {pacienteCadastrado.contatoEmergencia}</div>
+                </div>
+              </div>
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-gray-800 mb-1">Motivo da Visita</h3>
+                <div className="text-base">{pacienteCadastrado.motivoVisita}</div>
+              </div>
+              <div className="text-xs text-gray-400 mt-4">Impresso em: {new Date().toLocaleString('pt-BR')}</div>
               <div className="flex justify-end gap-2 mt-8 border-t border-gray-100 pt-4">
-                <Button icon="pi pi-print" label="Imprimir" severity="info" className="bg-neutral-200 text-neutral-800 border-0" onClick={handlePrint} />
-                <Button icon="pi pi-times" label="Fechar" severity="danger" className="bg-neutral-100 text-neutral-500 border-0" onClick={() => setShowModal(false)} />
+                <Button icon="pi pi-times" label="Fechar" className="!bg-gray-100 !text-gray-700 !border-0" onClick={() => setShowModal(false)} />
+                <Button icon="pi pi-print" label="Imprimir" className="!bg-green-600 !text-white !border-0" onClick={handlePrint} />
               </div>
             </div>
           )}

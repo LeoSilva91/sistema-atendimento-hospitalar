@@ -12,6 +12,7 @@ import { Tag } from "primereact/tag";
 import { PrimeIcons } from "primereact/api";
 import { Slider } from "primereact/slider";
 import { Panel } from "primereact/panel";
+import { Dialog } from "primereact/dialog";
 
 // Função utilitária para calcular idade a partir de string (dd/mm/yyyy ou ISO)
 function calcularIdade(dataNascimento) {
@@ -37,6 +38,80 @@ function calcularIdade(dataNascimento) {
     idade--;
   }
   return idade;
+}
+
+// Função para imprimir apenas a área da etiqueta
+function printEtiqueta() {
+  const conteudo = document.getElementById('etiqueta-pulseira');
+  if (!conteudo) return;
+  const janela = window.open('', '', 'width=400,height=220');
+  janela.document.write(`
+    <html>
+      <head>
+        <title>Imprimir Etiqueta</title>
+        <style>
+          @media print {
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #fff !important;
+            }
+            .etiqueta-print {
+              box-shadow: none !important;
+              border: none !important;
+              margin: 0 !important;
+              width: 280px !important;
+              min-height: 80px;
+              max-width: 100vw;
+              page-break-inside: avoid;
+            }
+          }
+          body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; background: #fff; }
+          .etiqueta-print {
+            padding: 10px 12px;
+            border: 1px solid #bbb;
+            border-radius: 7px;
+            text-align: left;
+            background: #fff;
+            width: 280px;
+            margin: 0;
+            box-shadow: none;
+          }
+          .etiqueta-print .titulo {
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 6px;
+            letter-spacing: 0.2px;
+            text-align: left;
+          }
+          .etiqueta-print .linha {
+            font-size: 13px;
+            color: #222;
+            margin-bottom: 2px;
+            text-align: left;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          .etiqueta-print .linha b {
+            font-weight: 600;
+            margin-right: 2px;
+          }
+          .etiqueta-print .data {
+            font-size: 10px;
+            color: #888;
+            margin-top: 4px;
+            text-align: left;
+          }
+        </style>
+      </head>
+      <body onload="window.print();window.close()">
+        <div class="etiqueta-print">${conteudo.innerHTML}</div>
+      </body>
+    </html>
+  `);
+  janela.document.close();
 }
 
 const TelaTriagem = () => {
@@ -66,6 +141,9 @@ const TelaTriagem = () => {
     observacoesTriagem: ''
   });
   const [showTriageForm, setShowTriageForm] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showEtiquetaModal, setShowEtiquetaModal] = useState(false);
+  const [pacienteEtiqueta, setPacienteEtiqueta] = useState(null);
 
   // Verificar se o usuário está logado e tem acesso
   useEffect(() => {
@@ -114,22 +192,16 @@ const TelaTriagem = () => {
       finalizarTriagem(pacienteAtualTriagem.id, triageData);
       
       showToast(`Triagem de ${pacienteAtualTriagem.nome} finalizada! Classificação: ${triageData.corTriagem.toUpperCase()}`);
-      setShowTriageForm(false);
-      setTriageData({
-        corTriagem: 'verde',
-        queixaPrincipal: '',
-        nivelDor: 0,
-        nivelConsciencia: 'Alerta',
-        sinaisVitais: {
-          pressaoArterial: '',
-          temperatura: '',
-          frequenciaCardiaca: '',
-          saturacaoOxigenio: '',
-          frequenciaRespiratoria: '',
-          peso: ''
-        },
-        observacoesTriagem: ''
+      setShowSuccessModal(true);
+      setPacienteEtiqueta({
+        nome: pacienteAtualTriagem.nome,
+        dataNascimento: pacienteAtualTriagem.dataNascimento,
+        sexo: pacienteAtualTriagem.sexo,
+        numeroProntuario: pacienteAtualTriagem.numeroProntuario,
+        convenio: pacienteAtualTriagem.convenio || '',
+        dataHora: new Date().toLocaleString('pt-BR')
       });
+      // Não fechar o formulário ainda
     } catch (error) {
       showError('Erro ao finalizar triagem');
     }
@@ -264,7 +336,7 @@ const TelaTriagem = () => {
                           <div className="flex items-center text-sm text-gray-500 space-x-2 mt-1">
                             <span>{calcularIdade(patient.dataNascimento)} anos</span>
                             <span>•</span>
-                            <span>{patient.sexo === 'M' ? 'M' : patient.sexo === 'F' ? 'F' : 'O'}</span>
+                            <span>{patient.sexo === 'M' ? 'Masculino' : patient.sexo === 'F' ? 'Feminino' : 'Outro'}</span>
                           </div>
                           <p className="text-xs text-gray-400 mt-0.5">Prontuário: {patient.numeroProntuario}</p>
                         </div>
@@ -335,21 +407,16 @@ const TelaTriagem = () => {
                   </Panel>
                   
                   <Panel header="Motivo da Visita" className="shadow-sm">
-                    <div className="space-y-2 text-sm">
+                    <div className="space-y-2 text-sm w-full">
                       <div>
-                        <span className="text-gray-500 font-medium">Queixa Principal:</span>
-                        <p className="text-gray-700 mt-1">{pacienteAtualTriagem.motivoVisita}</p>
+                        <span className="text-gray-500 font-medium">Queixa Principal:{pacienteAtualTriagem.motivoVisita ? <b className="text-gray-900">{pacienteAtualTriagem.motivoVisita}</b> : null}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Chegada:</span>
-                        <span className="font-semibold text-gray-800">
-                          {new Date(pacienteAtualTriagem.horaCadastro).toLocaleString('pt-BR')}
-                        </span>
+                      <div>
+                        <span className="text-gray-500">Chegada:{pacienteAtualTriagem.horaCadastro ? <b className="text-gray-900">{new Date(pacienteAtualTriagem.horaCadastro).toLocaleString('pt-BR')}</b> : null}</span>
                       </div>
                       {pacienteAtualTriagem.sintomas && pacienteAtualTriagem.sintomas.length > 0 && (
                         <div>
-                          <span className="text-gray-500 font-medium">Sintomas:</span>
-                          <p className="text-gray-700 mt-1">{pacienteAtualTriagem.sintomas.join(', ')}</p>
+                          <span className="text-gray-500 font-medium">Sintomas:{pacienteAtualTriagem.sintomas.join(', ')}</span>
                         </div>
                       )}
                     </div>
@@ -358,35 +425,6 @@ const TelaTriagem = () => {
 
                 {/* Formulário de Triagem */}
                 <div className="space-y-6">
-                  {/* Classificação de Prioridade */}
-                  <Panel header="Classificação de Prioridade (Manchester)" className="shadow-sm">
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                      {opcoesCorTriagem.map((opcao) => (
-                        <div
-                          key={opcao.value}
-                          className={`cursor-pointer border-2 rounded-lg p-4 transition-all ${
-                            triageData.corTriagem === opcao.value
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                          onClick={() => setTriageData({...triageData, corTriagem: opcao.value})}
-                        >
-                          <div className="text-center">
-                            <div className={`w-6 h-6 rounded-full mx-auto mb-2 ${getPriorityColor(opcao.value)}`}></div>
-                            <div className="font-medium text-gray-800">{getPriorityName(opcao.value)}</div>
-                            <div className="text-sm text-gray-500">
-                              {opcao.value === 'vermelho' && 'Emergência'}
-                              {opcao.value === 'laranja' && 'Muito Urgente'}
-                              {opcao.value === 'amarelo' && 'Urgente'}
-                              {opcao.value === 'verde' && 'Pouco Urgente'}
-                              {opcao.value === 'azul' && 'Não Urgente'}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </Panel>
-
                   {/* Queixa Principal */}
                   <Panel header="Queixa Principal" className="shadow-sm">
                     <InputTextarea
@@ -545,6 +583,35 @@ const TelaTriagem = () => {
                     />
                   </Panel>
 
+                  {/* Classificação de Prioridade */}
+                  <Panel header="Classificação de Prioridade (Manchester)" className="shadow-sm">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      {opcoesCorTriagem.map((opcao) => (
+                        <div
+                          key={opcao.value}
+                          className={`cursor-pointer border-2 rounded-lg p-4 transition-all ${
+                            triageData.corTriagem === opcao.value
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          onClick={() => setTriageData({...triageData, corTriagem: opcao.value})}
+                        >
+                          <div className="text-center">
+                            <div className={`w-6 h-6 rounded-full mx-auto mb-2 ${getPriorityColor(opcao.value)}`}></div>
+                            <div className="font-medium text-gray-800">{getPriorityName(opcao.value)}</div>
+                            <div className="text-sm text-gray-500">
+                              {opcao.value === 'vermelho' && 'Emergência'}
+                              {opcao.value === 'laranja' && 'Muito Urgente'}
+                              {opcao.value === 'amarelo' && 'Urgente'}
+                              {opcao.value === 'verde' && 'Pouco Urgente'}
+                              {opcao.value === 'azul' && 'Não Urgente'}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Panel>
+
                   {/* Botões de Ação */}
                   <Divider />
                   <div className="flex justify-end gap-4 pt-2">
@@ -586,6 +653,85 @@ const TelaTriagem = () => {
           </div>
         </div>
       </div>
+      <Dialog
+        header="Triagem Realizada"
+        visible={showSuccessModal}
+        style={{ width: '400px', maxWidth: '95vw' }}
+        onHide={() => {
+          setShowSuccessModal(false);
+          setShowTriageForm(false);
+          setTriageData({
+            corTriagem: 'verde',
+            queixaPrincipal: '',
+            nivelDor: 0,
+            nivelConsciencia: 'Alerta',
+            sinaisVitais: {
+              pressaoArterial: '',
+              temperatura: '',
+              frequenciaCardiaca: '',
+              saturacaoOxigenio: '',
+              frequenciaRespiratoria: '',
+              peso: ''
+            },
+            observacoesTriagem: ''
+          });
+          setShowEtiquetaModal(true);
+        }}
+        modal
+        closable={false}
+        footer={<Button label="Fechar" onClick={() => {
+          setShowSuccessModal(false);
+          setShowTriageForm(false);
+          setTriageData({
+            corTriagem: 'verde',
+            queixaPrincipal: '',
+            nivelDor: 0,
+            nivelConsciencia: 'Alerta',
+            sinaisVitais: {
+              pressaoArterial: '',
+              temperatura: '',
+              frequenciaCardiaca: '',
+              saturacaoOxigenio: '',
+              frequenciaRespiratoria: '',
+              peso: ''
+            },
+            observacoesTriagem: ''
+          });
+          setShowEtiquetaModal(true);
+        }} className="!bg-blue-500 !text-white !border-0 px-4 py-2 rounded-lg font-semibold hover:!bg-blue-600" />}
+      >
+        <div className="text-center p-4">
+          <i className="pi pi-check-circle text-5xl text-green-500 mb-4"></i>
+          <div className="text-lg font-semibold mb-2">Triagem realizada</div>
+          <div className="text-gray-700">Paciente encaminhado à fila médica.</div>
+        </div>
+      </Dialog>
+      <Dialog
+        header="Imprimir Etiqueta de Identificação"
+        visible={showEtiquetaModal}
+        style={{ width: '350px', maxWidth: '95vw' }}
+        onHide={() => setShowEtiquetaModal(false)}
+        modal
+        closable={false}
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button label="Fechar" onClick={() => setShowEtiquetaModal(false)} className="!bg-gray-100 !text-gray-700 !border-0 px-4 py-2 rounded-lg font-semibold hover:!bg-red-500 hover:!text-white" />
+            <Button label="Imprimir Etiqueta" onClick={printEtiqueta} className="!bg-green-600 !text-white !border-0 px-4 py-2 rounded-lg font-semibold hover:!bg-green-700" />
+          </div>
+        }
+      >
+        {pacienteEtiqueta && (
+          <div id="etiqueta-pulseira" className="border rounded bg-white" style={{maxWidth: 280, margin: 0, padding: '10px 12px', textAlign: 'left'}}>
+            <div className="titulo" style={{fontWeight: 'bold', fontSize: 15, marginBottom: 6, textAlign: 'left'}}>Identificação do Paciente</div>
+            <div className="linha" style={{fontSize: 13, marginBottom: 2, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}><b>Nome:</b> {pacienteEtiqueta.nome}</div>
+            <div className="linha" style={{fontSize: 13, marginBottom: 2, textAlign: 'left'}}><b>Idade:</b> {calcularIdade(pacienteEtiqueta.dataNascimento)} anos</div>
+            <div className="linha" style={{fontSize: 13, marginBottom: 2, textAlign: 'left'}}><b>Sexo:</b> {pacienteEtiqueta.sexo === 'M' ? 'Masculino' : pacienteEtiqueta.sexo === 'F' ? 'Feminino' : 'Outro'}</div>
+            <div className="linha" style={{fontSize: 13, marginBottom: 2, textAlign: 'left'}}><b>Prontuário:</b> {pacienteEtiqueta.numeroProntuario}</div>
+            <div className="linha" style={{fontSize: 13, marginBottom: 2, textAlign: 'left'}}><b>Convênio:</b> {pacienteEtiqueta.convenio}</div>
+            <div className="data" style={{fontSize: 10, marginTop: 4, textAlign: 'left'}}>{pacienteEtiqueta.dataHora}</div>
+          </div>
+        )}
+      </Dialog>
     </div>
   );
 };
