@@ -486,8 +486,18 @@ const TelaCadastro = () => {
             </Button>
           </div>
         </form>
-        {/* Modal da Ficha do Paciente permanece igual */}
-        <Dialog header={null} visible={showModal} style={{ width: '100%', maxWidth: 500 }} modal onHide={() => setShowModal(false)} className="p-0" closable={false} dismissableMask={false} closeOnEscape={false}>
+        {/* Modal da Ficha do Paciente */}
+        <Dialog 
+          header={null} 
+          visible={showModal} 
+          style={{ width: '100%', maxWidth: 500 }} 
+          modal 
+          onHide={() => setShowModal(false)} 
+          className="p-0" 
+          closable={true}
+          dismissableMask={true}
+          closeOnEscape={true}
+        >
           {pacienteCadastrado && (
             <div className="p-0" ref={printRef}>
               {/* Cabeçalho do modal */}
@@ -498,58 +508,19 @@ const TelaCadastro = () => {
               </div>
               {/* Corpo do modal */}
               <div className="space-y-2 text-base">
-                <div className="flex justify-between text-gray-500">
-                  <span>Prontuário:</span>
-                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.numeroProntuario}</span>
-                </div>
-                <div className="flex justify-between text-gray-500">
-                  <span>ID:</span>
-                  <span className="font-semibold text-neutral-800">#{pacienteCadastrado.id}</span>
-                </div>
-                <div className="flex justify-between text-gray-500">
-                  <span>Nome:</span>
-                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.nome}</span>
-                </div>
-                <div className="flex justify-between text-gray-500">
-                  <span>CPF:</span>
-                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.cpf}</span>
-                </div>
-                <div className="flex justify-between text-gray-500">
-                  <span>Data Nasc.:</span>
-                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.dataNascimento}</span>
-                </div>
-                <div className="flex justify-between text-gray-500">
-                  <span>Sexo:</span>
-                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.sexo === 'M' ? 'Masculino' : pacienteCadastrado.sexo === 'F' ? 'Feminino' : 'Outro'}</span>
-                </div>
-                <div className="flex justify-between text-gray-500">
-                  <span>Telefone:</span>
-                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.telefone}</span>
-                </div>
-                <div className="flex justify-between text-gray-500">
-                  <span>Convênio:</span>
-                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.convenio}</span>
-                </div>
-                <div className="flex justify-between text-gray-500">
-                  <span>Hora Cadastro:</span>
-                  <span className="font-semibold text-neutral-800">{new Date(pacienteCadastrado.horaCadastro).toLocaleTimeString("pt-BR")}</span>
-                </div>
-                <div className="flex justify-between text-gray-500">
-                  <span>RG:</span>
-                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.rg}</span>
-                </div>
-                <div className="flex justify-between text-gray-500">
-                  <span>Nome da Mãe:</span>
-                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.nomeMae}</span>
-                </div>
-                <div className="flex justify-between text-gray-500">
-                  <span>Endereço:</span>
-                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.endereco}</span>
-                </div>
-                <div className="flex justify-between text-gray-500">
-                  <span>Contato Emergência:</span>
-                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.contatoEmergencia}</span>
-                </div>
+                <div className="text-gray-500"><span>Prontuário:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.numeroProntuario}</span></div>
+                <div className="text-gray-500"><span>ID:</span><span className="font-semibold text-neutral-800">#{pacienteCadastrado.id}</span></div>
+                <div className="text-gray-500"><span>Nome:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.nome}</span></div>
+                <div className="text-gray-500"><span>CPF:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.cpf}</span></div>
+                <div className="text-gray-500"><span>Data Nasc.:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.dataNascimento}</span></div>
+                <div className="text-gray-500"><span>Sexo:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.sexo === 'M' ? 'Masculino' : pacienteCadastrado.sexo === 'F' ? 'Feminino' : 'Outro'}</span></div>
+                <div className="text-gray-500"><span>Telefone:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.telefone}</span></div>
+                <div className="text-gray-500"><span>Convênio:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.convenio}</span></div>
+                <div className="text-gray-500"><span>Hora Cadastro:</span><span className="font-semibold text-neutral-800">{new Date(pacienteCadastrado.horaCadastro).toLocaleTimeString("pt-BR")}</span></div>
+                <div className="text-gray-500"><span>RG:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.rg}</span></div>
+                <div className="text-gray-500"><span>Nome da Mãe:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.nomeMae}</span></div>
+                <div className="text-gray-500"><span>Endereço:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.endereco}</span></div>
+                <div className="text-gray-500"><span>Contato Emergência:</span><span className="font-semibold text-neutral-800">{pacienteCadastrado.contatoEmergencia}</span></div>
                 <div className="flex flex-col mt-2">
                   <span className="text-gray-500 mb-1">Motivo da Visita:</span>
                   <span className="bg-gray-50 rounded p-2 text-neutral-800 text-sm border border-gray-100">{pacienteCadastrado.motivoVisita}</span>

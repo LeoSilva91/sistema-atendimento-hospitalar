@@ -2,6 +2,42 @@ import React, { useState, useEffect } from "react";
 import { useSistemaAtendimento } from "../context/HospitalContext";
 import { useToast } from "../context/ToastProvider";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { InputText } from "primereact/inputtext";
+import { InputTextarea } from "primereact/inputtextarea";
+import { Dropdown } from "primereact/dropdown";
+import { Button } from "primereact/button";
+import { Card } from "primereact/card";
+import { Divider } from "primereact/divider";
+import { Tag } from "primereact/tag";
+import { PrimeIcons } from "primereact/api";
+import { Slider } from "primereact/slider";
+import { Panel } from "primereact/panel";
+
+// Função utilitária para calcular idade a partir de string (dd/mm/yyyy ou ISO)
+function calcularIdade(dataNascimento) {
+  if (!dataNascimento) return '';
+  let partes;
+  let dataNasc;
+  if (typeof dataNascimento === 'string' && dataNascimento.includes('/')) {
+    // Formato brasileiro dd/mm/yyyy
+    partes = dataNascimento.split('/');
+    if (partes.length === 3) {
+      // new Date(ano, mes-1, dia)
+      dataNasc = new Date(parseInt(partes[2]), parseInt(partes[1]) - 1, parseInt(partes[0]));
+    }
+  } else {
+    // ISO ou Date
+    dataNasc = new Date(dataNascimento);
+  }
+  if (!dataNasc || isNaN(dataNasc.getTime())) return '';
+  const hoje = new Date();
+  let idade = hoje.getFullYear() - dataNasc.getFullYear();
+  const m = hoje.getMonth() - dataNasc.getMonth();
+  if (m < 0 || (m === 0 && hoje.getDate() < dataNasc.getDate())) {
+    idade--;
+  }
+  return idade;
+}
 
 const TelaTriagem = () => {
   const { 
@@ -44,6 +80,22 @@ const TelaTriagem = () => {
   }, [currentUser, showError]);
 
   const pacientesAguardandoTriagem = obterPacientesAguardandoTriagem;
+
+  // Opções para dropdowns
+  const opcoesNivelConsciencia = [
+    { value: 'Alerta', label: 'Alerta' },
+    { value: 'Sonolento', label: 'Sonolento' },
+    { value: 'Confuso', label: 'Confuso' },
+    { value: 'Inconsciente', label: 'Inconsciente' }
+  ];
+
+  const opcoesCorTriagem = [
+    { value: 'vermelho', label: '🔴 VERMELHO - Emergência', severity: 'danger' },
+    { value: 'laranja', label: '🟠 LARANJA - Muito Urgente', severity: 'warning' },
+    { value: 'amarelo', label: '🟡 AMARELO - Urgente', severity: 'warning' },
+    { value: 'verde', label: '🟢 VERDE - Pouco Urgente', severity: 'success' },
+    { value: 'azul', label: '🔵 AZUL - Não Urgente', severity: 'info' }
+  ];
 
   const handleCallNextPatient = () => {
     const result = chamarProximoPacienteTriagem();
@@ -120,52 +172,73 @@ const TelaTriagem = () => {
     return `${mins}min`;
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setTriageData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleDropdownChange = (e, fieldName) => {
+    setTriageData(prev => ({
+      ...prev,
+      [fieldName]: e.value
+    }));
+  };
+
+  const handleSinaisVitaisChange = (field, value) => {
+    setTriageData(prev => ({
+      ...prev,
+      sinaisVitais: {
+        ...prev.sinaisVitais,
+        [field]: value
+      }
+    }));
+  };
+
   if (!currentUser || (currentUser.tipo !== 'enfermeiro' && currentUser.tipo !== 'recepcionista' && currentUser.tipo !== 'admin')) {
     return <LoadingSpinner />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-4 pt-2">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">Tela de Triagem</h1>
-              <p className="text-gray-600 mt-2">
-                {currentUser.nome} - {currentUser.tipo === 'enfermeiro' ? 'Enfermeiro' : 'Recepcionista'}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-500">
-                {new Date().toLocaleDateString('pt-BR')}
-              </p>
-              <p className="text-sm text-gray-500">
-                {new Date().toLocaleTimeString('pt-BR')}
-              </p>
-            </div>
+        {/* Header minimalista */}
+        <div className="mb-4">
+          <h1 className="text-3xl font-bold text-gray-800">Tela de Triagem</h1>
+          <div className="flex items-center text-gray-500 text-sm mt-1">
+            <i className="pi pi-user mr-2" />
+            {currentUser?.nome} - {currentUser.tipo === 'enfermeiro' ? 'Enfermeiro' : 'Recepcionista'}
+            <span className="ml-auto">{new Date().toLocaleDateString('pt-BR')} {new Date().toLocaleTimeString('pt-BR')}</span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Lista de Pacientes Aguardando Triagem */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <Card className="shadow-md">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold text-gray-800">
                   Aguardando Triagem ({pacientesAguardandoTriagem.length})
                 </h2>
-                <button
-                  onClick={handleCallNextPatient}
+                <Button
+                  icon={PrimeIcons.USER_PLUS}
+                  label="Chamar Próximo"
                   disabled={pacientesAguardandoTriagem.length === 0}
-                  className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
-                >
-                  Chamar Próximo
-                </button>
+                  onClick={handleCallNextPatient}
+                  className="bg-blue-600 hover:bg-blue-700 border-0 text-white"
+                  pt={{
+                    root: { 
+                      className: 'bg-blue-600 hover:bg-blue-700 border-0 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-gray-400' 
+                    }
+                  }}
+                />
               </div>
               
               {pacientesAguardandoTriagem.length === 0 ? (
                 <div className="text-center py-8">
+                  <i className={`${PrimeIcons.USERS} text-4xl text-gray-300 mb-4`}></i>
                   <p className="text-gray-500">Nenhum paciente aguardando triagem</p>
                 </div>
               ) : (
@@ -173,334 +246,334 @@ const TelaTriagem = () => {
                   {pacientesAguardandoTriagem.map((patient, index) => (
                     <div
                       key={patient.id}
-                      className={`p-4 border rounded-lg ${
+                      className={`p-4 border rounded-lg transition-colors min-w-[320px] w-full max-w-lg ${
                         pacienteAtualTriagem?.id === patient.id
                           ? 'border-blue-500 bg-blue-50'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="bg-blue-500 text-white font-bold text-lg px-3 py-1 rounded-full">
-                            #{index + 1}
+                      <div className="flex items-start min-w-0">
+                        <div className="bg-blue-500 text-white font-bold text-lg px-3 py-1 rounded-full flex-shrink-0 mt-1">#{index + 1}</div>
+                        <div className="ml-4 flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between min-w-0">
+                            <h3 className="font-medium text-gray-800 text-base sm:text-lg min-w-0" style={{display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis'}}>{patient.nome}</h3>
+                            <div className="text-xs text-gray-500 whitespace-nowrap sm:ml-4 mt-1 sm:mt-0 text-right">
+                              Aguardando há {obterTempoEspera(patient.horaCadastro)}
+                            </div>
                           </div>
-                          <div>
-                            <h3 className="font-medium text-gray-800">{patient.nome}</h3>
-                            <p className="text-sm text-gray-500">
-                              {patient.idade} anos • {patient.sexo === 'M' ? 'M' : patient.sexo === 'F' ? 'F' : 'O'}
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              Prontuário: {patient.numeroProntuario}
-                            </p>
+                          <div className="flex items-center text-sm text-gray-500 space-x-2 mt-1">
+                            <span>{calcularIdade(patient.dataNascimento)} anos</span>
+                            <span>•</span>
+                            <span>{patient.sexo === 'M' ? 'M' : patient.sexo === 'F' ? 'F' : 'O'}</span>
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-gray-500">
-                            Aguardando há {obterTempoEspera(patient.horaCadastro)}
-                          </p>
+                          <p className="text-xs text-gray-400 mt-0.5">Prontuário: {patient.numeroProntuario}</p>
                         </div>
                       </div>
                       <div className="mt-2">
-                        <p className="text-sm text-gray-600">
-                          <strong>Motivo:</strong> {patient.motivoVisita}
-                        </p>
+                        <span className="font-semibold text-gray-700">Motivo:</span>
+                        <span className="ml-1 text-gray-800">{patient.motivoVisita}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
-            </div>
+            </Card>
           </div>
 
           {/* Área de Triagem */}
           <div className="lg:col-span-2">
             {showTriageForm && pacienteAtualTriagem ? (
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <Card className="shadow-md">
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <h2 className="text-2xl font-bold text-gray-800">
                       Triagem: {pacienteAtualTriagem.nome}
                     </h2>
                     <p className="text-gray-600">
-                      {pacienteAtualTriagem.idade} anos • {pacienteAtualTriagem.sexo === 'M' ? 'Masculino' : pacienteAtualTriagem.sexo === 'F' ? 'Feminino' : 'Outro'}
+                      {/* Corrigir exibição da idade */}
+                      {calcularIdade(pacienteAtualTriagem.dataNascimento)} anos • {pacienteAtualTriagem.sexo === 'M' ? 'Masculino' : pacienteAtualTriagem.sexo === 'F' ? 'Feminino' : 'Outro'}
                     </p>
                     <p className="text-sm text-gray-500">
                       Prontuário: {pacienteAtualTriagem.numeroProntuario}
                     </p>
                   </div>
-                  <button
+                  <Button
+                    icon={PrimeIcons.TIMES}
+                    label="Cancelar"
+                    outlined
                     onClick={() => setShowTriageForm(false)}
-                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Cancelar
-                  </button>
+                    className="!bg-gray-100 !text-gray-700 !border-0 px-6 py-2 rounded-lg font-semibold transition-colors hover:!bg-red-500 hover:!text-white"
+                    pt={{
+                      root: { className: '!bg-gray-100 !text-gray-700 !border-0 px-6 py-2 rounded-lg font-semibold transition-colors hover:!bg-red-500 hover:!text-white' }
+                    }}
+                  />
                 </div>
 
                 {/* Informações do Paciente */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-2">Dados Pessoais</h3>
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <p><strong>Nome:</strong> {pacienteAtualTriagem.nome}</p>
-                      <p><strong>Idade:</strong> {pacienteAtualTriagem.idade} anos</p>
-                      <p><strong>Sexo:</strong> {pacienteAtualTriagem.sexo === 'M' ? 'Masculino' : pacienteAtualTriagem.sexo === 'F' ? 'Feminino' : 'Outro'}</p>
-                      <p><strong>Telefone:</strong> {pacienteAtualTriagem.telefone}</p>
-                      <p><strong>Endereço:</strong> {pacienteAtualTriagem.endereco}</p>
-                      <p><strong>Contato Emergência:</strong> {pacienteAtualTriagem.contatoEmergencia}</p>
+                  <Panel header="Dados Pessoais" className="shadow-sm">
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <span className="text-gray-500">Nome:</span><span className="font-semibold text-gray-800">{pacienteAtualTriagem.nome}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Idade:</span><span className="font-semibold text-gray-800">{calcularIdade(pacienteAtualTriagem.dataNascimento)} anos</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Sexo:</span><span className="font-semibold text-gray-800">{pacienteAtualTriagem.sexo === 'M' ? 'Masculino' : pacienteAtualTriagem.sexo === 'F' ? 'Feminino' : 'Outro'}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Telefone:</span><span className="font-semibold text-gray-800">{pacienteAtualTriagem.telefone}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Endereço:</span><span className="font-semibold text-gray-800">{pacienteAtualTriagem.endereco}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Contato Emergência:</span><span className="font-semibold text-gray-800">{pacienteAtualTriagem.contatoEmergencia}</span>
+                      </div>
                     </div>
-                  </div>
+                  </Panel>
                   
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-2">Motivo da Visita</h3>
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <p><strong>Queixa Principal:</strong></p>
-                      <p className="text-gray-700">{pacienteAtualTriagem.motivoVisita}</p>
-                      <p className="text-sm text-gray-500 mt-2">
-                        <strong>Chegada:</strong> {new Date(pacienteAtualTriagem.horaCadastro).toLocaleString('pt-BR')}
-                      </p>
+                  <Panel header="Motivo da Visita" className="shadow-sm">
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <span className="text-gray-500 font-medium">Queixa Principal:</span>
+                        <p className="text-gray-700 mt-1">{pacienteAtualTriagem.motivoVisita}</p>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Chegada:</span>
+                        <span className="font-semibold text-gray-800">
+                          {new Date(pacienteAtualTriagem.horaCadastro).toLocaleString('pt-BR')}
+                        </span>
+                      </div>
                       {pacienteAtualTriagem.sintomas && pacienteAtualTriagem.sintomas.length > 0 && (
-                        <div className="mt-2">
-                          <p className="text-sm text-gray-600"><strong>Sintomas:</strong></p>
-                          <p className="text-sm text-gray-700">{pacienteAtualTriagem.sintomas.join(', ')}</p>
+                        <div>
+                          <span className="text-gray-500 font-medium">Sintomas:</span>
+                          <p className="text-gray-700 mt-1">{pacienteAtualTriagem.sintomas.join(', ')}</p>
                         </div>
                       )}
                     </div>
-                  </div>
+                  </Panel>
                 </div>
 
                 {/* Formulário de Triagem */}
                 <div className="space-y-6">
                   {/* Classificação de Prioridade */}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                      Classificação de Prioridade (Manchester)
-                    </h3>
+                  <Panel header="Classificação de Prioridade (Manchester)" className="shadow-sm">
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                      {['vermelho', 'laranja', 'amarelo', 'verde', 'azul'].map((cor) => (
-                        <label
-                          key={cor}
+                      {opcoesCorTriagem.map((opcao) => (
+                        <div
+                          key={opcao.value}
                           className={`cursor-pointer border-2 rounded-lg p-4 transition-all ${
-                            triageData.corTriagem === cor
+                            triageData.corTriagem === opcao.value
                               ? 'border-blue-500 bg-blue-50'
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
+                          onClick={() => setTriageData({...triageData, corTriagem: opcao.value})}
                         >
-                          <input
-                            type="radio"
-                            name="corTriagem"
-                            value={cor}
-                            checked={triageData.corTriagem === cor}
-                            onChange={(e) => setTriageData({...triageData, corTriagem: e.target.value})}
-                            className="sr-only"
-                          />
                           <div className="text-center">
-                            <div className={`w-6 h-6 rounded-full mx-auto mb-2 ${getPriorityColor(cor)}`}></div>
-                            <div className="font-medium text-gray-800">{getPriorityName(cor)}</div>
+                            <div className={`w-6 h-6 rounded-full mx-auto mb-2 ${getPriorityColor(opcao.value)}`}></div>
+                            <div className="font-medium text-gray-800">{getPriorityName(opcao.value)}</div>
                             <div className="text-sm text-gray-500">
-                              {cor === 'vermelho' && 'Emergência'}
-                              {cor === 'laranja' && 'Muito Urgente'}
-                              {cor === 'amarelo' && 'Urgente'}
-                              {cor === 'verde' && 'Pouco Urgente'}
-                              {cor === 'azul' && 'Não Urgente'}
+                              {opcao.value === 'vermelho' && 'Emergência'}
+                              {opcao.value === 'laranja' && 'Muito Urgente'}
+                              {opcao.value === 'amarelo' && 'Urgente'}
+                              {opcao.value === 'verde' && 'Pouco Urgente'}
+                              {opcao.value === 'azul' && 'Não Urgente'}
                             </div>
                           </div>
-                        </label>
+                        </div>
                       ))}
                     </div>
-                  </div>
+                  </Panel>
 
                   {/* Queixa Principal */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Queixa Principal
-                    </label>
-                    <textarea
+                  <Panel header="Queixa Principal" className="shadow-sm">
+                    <InputTextarea
+                      name="queixaPrincipal"
+                      value={triageData.queixaPrincipal}
+                      onChange={handleInputChange}
                       rows="3"
                       placeholder="Descreva a queixa principal do paciente..."
-                      value={triageData.queixaPrincipal}
-                      onChange={(e) => setTriageData({...triageData, queixaPrincipal: e.target.value})}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full"
+                      pt={{
+                        root: { className: 'w-full' }
+                      }}
                     />
-                  </div>
+                  </Panel>
 
                   {/* Avaliação de Dor */}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Avaliação de Dor</h3>
+                  <Panel header="Avaliação de Dor" className="shadow-sm">
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Escala de Dor (0-10)
                         </label>
-                        <input
-                          type="range"
-                          min="0"
-                          max="10"
+                        <Slider
                           value={triageData.nivelDor}
-                          onChange={(e) => setTriageData({...triageData, nivelDor: parseInt(e.target.value)})}
+                          onChange={(e) => setTriageData({...triageData, nivelDor: e.value})}
+                          min={0}
+                          max={10}
+                          step={1}
                           className="w-full"
                         />
-                        <div className="text-center text-sm font-semibold text-red-600">
+                        <div className="text-center text-sm font-semibold text-red-600 mt-2">
                           {triageData.nivelDor}
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </Panel>
 
                   {/* Sinais Vitais */}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                      Sinais Vitais
-                    </h3>
+                  <Panel header="Sinais Vitais" className="shadow-sm">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Pressão Arterial
                         </label>
-                        <input
-                          type="text"
+                        <InputText
                           placeholder="Ex: 120/80"
                           value={triageData.sinaisVitais.pressaoArterial}
-                          onChange={(e) => setTriageData({
-                            ...triageData, 
-                            sinaisVitais: {...triageData.sinaisVitais, pressaoArterial: e.target.value}
-                          })}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          onChange={(e) => handleSinaisVitaisChange('pressaoArterial', e.target.value)}
+                          className="w-full"
+                          pt={{
+                            root: { className: 'w-full' }
+                          }}
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Temperatura
                         </label>
-                        <input
-                          type="text"
+                        <InputText
                           placeholder="Ex: 36.5°C"
                           value={triageData.sinaisVitais.temperatura}
-                          onChange={(e) => setTriageData({
-                            ...triageData, 
-                            sinaisVitais: {...triageData.sinaisVitais, temperatura: e.target.value}
-                          })}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          onChange={(e) => handleSinaisVitaisChange('temperatura', e.target.value)}
+                          className="w-full"
+                          pt={{
+                            root: { className: 'w-full' }
+                          }}
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Frequência Cardíaca
                         </label>
-                        <input
-                          type="text"
+                        <InputText
                           placeholder="Ex: 80 bpm"
                           value={triageData.sinaisVitais.frequenciaCardiaca}
-                          onChange={(e) => setTriageData({
-                            ...triageData, 
-                            sinaisVitais: {...triageData.sinaisVitais, frequenciaCardiaca: e.target.value}
-                          })}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          onChange={(e) => handleSinaisVitaisChange('frequenciaCardiaca', e.target.value)}
+                          className="w-full"
+                          pt={{
+                            root: { className: 'w-full' }
+                          }}
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Saturação O2
                         </label>
-                        <input
-                          type="text"
+                        <InputText
                           placeholder="Ex: 98%"
                           value={triageData.sinaisVitais.saturacaoOxigenio}
-                          onChange={(e) => setTriageData({
-                            ...triageData, 
-                            sinaisVitais: {...triageData.sinaisVitais, saturacaoOxigenio: e.target.value}
-                          })}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          onChange={(e) => handleSinaisVitaisChange('saturacaoOxigenio', e.target.value)}
+                          className="w-full"
+                          pt={{
+                            root: { className: 'w-full' }
+                          }}
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Frequência Respiratória
                         </label>
-                        <input
-                          type="text"
+                        <InputText
                           placeholder="Ex: 16 rpm"
                           value={triageData.sinaisVitais.frequenciaRespiratoria}
-                          onChange={(e) => setTriageData({
-                            ...triageData, 
-                            sinaisVitais: {...triageData.sinaisVitais, frequenciaRespiratoria: e.target.value}
-                          })}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          onChange={(e) => handleSinaisVitaisChange('frequenciaRespiratoria', e.target.value)}
+                          className="w-full"
+                          pt={{
+                            root: { className: 'w-full' }
+                          }}
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Peso
                         </label>
-                        <input
-                          type="text"
+                        <InputText
                           placeholder="Ex: 70 kg"
                           value={triageData.sinaisVitais.peso}
-                          onChange={(e) => setTriageData({
-                            ...triageData, 
-                            sinaisVitais: {...triageData.sinaisVitais, peso: e.target.value}
-                          })}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          onChange={(e) => handleSinaisVitaisChange('peso', e.target.value)}
+                          className="w-full"
+                          pt={{
+                            root: { className: 'w-full' }
+                          }}
                         />
                       </div>
                     </div>
-                  </div>
+                  </Panel>
 
                   {/* Nível de Consciência */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nível de Consciência
-                    </label>
-                    <select
+                  <Panel header="Nível de Consciência" className="shadow-sm">
+                    <Dropdown
                       value={triageData.nivelConsciencia}
-                      onChange={(e) => setTriageData({...triageData, nivelConsciencia: e.target.value})}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="Alerta">Alerta</option>
-                      <option value="Sonolento">Sonolento</option>
-                      <option value="Confuso">Confuso</option>
-                      <option value="Inconsciente">Inconsciente</option>
-                    </select>
-                  </div>
+                      onChange={(e) => handleDropdownChange(e, 'nivelConsciencia')}
+                      options={opcoesNivelConsciencia}
+                      optionLabel="label"
+                      optionValue="value"
+                      placeholder="Selecione o nível de consciência"
+                      className="w-full"
+                      pt={{
+                        root: { className: 'w-full' }
+                      }}
+                    />
+                  </Panel>
 
                   {/* Observações */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Observações da Triagem
-                    </label>
-                    <textarea
+                  <Panel header="Observações da Triagem" className="shadow-sm">
+                    <InputTextarea
+                      name="observacoesTriagem"
+                      value={triageData.observacoesTriagem}
+                      onChange={handleInputChange}
                       rows="4"
                       placeholder="Descreva observações importantes sobre o paciente..."
-                      value={triageData.observacoesTriagem}
-                      onChange={(e) => setTriageData({...triageData, observacoesTriagem: e.target.value})}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full"
+                      pt={{
+                        root: { className: 'w-full' }
+                      }}
                     />
-                  </div>
+                  </Panel>
 
                   {/* Botões de Ação */}
-                  <div className="flex justify-end space-x-4 pt-6 border-t">
-                    <button
+                  <Divider />
+                  <div className="flex justify-end gap-4 pt-2">
+                    <Button
+                      icon={PrimeIcons.TIMES}
+                      label="Cancelar"
+                      outlined
                       onClick={() => setShowTriageForm(false)}
-                      className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                    <button
+                      className="!bg-gray-100 !text-gray-700 !border-0 px-6 py-2 rounded-lg font-semibold transition-colors hover:!bg-red-500 hover:!text-white"
+                      pt={{
+                        root: { className: '!bg-gray-100 !text-gray-700 !border-0 px-6 py-2 rounded-lg font-semibold transition-colors hover:!bg-red-500 hover:!text-white' }
+                      }}
+                    />
+                    <Button
+                      icon={PrimeIcons.CHECK}
+                      label="Finalizar Triagem"
                       onClick={handleSaveTriage}
-                      className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors"
-                    >
-                      Finalizar Triagem
-                    </button>
+                      className="bg-blue-500 hover:bg-blue-600 border-0 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+                      pt={{
+                        root: { className: 'bg-blue-500 hover:bg-blue-600 border-0 text-white px-6 py-2 rounded-lg font-semibold transition-colors' }
+                      }}
+                    />
                   </div>
                 </div>
-              </div>
+              </Card>
             ) : (
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <Card className="shadow-md">
                 <div className="text-center py-12">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
+                  <i className={`${PrimeIcons.FILE_EDIT} text-6xl text-gray-300 mb-4`}></i>
                   <h3 className="text-xl font-semibold text-gray-600 mb-2">
                     Nenhum Paciente em Triagem
                   </h3>
@@ -508,7 +581,7 @@ const TelaTriagem = () => {
                     Clique em "Chamar Próximo" para iniciar a triagem de um paciente
                   </p>
                 </div>
-              </div>
+              </Card>
             )}
           </div>
         </div>
