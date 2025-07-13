@@ -134,12 +134,12 @@ Esta ficha deve ser apresentada no momento da triagem.
   const fichasFiltradas = filtrarFichas();
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-lg">
+    <div className="max-w-7xl mx-auto p-6 min-w-0 overflow-x-auto">
+      <div className="bg-white rounded-lg shadow-lg min-w-0 overflow-x-auto">
         {/* Header */}
-        <div className="bg-blue-600 text-white p-6 rounded-t-lg">
-          <div className="flex justify-between items-center">
-            <div>
+        <div className="bg-blue-600 text-white p-6 rounded-t-lg min-w-0 overflow-x-auto">
+          <div className="flex justify-between items-center min-w-0 overflow-x-auto">
+            <div className="min-w-0">
               <h1 className="text-3xl font-bold">🎫 Emissão de Fichas</h1>
               <p className="text-blue-100 mt-1">
                 Gerenciamento de fichas de atendimento
@@ -148,7 +148,7 @@ Esta ficha deve ser apresentada no momento da triagem.
                 Visualize, imprima e salve as fichas emitidas
               </p>
             </div>
-            <div className="text-right">
+            <div className="text-right shrink-0">
               <div className="bg-blue-500 rounded-lg p-3">
                 <p className="text-sm text-blue-100">Fichas Emitidas</p>
                 <p className="text-2xl font-bold">{fichasEmitidas.length}</p>
@@ -157,8 +157,8 @@ Esta ficha deve ser apresentada no momento da triagem.
           </div>
         </div>
 
-        <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="p-6 min-w-0 overflow-x-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-w-0">
             {/* Lista de Fichas */}
             <div>
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
