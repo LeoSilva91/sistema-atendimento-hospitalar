@@ -1,7 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSistemaAtendimento } from "../context/HospitalContext";
 import { useToast } from "../context/ToastProvider";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { InputText } from "primereact/inputtext";
+import { InputTextarea } from "primereact/inputtextarea";
+import { Dropdown } from "primereact/dropdown";
+
+import { Button } from "primereact/button";
+import { Calendar } from "primereact/calendar";
+import { Card } from "primereact/card";
+import { Divider } from "primereact/divider";
+import { Tag } from "primereact/tag";
+import { PrimeIcons } from "primereact/api";
+import { Dialog } from "primereact/dialog";
 
 const TelaCadastro = () => {
   const { cadastrarPaciente, currentUser } = useSistemaAtendimento();
@@ -13,6 +24,7 @@ const TelaCadastro = () => {
     dataNascimento: '',
     cpf: '',
     rg: '',
+    nomeMae: '',
     sexo: '',
     endereco: '',
     telefone: '',
@@ -23,12 +35,18 @@ const TelaCadastro = () => {
     convenio: 'SUS',
     numeroCarteirinha: '',
     motivoVisita: '',
-    sintomas: []
+    
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pacienteCadastrado, setPacienteCadastrado] = useState(null);
+  const [formTouched, setFormTouched] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const printRef = useRef();
+
+  const [cep, setCep] = useState("");
+  const [isCepLoading, setIsCepLoading] = useState(false);
 
   // Verificar se o usuário está logado e tem acesso
   useEffect(() => {
@@ -42,12 +60,74 @@ const TelaCadastro = () => {
     }
   }, [currentUser, showError]);
 
-  // Sintomas disponíveis para seleção
-  const sintomasDisponiveis = [
-    'Dor no peito', 'Falta de ar', 'Febre alta', 'Dor de cabeça intensa',
-    'Tontura', 'Náusea/Vômito', 'Dor abdominal', 'Sangramento',
-    'Trauma/Queda', 'Convulsão', 'Perda de consciência', 'Outros'
+  
+
+  // Opções para dropdowns
+  const opcoesSexo = [
+    { value: 'M', label: 'Masculino' },
+    { value: 'F', label: 'Feminino' },
+    { value: 'O', label: 'Outro' }
   ];
+
+  const opcoesConvenio = [
+    { value: 'SUS', label: 'SUS' },
+    { value: 'Particular', label: 'Particular' },
+    { value: 'Unimed', label: 'Unimed' },
+    { value: 'Amil', label: 'Amil' },
+    { value: 'SulAmérica', label: 'SulAmérica' },
+    { value: 'Bradesco Saúde', label: 'Bradesco Saúde' },
+    { value: 'Outro', label: 'Outro' }
+  ];
+
+  // Função para classificação automática do motivo da visita
+  const classificarMotivoVisita = (motivoVisita) => {
+    if (!motivoVisita) return 'verde';
+    
+    const motivo = motivoVisita.toLowerCase();
+
+    const motivosVermelhos = [
+      "dor no peito", "infarto", "avc", "acidente vascular cerebral",
+      "parada cardíaca", "convulsão", "desmaio", "sangramento intenso",
+      "trauma craniano", "queimadura grave", "falta de ar",
+      "dificuldade para respirar", "choque", "perda de consciência",
+      "fratura exposta", "hemorragia", "emergência", "urgente", "grave"
+    ];
+
+    const motivosAmarelos = [
+      "febre alta", "vômito", "diarreia", "dor abdominal", "fratura",
+      "luxação", "corte profundo", "queimadura", "intoxicação", "alergia",
+      "asma", "hipertensão", "diabetes descompensada", "dor de cabeça intensa",
+      "tontura", "vertigem", "nausea", "moderado", "médio"
+    ];
+
+    for (const palavra of motivosVermelhos) {
+      if (motivo.includes(palavra)) return "vermelho";
+    }
+
+    for (const palavra of motivosAmarelos) {
+      if (motivo.includes(palavra)) return "amarelo";
+    }
+
+    return "verde";
+  };
+
+  const obterNomePrioridade = (prioridade) => {
+    const nomes = {
+      vermelho: "🔴 VERMELHO - Urgente (Atendimento Imediato)",
+      amarelo: "🟡 AMARELO - Moderado (Espera Média)",
+      verde: "🟢 VERDE - Leve (Pode Esperar)",
+    };
+    return nomes[prioridade] || "⚪ Não Classificado";
+  };
+
+  const getTagSeverity = (prioridade) => {
+    switch (prioridade) {
+      case 'vermelho': return 'danger';
+      case 'amarelo': return 'warning';
+      case 'verde': return 'success';
+      default: return 'info';
+    }
+  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -78,6 +158,18 @@ const TelaCadastro = () => {
       newErrors.cpf = 'CPF deve estar no formato 000.000.000-00';
     }
 
+    // Validação do RG (obrigatório)
+    if (!formData.rg.trim()) {
+      newErrors.rg = 'RG é obrigatório';
+    }
+
+    // Validação do nome da mãe (obrigatório)
+    if (!formData.nomeMae.trim()) {
+      newErrors.nomeMae = 'Nome da mãe é obrigatório';
+    } else if (formData.nomeMae.trim().length < 3) {
+      newErrors.nomeMae = 'Nome da mãe deve ter pelo menos 3 caracteres';
+    }
+
     // Validação do sexo (obrigatório)
     if (!formData.sexo) {
       newErrors.sexo = 'Sexo é obrigatório';
@@ -98,13 +190,15 @@ const TelaCadastro = () => {
     // Validação do contato de emergência (obrigatório)
     if (!formData.contatoEmergencia.trim()) {
       newErrors.contatoEmergencia = 'Contato de emergência é obrigatório';
+    } else if (!/^\(\d{2}\) \d{5}-\d{4}$/.test(formData.contatoEmergencia)) {
+      newErrors.contatoEmergencia = 'Telefone deve estar no formato (00) 00000-0000';
     }
 
     // Validação do motivo da visita (obrigatório)
     if (!formData.motivoVisita.trim()) {
       newErrors.motivoVisita = 'Motivo da visita é obrigatório';
-    } else if (formData.motivoVisita.trim().length < 10) {
-      newErrors.motivoVisita = 'Motivo da visita deve ter pelo menos 10 caracteres';
+    } else if (formData.motivoVisita.trim().length < 3) {
+      newErrors.motivoVisita = 'Motivo da visita deve ter pelo menos 3 caracteres';
     }
 
     setErrors(newErrors);
@@ -125,16 +219,34 @@ const TelaCadastro = () => {
         [name]: ''
       }));
     }
+
+    // Marcar formulário como tocado
+    if (!formTouched) {
+      setFormTouched(true);
+    }
   };
 
-  const handleSintomaChange = (sintoma) => {
+  const handleDropdownChange = (e, fieldName) => {
     setFormData(prev => ({
       ...prev,
-      sintomas: prev.sintomas.includes(sintoma)
-        ? prev.sintomas.filter(s => s !== sintoma)
-        : [...prev.sintomas, sintoma]
+      [fieldName]: e.value
     }));
+    
+    // Limpar erro do campo
+    if (errors[fieldName]) {
+      setErrors(prev => ({
+        ...prev,
+        [fieldName]: ''
+      }));
+    }
+
+    // Marcar formulário como tocado
+    if (!formTouched) {
+      setFormTouched(true);
+    }
   };
+
+
 
   const formatCPF = (value) => {
     const v = value.replace(/\D/g, '');
@@ -144,6 +256,31 @@ const TelaCadastro = () => {
   const formatPhone = (value) => {
     const v = value.replace(/\D/g, '');
     return v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  };
+
+  // Função para buscar endereço pelo CEP usando ViaCEP
+  const buscarEnderecoPorCep = async () => {
+    const cepLimpo = cep.replace(/\D/g, "");
+    if (cepLimpo.length !== 8) {
+      showError("CEP deve ter 8 dígitos.");
+      return;
+    }
+    setIsCepLoading(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      const data = await response.json();
+      if (data.erro) {
+        showError("CEP não encontrado.");
+      } else {
+        // Montar endereço completo
+        const enderecoCompleto = `${data.logradouro || ''}${data.logradouro && data.bairro ? ', ' : ''}${data.bairro || ''}${data.localidade ? ' - ' + data.localidade : ''}${data.uf ? '/' + data.uf : ''}`;
+        setFormData(prev => ({ ...prev, endereco: enderecoCompleto }));
+      }
+    } catch (e) {
+      showError("Erro ao buscar CEP.");
+    } finally {
+      setIsCepLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -172,6 +309,7 @@ const TelaCadastro = () => {
       
       // Mostrar ficha do paciente
       setPacienteCadastrado(novoPaciente);
+      setShowModal(true);
       
       // Limpar formulário
       setFormData({
@@ -179,6 +317,7 @@ const TelaCadastro = () => {
         dataNascimento: '',
         cpf: '',
         rg: '',
+        nomeMae: '',
         sexo: '',
         endereco: '',
         telefone: '',
@@ -187,9 +326,10 @@ const TelaCadastro = () => {
         convenio: 'SUS',
         numeroCarteirinha: '',
         motivoVisita: '',
-        sintomas: []
+
       });
       setErrors({});
+      setFormTouched(false);
       
       // Esconder ficha após 8 segundos
       setTimeout(() => {
@@ -203,448 +343,226 @@ const TelaCadastro = () => {
     }
   };
 
+  // Função para imprimir apenas o conteúdo do modal
+  const handlePrint = () => {
+    if (!printRef.current) return;
+    const printContents = printRef.current.innerHTML;
+    const printWindow = window.open('', '', 'width=800,height=600');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Ficha do Paciente</title>
+          <link rel="stylesheet" href="/styles/index_clean.css" />
+        </head>
+        <body style="margin:0; padding:24px; font-family:sans-serif;">
+          ${printContents}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  };
+
   if (!currentUser || (currentUser.tipo !== 'recepcionista' && currentUser.tipo !== 'admin')) {
     return <LoadingSpinner />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex justify-between items-center">
+    <div className="min-h-screen bg-gray-50 p-4 pt-2">
+      <div className="max-w-3xl mx-auto">
+        {/* Header minimalista */}
+        <div className="mb-4">
+          <h1 className="text-3xl font-bold text-gray-800">Dados do Paciente</h1>
+          <div className="flex items-center text-gray-500 text-sm mt-1">
+            <i className="pi pi-user mr-2" />
+            {currentUser?.nome} - Recepcionista
+            <span className="ml-auto">{new Date().toLocaleDateString('pt-BR')} {new Date().toLocaleTimeString('pt-BR')}</span>
+          </div>
+        </div>
+        {/* Formulário minimalista */}
+        <form onSubmit={handleSubmit} className="space-y-8 bg-white shadow-sm rounded-xl p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">Cadastro de Pacientes</h1>
-              <p className="text-gray-600 mt-2">
-                {currentUser.nome} - Recepcionista
-              </p>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo *</label>
+              <InputText name="nome" value={formData.nome} onChange={handleInputChange} className={`w-full ${errors.nome ? 'p-invalid' : ''}`} placeholder="Digite o nome completo" />
+              {errors.nome && <small className="p-error">{errors.nome}</small>}
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-500">
-                {new Date().toLocaleDateString('pt-BR')}
-              </p>
-              <p className="text-sm text-gray-500">
-                {new Date().toLocaleTimeString('pt-BR')}
-              </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento *</label>
+              <InputText name="dataNascimento" value={formData.dataNascimento} onChange={handleInputChange} className={`w-full ${errors.dataNascimento ? 'p-invalid' : ''}`} placeholder="dd/mm/aaaa" />
+              {errors.dataNascimento && <small className="p-error">{errors.dataNascimento}</small>}
             </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Formulário de Cadastro */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6">
-                Dados do Paciente
-              </h2>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Dados Pessoais */}
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-blue-800 mb-4">👤 Dados Pessoais</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nome Completo *
-                      </label>
-                      <input
-                        type="text"
-                        name="nome"
-                        value={formData.nome}
-                        onChange={handleInputChange}
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.nome ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                        placeholder="Digite o nome completo"
-                      />
-                      {errors.nome && <p className="text-red-500 text-sm mt-1">{errors.nome}</p>}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Data de Nascimento *
-                      </label>
-                      <input
-                        type="date"
-                        name="dataNascimento"
-                        value={formData.dataNascimento}
-                        onChange={handleInputChange}
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.dataNascimento ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                      />
-                      {errors.dataNascimento && <p className="text-red-500 text-sm mt-1">{errors.dataNascimento}</p>}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        CPF *
-                      </label>
-                      <input
-                        type="text"
-                        name="cpf"
-                        value={formData.cpf}
-                        onChange={(e) => {
-                          const formatted = formatCPF(e.target.value);
-                          setFormData(prev => ({ ...prev, cpf: formatted }));
-                          if (errors.cpf) {
-                            setErrors(prev => ({ ...prev, cpf: '' }));
-                          }
-                        }}
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.cpf ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                        placeholder="000.000.000-00"
-                        maxLength="14"
-                      />
-                      {errors.cpf && <p className="text-red-500 text-sm mt-1">{errors.cpf}</p>}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        RG
-                      </label>
-                      <input
-                        type="text"
-                        name="rg"
-                        value={formData.rg}
-                        onChange={handleInputChange}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="00.000.000-0"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Sexo *
-                      </label>
-                      <select
-                        name="sexo"
-                        value={formData.sexo}
-                        onChange={handleInputChange}
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.sexo ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                      >
-                        <option value="">Selecione o sexo</option>
-                        <option value="M">Masculino</option>
-                        <option value="F">Feminino</option>
-                        <option value="O">Outro</option>
-                      </select>
-                      {errors.sexo && <p className="text-red-500 text-sm mt-1">{errors.sexo}</p>}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contato */}
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-green-800 mb-4">📞 Contato</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Telefone *
-                      </label>
-                      <input
-                        type="text"
-                        name="telefone"
-                        value={formData.telefone}
-                        onChange={(e) => {
-                          const formatted = formatPhone(e.target.value);
-                          setFormData(prev => ({ ...prev, telefone: formatted }));
-                          if (errors.telefone) {
-                            setErrors(prev => ({ ...prev, telefone: '' }));
-                          }
-                        }}
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.telefone ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                        placeholder="(00) 00000-0000"
-                        maxLength="15"
-                      />
-                      {errors.telefone && <p className="text-red-500 text-sm mt-1">{errors.telefone}</p>}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        E-mail
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="email@exemplo.com"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Endereço Completo *
-                      </label>
-                      <input
-                        type="text"
-                        name="endereco"
-                        value={formData.endereco}
-                        onChange={handleInputChange}
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.endereco ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                        placeholder="Rua, número, bairro, cidade - CEP"
-                      />
-                      {errors.endereco && <p className="text-red-500 text-sm mt-1">{errors.endereco}</p>}
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Contato de Emergência *
-                      </label>
-                      <input
-                        type="text"
-                        name="contatoEmergencia"
-                        value={formData.contatoEmergencia}
-                        onChange={handleInputChange}
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.contatoEmergencia ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                        placeholder="Nome e telefone do contato de emergência"
-                      />
-                      {errors.contatoEmergencia && <p className="text-red-500 text-sm mt-1">{errors.contatoEmergencia}</p>}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Convênio */}
-                <div className="bg-purple-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-purple-800 mb-4">🏥 Convênio</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Convênio
-                      </label>
-                      <select
-                        name="convenio"
-                        value={formData.convenio}
-                        onChange={handleInputChange}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="SUS">SUS</option>
-                        <option value="Particular">Particular</option>
-                        <option value="Unimed">Unimed</option>
-                        <option value="Amil">Amil</option>
-                        <option value="SulAmérica">SulAmérica</option>
-                        <option value="Bradesco Saúde">Bradesco Saúde</option>
-                        <option value="Outro">Outro</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Número da Carteirinha
-                      </label>
-                      <input
-                        type="text"
-                        name="numeroCarteirinha"
-                        value={formData.numeroCarteirinha}
-                        onChange={handleInputChange}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Número da carteirinha"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Motivo da Visita */}
-                <div className="bg-orange-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-orange-800 mb-4">🚨 Motivo da Visita</h3>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Motivo da Visita *
-                    </label>
-                    <textarea
-                      name="motivoVisita"
-                      value={formData.motivoVisita}
-                      onChange={handleInputChange}
-                      rows="3"
-                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        errors.motivoVisita ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="Descreva o motivo da visita e sintomas principais..."
-                    />
-                    {errors.motivoVisita && <p className="text-red-500 text-sm mt-1">{errors.motivoVisita}</p>}
-                  </div>
-
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Sintomas Apresentados
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {sintomasDisponiveis.map((sintoma) => (
-                        <label key={sintoma} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={formData.sintomas.includes(sintoma)}
-                            onChange={() => handleSintomaChange(sintoma)}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className="text-sm text-gray-700">{sintoma}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Botão de Envio */}
-                <div className="pt-6 border-t">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white py-3 px-6 rounded-lg font-medium transition-colors"
-                  >
-                    {isSubmitting ? (
-                      <div className="flex items-center justify-center">
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Cadastrando...
-                      </div>
-                    ) : (
-                      '✅ Registrar Paciente'
-                    )}
-                  </button>
-                </div>
-              </form>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">CPF *</label>
+              <InputText name="cpf" value={formData.cpf} onChange={(e) => { const formatted = formatCPF(e.target.value); setFormData(prev => ({ ...prev, cpf: formatted })); if (errors.cpf) { setErrors(prev => ({ ...prev, cpf: '' })); } }} className={`w-full ${errors.cpf ? 'p-invalid' : ''}`} placeholder="000.000.000-00" maxLength="14" />
+              {errors.cpf && <small className="p-error">{errors.cpf}</small>}
             </div>
-          </div>
-
-          {/* Ficha do Paciente Cadastrado */}
-          <div className="lg:col-span-1">
-            {pacienteCadastrado ? (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-green-800 mb-2">
-                    ✅ Paciente Cadastrado!
-                  </h3>
-                  <p className="text-green-600">Aguardando triagem do enfermeiro</p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">RG *</label>
+              <InputText name="rg" value={formData.rg} onChange={handleInputChange} className={`w-full ${errors.rg ? 'p-invalid' : ''}`} placeholder="000000000" />
+              {errors.rg && <small className="p-error">{errors.rg}</small>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Mãe *</label>
+              <InputText name="nomeMae" value={formData.nomeMae} onChange={handleInputChange} className={`w-full ${errors.nomeMae ? 'p-invalid' : ''}`} placeholder="Digite o nome completo da mãe" />
+              {errors.nomeMae && <small className="p-error">{errors.nomeMae}</small>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sexo *</label>
+              <Dropdown value={formData.sexo} onChange={(e) => handleDropdownChange(e, 'sexo')} options={opcoesSexo} optionLabel="label" optionValue="value" placeholder="Selecione o sexo" className={`w-full ${errors.sexo ? 'p-invalid' : ''}`} />
+              {errors.sexo && <small className="p-error">{errors.sexo}</small>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Telefone *</label>
+              <InputText name="telefone" value={formData.telefone} onChange={(e) => { const formatted = formatPhone(e.target.value); setFormData(prev => ({ ...prev, telefone: formatted })); if (errors.telefone) { setErrors(prev => ({ ...prev, telefone: '' })); } }} className={`w-full ${errors.telefone ? 'p-invalid' : ''}`} placeholder="(00) 00000-0000" maxLength="15" />
+              {errors.telefone && <small className="p-error">{errors.telefone}</small>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+              <InputText name="email" value={formData.email} onChange={handleInputChange} className="w-full" placeholder="email@exemplo.com" />
+            </div>
+            <div className="md:col-span-2">
+              <div className="flex gap-2 items-end">
+                <div className="flex-[2_2_0%]">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Endereço Completo *</label>
+                  <InputText name="endereco" value={formData.endereco} onChange={handleInputChange} className={`w-full ${errors.endereco ? 'p-invalid' : ''}`} placeholder="Rua, número, bairro, cidade - UF" />
+                  {errors.endereco && <small className="p-error">{errors.endereco}</small>}
                 </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Prontuário:</span>
-                      <span className="font-bold text-gray-800">
-                        {pacienteCadastrado.numeroProntuario}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">ID:</span>
-                      <span className="font-bold text-gray-800">
-                        #{pacienteCadastrado.id}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Nome:</span>
-                      <span className="font-bold text-gray-800">
-                        {pacienteCadastrado.nome}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">CPF:</span>
-                      <span className="font-bold text-gray-800">
-                        {pacienteCadastrado.cpf}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Data Nasc.:</span>
-                      <span className="font-bold text-gray-800">
-                        {pacienteCadastrado.dataNascimento}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Sexo:</span>
-                      <span className="font-bold text-gray-800">
-                        {pacienteCadastrado.sexo === 'M' ? 'Masculino' : pacienteCadastrado.sexo === 'F' ? 'Feminino' : 'Outro'}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Telefone:</span>
-                      <span className="font-bold text-gray-800">
-                        {pacienteCadastrado.telefone}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Convênio:</span>
-                      <span className="font-bold text-gray-800">
-                        {pacienteCadastrado.convenio}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Status:</span>
-                      <span className="rounded-full px-3 py-1 text-sm font-bold bg-orange-100 text-orange-800">
-                        ⏳ Aguardando Triagem
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Hora Cadastro:</span>
-                      <span className="font-bold text-gray-800">
-                        {new Date(pacienteCadastrado.horaCadastro).toLocaleTimeString("pt-BR")}
-                      </span>
-                    </div>
-
-                    <div className="border-t border-gray-200 pt-3">
-                      <span className="block font-medium text-gray-600 mb-2">
-                        Motivo da Visita:
-                      </span>
-                      <p className="bg-white p-3 rounded text-gray-800 text-sm">
-                        {pacienteCadastrado.motivoVisita}
-                      </p>
-                    </div>
-
-                    <div className="mt-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-orange-600">🚨</span>
-                        <span className="text-sm font-medium text-orange-800">
-                          Próximo passo: Triagem do Enfermeiro
-                        </span>
-                      </div>
-                      <p className="text-xs text-orange-600 mt-1">
-                        O paciente será avaliado por um enfermeiro para determinar a prioridade de atendimento.
-                      </p>
-                    </div>
+                <div className="flex-[1_1_0%] min-w-[110px]">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">CEP</label>
+                  <div className="flex gap-1">
+                    <InputText name="cep" value={cep} onChange={e => setCep(e.target.value)} maxLength={9} placeholder="00000-000" className="w-full" />
+                    <Button icon="pi pi-search" loading={isCepLoading} type="button" onClick={buscarEnderecoPorCep} className="!px-2 !py-2" />
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="text-center py-12">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <p className="text-gray-500 text-lg">Ficha do Paciente</p>
-                  <p className="text-gray-400 text-sm mt-2">
-                    Após o cadastro, a ficha será exibida aqui
-                  </p>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Contato de Emergência *</label>
+              <InputText name="contatoEmergencia" value={formData.contatoEmergencia} onChange={(e) => { const formatted = formatPhone(e.target.value); setFormData(prev => ({ ...prev, contatoEmergencia: formatted })); if (errors.contatoEmergencia) { setErrors(prev => ({ ...prev, contatoEmergencia: '' })); } }} className={`w-full ${errors.contatoEmergencia ? 'p-invalid' : ''}`} placeholder="(00) 00000-0000" maxLength="15" />
+              {errors.contatoEmergencia && <small className="p-error">{errors.contatoEmergencia}</small>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Convênio</label>
+              <Dropdown value={formData.convenio} onChange={(e) => handleDropdownChange(e, 'convenio')} options={opcoesConvenio} optionLabel="label" optionValue="value" placeholder="Selecione o convênio" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Número da Carteirinha</label>
+              <InputText name="numeroCarteirinha" value={formData.numeroCarteirinha} onChange={handleInputChange} className="w-full" placeholder="Número da carteirinha" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Motivo da Visita *</label>
+              <InputTextarea name="motivoVisita" value={formData.motivoVisita} onChange={handleInputChange} rows="3" className={`w-full ${errors.motivoVisita ? 'p-invalid' : ''}`} placeholder="Descreva o motivo da visita e sintomas principais..." />
+              {errors.motivoVisita && <small className="p-error">{errors.motivoVisita}</small>}
+              {formData.motivoVisita && formData.motivoVisita.trim().length >= 3 && (
+                <div className="flex items-center gap-2 mt-2 text-sm">
+                  <i className={
+                    classificarMotivoVisita(formData.motivoVisita) === 'vermelho' ? 'pi pi-exclamation-triangle text-red-500' :
+                    classificarMotivoVisita(formData.motivoVisita) === 'amarelo' ? 'pi pi-info-circle text-yellow-600' :
+                    'pi pi-check-circle text-green-600'
+                  } />
+                  <span className={
+                    classificarMotivoVisita(formData.motivoVisita) === 'vermelho' ? 'text-red-600 font-semibold' :
+                    classificarMotivoVisita(formData.motivoVisita) === 'amarelo' ? 'text-yellow-700 font-semibold' :
+                    'text-green-700 font-semibold'
+                  }>
+                    {obterNomePrioridade(classificarMotivoVisita(formData.motivoVisita))}
+                  </span>
+                  <span className="text-gray-400 ml-2">(classificação automática)</span>
+                </div>
+              )}
+            </div>
+          </div>
+          <Divider />
+          <div className="pt-2 flex justify-end">
+            <Button type="submit" disabled={isSubmitting} className="px-8 py-3 bg-neutral-800 hover:bg-neutral-700 border-0 text-white rounded-lg shadow-sm font-semibold text-base transition-colors">
+              {isSubmitting ? (
+                <span className="flex items-center"><i className="pi pi-spin pi-spinner mr-2" />Cadastrando...</span>
+              ) : (
+                <span className="flex items-center"><i className="pi pi-check mr-2" />Registrar Paciente</span>
+              )}
+            </Button>
+          </div>
+        </form>
+        {/* Modal da Ficha do Paciente permanece igual */}
+        <Dialog header={null} visible={showModal} style={{ width: '100%', maxWidth: 500 }} modal onHide={() => setShowModal(false)} className="p-0" closable={false} dismissableMask={false} closeOnEscape={false}>
+          {pacienteCadastrado && (
+            <div className="p-0" ref={printRef}>
+              {/* Cabeçalho do modal */}
+              <div className="flex flex-col items-center justify-center border-b border-gray-100 pb-4 mb-4">
+                <i className="pi pi-user text-3xl text-neutral-500 mb-2" />
+                <h2 className="text-xl font-bold text-neutral-800 mb-1">Ficha do Paciente</h2>
+                <span className="text-xs text-gray-400">Aguardando Triagem</span>
+              </div>
+              {/* Corpo do modal */}
+              <div className="space-y-2 text-base">
+                <div className="flex justify-between text-gray-500">
+                  <span>Prontuário:</span>
+                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.numeroProntuario}</span>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>ID:</span>
+                  <span className="font-semibold text-neutral-800">#{pacienteCadastrado.id}</span>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>Nome:</span>
+                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.nome}</span>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>CPF:</span>
+                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.cpf}</span>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>Data Nasc.:</span>
+                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.dataNascimento}</span>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>Sexo:</span>
+                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.sexo === 'M' ? 'Masculino' : pacienteCadastrado.sexo === 'F' ? 'Feminino' : 'Outro'}</span>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>Telefone:</span>
+                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.telefone}</span>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>Convênio:</span>
+                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.convenio}</span>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>Hora Cadastro:</span>
+                  <span className="font-semibold text-neutral-800">{new Date(pacienteCadastrado.horaCadastro).toLocaleTimeString("pt-BR")}</span>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>RG:</span>
+                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.rg}</span>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>Nome da Mãe:</span>
+                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.nomeMae}</span>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>Endereço:</span>
+                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.endereco}</span>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>Contato Emergência:</span>
+                  <span className="font-semibold text-neutral-800">{pacienteCadastrado.contatoEmergencia}</span>
+                </div>
+                <div className="flex flex-col mt-2">
+                  <span className="text-gray-500 mb-1">Motivo da Visita:</span>
+                  <span className="bg-gray-50 rounded p-2 text-neutral-800 text-sm border border-gray-100">{pacienteCadastrado.motivoVisita}</span>
                 </div>
               </div>
-            )}
-          </div>
-        </div>
+              {/* Rodapé do modal */}
+              <div className="flex justify-end gap-2 mt-8 border-t border-gray-100 pt-4">
+                <Button icon="pi pi-print" label="Imprimir" severity="info" className="bg-neutral-200 text-neutral-800 border-0" onClick={handlePrint} />
+                <Button icon="pi pi-times" label="Fechar" severity="danger" className="bg-neutral-100 text-neutral-500 border-0" onClick={() => setShowModal(false)} />
+              </div>
+            </div>
+          )}
+        </Dialog>
       </div>
     </div>
   );

@@ -1,13 +1,26 @@
 import React, { useState } from "react";
-import { useSistemaAtendimento } from "../utils/SistemaAtendimentoContext";
+import { useSistemaAtendimento } from "../context/HospitalContext";
+import { useToast } from "../context/ToastProvider";
+import { InputText } from "primereact/inputtext";
+import { InputTextarea } from "primereact/inputtextarea";
+import { Dropdown } from "primereact/dropdown";
+import { Button } from "primereact/button";
+import { Calendar } from "primereact/calendar";
+import { Card } from "primereact/card";
+import { Tag } from "primereact/tag";
+import { Divider } from "primereact/divider";
+import { PrimeIcons } from "primereact/api";
 
 const CadastroPaciente = () => {
   const { cadastrarPaciente } = useSistemaAtendimento();
+  const { success: showToast, error: showError } = useToast();
+  
   const [formData, setFormData] = useState({
     nomeCompleto: "",
     cpf: "",
     rg: "",
     dataNascimento: "",
+    nomeMae: "",
     sexo: "",
     estadoCivil: "",
     telefone: "",
@@ -18,6 +31,33 @@ const CadastroPaciente = () => {
     contatoEmergencia: "",
     motivoVisita: "",
   });
+
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Opções para dropdowns
+  const opcoesSexo = [
+    { value: "masculino", label: "Masculino" },
+    { value: "feminino", label: "Feminino" },
+    { value: "outro", label: "Outro" }
+  ];
+
+  const opcoesEstadoCivil = [
+    { value: "solteiro", label: "Solteiro(a)" },
+    { value: "casado", label: "Casado(a)" },
+    { value: "divorciado", label: "Divorciado(a)" },
+    { value: "viuvo", label: "Viúvo(a)" }
+  ];
+
+  const opcoesConvenio = [
+    { value: "sus", label: "SUS" },
+    { value: "unimed", label: "Unimed" },
+    { value: "bradesco", label: "Bradesco Saúde" },
+    { value: "amil", label: "Amil" },
+    { value: "sulamerica", label: "SulAmérica" },
+    { value: "particular", label: "Particular" },
+    { value: "outro", label: "Outro" }
+  ];
 
   // Função para classificação automática (duplicada do contexto para preview)
   const classificarMotivoVisita = (motivoVisita) => {
@@ -109,15 +149,6 @@ const CadastroPaciente = () => {
     return "verde";
   };
 
-  const obterCorPrioridade = (prioridade) => {
-    const cores = {
-      vermelho: "bg-red-100 border-red-300 text-red-800",
-      amarelo: "bg-yellow-100 border-yellow-300 text-yellow-800",
-      verde: "bg-green-100 border-green-300 text-green-800",
-    };
-    return cores[prioridade] || "bg-gray-100 border-gray-300 text-gray-800";
-  };
-
   const obterNomePrioridade = (prioridade) => {
     const nomes = {
       vermelho: "🔴 VERMELHO - Urgente (Atendimento Imediato)",
@@ -127,12 +158,117 @@ const CadastroPaciente = () => {
     return nomes[prioridade] || "⚪ Não Classificado";
   };
 
+  const getTagSeverity = (prioridade) => {
+    switch (prioridade) {
+      case 'vermelho':
+        return 'danger';
+      case 'amarelo':
+        return 'warning';
+      case 'verde':
+        return 'success';
+      default:
+        return 'info';
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Validação do nome (obrigatório)
+    if (!formData.nomeCompleto.trim()) {
+      newErrors.nomeCompleto = 'Nome completo é obrigatório';
+    } else if (formData.nomeCompleto.trim().length < 3) {
+      newErrors.nomeCompleto = 'Nome deve ter pelo menos 3 caracteres';
+    }
+
+    // Validação do CPF (obrigatório)
+    if (!formData.cpf.trim()) {
+      newErrors.cpf = 'CPF é obrigatório';
+    } else if (!/^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(formData.cpf)) {
+      newErrors.cpf = 'CPF deve estar no formato 000.000.000-00';
+    }
+
+    // Validação do RG (obrigatório)
+    if (!formData.rg.trim()) {
+      newErrors.rg = 'RG é obrigatório';
+    }
+
+    // Validação do nome da mãe (obrigatório)
+    if (!formData.nomeMae.trim()) {
+      newErrors.nomeMae = 'Nome da mãe é obrigatório';
+    } else if (formData.nomeMae.trim().length < 3) {
+      newErrors.nomeMae = 'Nome da mãe deve ter pelo menos 3 caracteres';
+    }
+
+    // Validação da data de nascimento (obrigatório)
+    if (!formData.dataNascimento) {
+      newErrors.dataNascimento = 'Data de nascimento é obrigatória';
+    } else {
+      const dataNasc = new Date(formData.dataNascimento);
+      const hoje = new Date();
+      const idade = hoje.getFullYear() - dataNasc.getFullYear();
+      if (idade < 0 || idade > 150) {
+        newErrors.dataNascimento = 'Data de nascimento inválida';
+      }
+    }
+
+    // Validação do sexo (obrigatório)
+    if (!formData.sexo) {
+      newErrors.sexo = 'Sexo é obrigatório';
+    }
+
+    // Validação do telefone (obrigatório)
+    if (!formData.telefone.trim()) {
+      newErrors.telefone = 'Telefone é obrigatório';
+    } else if (!/^\(\d{2}\) \d{5}-\d{4}$/.test(formData.telefone)) {
+      newErrors.telefone = 'Telefone deve estar no formato (00) 00000-0000';
+    }
+
+    // Validação do endereço (obrigatório)
+    if (!formData.endereco.trim()) {
+      newErrors.endereco = 'Endereço é obrigatório';
+    }
+
+    // Validação do motivo da visita (obrigatório)
+    if (!formData.motivoVisita.trim()) {
+      newErrors.motivoVisita = 'Motivo da visita é obrigatório';
+    } else if (formData.motivoVisita.trim().length < 10) {
+      newErrors.motivoVisita = 'Motivo da visita deve ter pelo menos 10 caracteres';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+    
+    // Limpar erro do campo quando o usuário começa a digitar
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const handleDropdownChange = (e, fieldName) => {
+    setFormData((prev) => ({
+      ...prev,
+      [fieldName]: e.value,
+    }));
+    
+    // Limpar erro do campo
+    if (errors[fieldName]) {
+      setErrors(prev => ({
+        ...prev,
+        [fieldName]: ''
+      }));
+    }
   };
 
   const aplicarMascaraCPF = (value) => {
@@ -156,6 +292,14 @@ const CadastroPaciente = () => {
       ...prev,
       cpf: maskedValue,
     }));
+    
+    // Limpar erro do campo
+    if (errors.cpf) {
+      setErrors(prev => ({
+        ...prev,
+        cpf: ''
+      }));
+    }
   };
 
   const handleTelefoneChange = (e) => {
@@ -164,6 +308,14 @@ const CadastroPaciente = () => {
       ...prev,
       telefone: maskedValue,
     }));
+    
+    // Limpar erro do campo
+    if (errors.telefone) {
+      setErrors(prev => ({
+        ...prev,
+        telefone: ''
+      }));
+    }
   };
 
   const calcularIdade = (dataNascimento) => {
@@ -178,39 +330,27 @@ const CadastroPaciente = () => {
     return idade;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validações básicas
-    if (
-      !formData.nomeCompleto ||
-      !formData.cpf ||
-      !formData.dataNascimento ||
-      !formData.sexo ||
-      !formData.telefone ||
-      !formData.endereco ||
-      !formData.motivoVisita
-    ) {
-      alert("Por favor, preencha todos os campos obrigatórios.");
+    if (!validateForm()) {
+      showError('Por favor, corrija os erros no formulário');
       return;
     }
 
-    // Verificar se CPF já existe
-    const cpfLimpo = formData.cpf.replace(/\D/g, "");
-    if (cpfLimpo.length !== 11) {
-      alert("CPF inválido. Digite um CPF válido.");
-      return;
-    }
-
-    const novoPaciente = {
-      ...formData,
-      idade: calcularIdade(formData.dataNascimento),
-      cpf: cpfLimpo,
-    };
+    setIsSubmitting(true);
 
     try {
-      cadastrarPaciente(novoPaciente);
-      alert("Paciente cadastrado com sucesso!");
+      const cpfLimpo = formData.cpf.replace(/\D/g, "");
+      
+      const novoPaciente = {
+        ...formData,
+        idade: calcularIdade(formData.dataNascimento),
+        cpf: cpfLimpo,
+      };
+
+      await cadastrarPaciente(novoPaciente);
+      showToast("Paciente cadastrado com sucesso!");
 
       // Limpar formulário
       setFormData({
@@ -218,6 +358,7 @@ const CadastroPaciente = () => {
         cpf: "",
         rg: "",
         dataNascimento: "",
+        nomeMae: "",
         sexo: "",
         estadoCivil: "",
         telefone: "",
@@ -228,21 +369,27 @@ const CadastroPaciente = () => {
         contatoEmergencia: "",
         motivoVisita: "",
       });
+      setErrors({});
+      
     } catch (error) {
-      alert("Erro ao cadastrar paciente: " + error.message);
+      showError("Erro ao cadastrar paciente: " + error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
-      <h2 className="mb-6 text-3xl font-bold text-gray-800">
+    <div className="mx-auto max-w-4xl p-6 pt-2">
+      <h2 className="mb-6 text-3xl font-bold text-gray-800 flex items-center">
+        <i className={`${PrimeIcons.USER_PLUS} mr-3 text-blue-600`}></i>
         Cadastro de Paciente
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Dados Pessoais */}
-        <div className="rounded-lg bg-white p-6 shadow-md">
-          <h3 className="mb-4 text-xl font-semibold text-gray-700">
+        <Card className="shadow-md">
+          <h3 className="mb-4 text-xl font-semibold text-gray-700 flex items-center">
+            <i className={`${PrimeIcons.USER} mr-2 text-blue-600`}></i>
             Dados Pessoais
           </h3>
 
@@ -251,127 +398,171 @@ const CadastroPaciente = () => {
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Nome Completo *
               </label>
-              <input
-                type="text"
+              <InputText
                 name="nomeCompleto"
                 value={formData.nomeCompleto}
                 onChange={handleInputChange}
                 required
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className={`w-full ${errors.nomeCompleto ? 'p-invalid' : ''}`}
+                placeholder="Digite o nome completo"
+                pt={{
+                  root: { className: 'w-full' }
+                }}
               />
+              {errors.nomeCompleto && <small className="p-error">{errors.nomeCompleto}</small>}
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 CPF *
               </label>
-              <input
-                type="text"
+              <InputText
                 name="cpf"
                 value={formData.cpf}
                 onChange={handleCPFChange}
                 placeholder="000.000.000-00"
                 required
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className={`w-full ${errors.cpf ? 'p-invalid' : ''}`}
+                maxLength="14"
+                pt={{
+                  root: { className: 'w-full' }
+                }}
               />
+              {errors.cpf && <small className="p-error">{errors.cpf}</small>}
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                RG
+                RG *
               </label>
-              <input
-                type="text"
+              <InputText
                 name="rg"
                 value={formData.rg}
                 onChange={handleInputChange}
-                placeholder="00.000.000-0"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                placeholder="000000000"
+                className={`w-full ${errors.rg ? 'p-invalid' : ''}`}
+                pt={{
+                  root: { className: 'w-full' }
+                }}
               />
+              {errors.rg && <small className="p-error">{errors.rg}</small>}
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Nome da Mãe *
+              </label>
+              <InputText
+                name="nomeMae"
+                value={formData.nomeMae}
+                onChange={handleInputChange}
+                className={`w-full ${errors.nomeMae ? 'p-invalid' : ''}`}
+                placeholder="Digite o nome completo da mãe"
+                pt={{
+                  root: { className: 'w-full' }
+                }}
+              />
+              {errors.nomeMae && <small className="p-error">{errors.nomeMae}</small>}
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Data de Nascimento *
               </label>
-              <input
-                type="date"
+              <InputText
                 name="dataNascimento"
                 value={formData.dataNascimento}
                 onChange={handleInputChange}
-                required
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className={`w-full ${errors.dataNascimento ? 'p-invalid' : ''}`}
+                placeholder="dd/mm/aaaa"
+                pt={{
+                  root: { className: 'w-full' }
+                }}
               />
+              {errors.dataNascimento && <small className="p-error">{errors.dataNascimento}</small>}
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Sexo *
               </label>
-              <select
-                name="sexo"
+              <Dropdown
                 value={formData.sexo}
-                onChange={handleInputChange}
+                onChange={(e) => handleDropdownChange(e, 'sexo')}
+                options={opcoesSexo}
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Selecione o sexo"
                 required
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              >
-                <option value="">Selecione</option>
-                <option value="masculino">Masculino</option>
-                <option value="feminino">Feminino</option>
-                <option value="outro">Outro</option>
-              </select>
+                className={`w-full ${errors.sexo ? 'p-invalid' : ''}`}
+                pt={{
+                  root: { className: 'w-full' }
+                }}
+              />
+              {errors.sexo && <small className="p-error">{errors.sexo}</small>}
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Estado Civil
               </label>
-              <select
-                name="estadoCivil"
+              <Dropdown
                 value={formData.estadoCivil}
-                onChange={handleInputChange}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              >
-                <option value="">Selecione</option>
-                <option value="solteiro">Solteiro(a)</option>
-                <option value="casado">Casado(a)</option>
-                <option value="divorciado">Divorciado(a)</option>
-                <option value="viuvo">Viúvo(a)</option>
-              </select>
+                onChange={(e) => handleDropdownChange(e, 'estadoCivil')}
+                options={opcoesEstadoCivil}
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Selecione o estado civil"
+                className="w-full"
+                pt={{
+                  root: { className: 'w-full' }
+                }}
+              />
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Contato */}
-        <div className="rounded-lg bg-white p-6 shadow-md">
-          <h3 className="mb-4 text-xl font-semibold text-gray-700">Contato</h3>
+        <Card className="shadow-md">
+          <h3 className="mb-4 text-xl font-semibold text-gray-700 flex items-center">
+            <i className={`${PrimeIcons.PHONE} mr-2 text-green-600`}></i>
+            Contato
+          </h3>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Telefone *
               </label>
-              <input
-                type="tel"
+              <InputText
                 name="telefone"
                 value={formData.telefone}
                 onChange={handleTelefoneChange}
                 placeholder="(00) 00000-0000"
                 required
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className={`w-full ${errors.telefone ? 'p-invalid' : ''}`}
+                maxLength="15"
+                pt={{
+                  root: { className: 'w-full' }
+                }}
               />
+              {errors.telefone && <small className="p-error">{errors.telefone}</small>}
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 E-mail
               </label>
-              <input
-                type="email"
+              <InputText
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                type="email"
+                className="w-full"
+                placeholder="email@exemplo.com"
+                pt={{
+                  root: { className: 'w-full' }
+                }}
               />
             </div>
           </div>
@@ -380,53 +571,60 @@ const CadastroPaciente = () => {
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Endereço Completo *
             </label>
-            <input
-              type="text"
+            <InputText
               name="endereco"
               value={formData.endereco}
               onChange={handleInputChange}
               placeholder="Rua, número, bairro, cidade - CEP"
               required
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className={`w-full ${errors.endereco ? 'p-invalid' : ''}`}
+              pt={{
+                root: { className: 'w-full' }
+              }}
             />
+            {errors.endereco && <small className="p-error">{errors.endereco}</small>}
           </div>
-        </div>
+        </Card>
 
         {/* Convênio */}
-        <div className="rounded-lg bg-white p-6 shadow-md">
-          <h3 className="mb-4 text-xl font-semibold text-gray-700">Convênio</h3>
+        <Card className="shadow-md">
+          <h3 className="mb-4 text-xl font-semibold text-gray-700 flex items-center">
+            <i className={`${PrimeIcons.BUILDING} mr-2 text-purple-600`}></i>
+            Convênio
+          </h3>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Convênio
               </label>
-              <select
-                name="convenio"
+              <Dropdown
                 value={formData.convenio}
-                onChange={handleInputChange}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              >
-                <option value="sus">SUS</option>
-                <option value="unimed">Unimed</option>
-                <option value="bradesco">Bradesco Saúde</option>
-                <option value="amil">Amil</option>
-                <option value="sulamerica">SulAmérica</option>
-                <option value="particular">Particular</option>
-                <option value="outro">Outro</option>
-              </select>
+                onChange={(e) => handleDropdownChange(e, 'convenio')}
+                options={opcoesConvenio}
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Selecione o convênio"
+                className="w-full"
+                pt={{
+                  root: { className: 'w-full' }
+                }}
+              />
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Número da Carteirinha
               </label>
-              <input
-                type="text"
+              <InputText
                 name="numeroCarteirinha"
                 value={formData.numeroCarteirinha}
                 onChange={handleInputChange}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full"
+                placeholder="Número da carteirinha"
+                pt={{
+                  root: { className: 'w-full' }
+                }}
               />
             </div>
           </div>
@@ -435,20 +633,30 @@ const CadastroPaciente = () => {
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Contato de Emergência
             </label>
-            <input
-              type="text"
+            <InputText
               name="contatoEmergencia"
               value={formData.contatoEmergencia}
-              onChange={handleInputChange}
-              placeholder="Nome e telefone"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              onChange={(e) => {
+                const maskedValue = aplicarMascaraTelefone(e.target.value);
+                setFormData((prev) => ({
+                  ...prev,
+                  contatoEmergencia: maskedValue,
+                }));
+              }}
+              placeholder="(00) 00000-0000"
+              maxLength="15"
+              className="w-full"
+              pt={{
+                root: { className: 'w-full' }
+              }}
             />
           </div>
-        </div>
+        </Card>
 
         {/* Motivo da Visita */}
-        <div className="rounded-lg bg-white p-6 shadow-md">
-          <h3 className="mb-4 text-xl font-semibold text-gray-700">
+        <Card className="shadow-md">
+          <h3 className="mb-4 text-xl font-semibold text-gray-700 flex items-center">
+            <i className={`${PrimeIcons.EXCLAMATION_TRIANGLE} mr-2 text-orange-600`}></i>
             Motivo da Visita
           </h3>
 
@@ -456,15 +664,19 @@ const CadastroPaciente = () => {
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Motivo da Visita *
             </label>
-            <textarea
+            <InputTextarea
               name="motivoVisita"
               value={formData.motivoVisita}
               onChange={handleInputChange}
               placeholder="Descreva brevemente o motivo da consulta"
               required
               rows="4"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className={`w-full ${errors.motivoVisita ? 'p-invalid' : ''}`}
+              pt={{
+                root: { className: 'w-full' }
+              }}
             />
+            {errors.motivoVisita && <small className="p-error">{errors.motivoVisita}</small>}
           </div>
 
           {/* Classificação Automática */}
@@ -473,31 +685,48 @@ const CadastroPaciente = () => {
               <label className="mb-2 block text-sm font-medium text-gray-700">
                 Classificação Automática
               </label>
-              <div
-                className={`rounded-lg border-2 p-3 ${obterCorPrioridade(classificarMotivoVisita(formData.motivoVisita))}`}
-              >
-                <p className="font-medium">
-                  {obterNomePrioridade(
-                    classificarMotivoVisita(formData.motivoVisita),
-                  )}
-                </p>
-                <p className="mt-1 text-sm opacity-75">
-                  Esta classificação será aplicada automaticamente baseada no
-                  motivo informado.
+              <div className="flex items-center gap-3">
+                <Tag 
+                  value={obterNomePrioridade(classificarMotivoVisita(formData.motivoVisita))}
+                  severity={getTagSeverity(classificarMotivoVisita(formData.motivoVisita))}
+                  className="text-sm"
+                  pt={{
+                    root: { className: 'text-sm font-medium' }
+                  }}
+                />
+                <p className="text-sm text-gray-600">
+                  Esta classificação será aplicada automaticamente baseada no motivo informado.
                 </p>
               </div>
             </div>
           )}
-        </div>
+        </Card>
 
         {/* Botão de Submit */}
+        <Divider />
         <div className="flex justify-center">
-          <button
+          <Button
             type="submit"
-            className="rounded-lg bg-blue-600 px-8 py-3 font-bold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 hover:shadow-lg"
+            disabled={isSubmitting}
+            className="px-8 py-3"
+            pt={{
+              root: { 
+                className: 'rounded-lg bg-blue-600 px-8 py-3 font-bold text-white shadow-md transition-colors duration-200 hover:bg-blue-700 hover:shadow-lg disabled:bg-blue-400' 
+              }
+            }}
           >
-            Registrar Paciente
-          </button>
+            {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <i className={`${PrimeIcons.SPINNER} animate-spin mr-3`}></i>
+                Cadastrando...
+              </div>
+            ) : (
+              <>
+                <i className={`${PrimeIcons.CHECK} mr-2`}></i>
+                Registrar Paciente
+              </>
+            )}
+          </Button>
         </div>
       </form>
     </div>
