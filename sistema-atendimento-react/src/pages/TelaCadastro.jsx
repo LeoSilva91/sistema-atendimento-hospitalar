@@ -529,8 +529,8 @@ const TelaCadastro = () => {
               <div className="flex justify-end gap-2 mt-8 border-t border-gray-100 pt-4">
                 <Button icon="pi pi-times" label="Fechar" className="!bg-gray-100 !text-gray-700 !border-0" onClick={() => setShowModal(false)} />
                 <Button icon="pi pi-print" label="Imprimir" className="!bg-green-600 !text-white !border-0" onClick={handlePrint} />
-              </div>
-            </div>
+          </div>
+        </div>
           )}
         </Dialog>
       </div>
