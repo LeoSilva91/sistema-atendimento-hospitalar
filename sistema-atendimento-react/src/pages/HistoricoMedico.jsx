@@ -88,7 +88,7 @@ const HistoricoMedico = () => {
     <div className="max-w-7xl mx-auto p-6">
       <div className="bg-white rounded-lg shadow-lg">
         {/* Header */}
-        <div className="bg-blue-400 text-white p-6 rounded-t-lg">
+        <div className="bg-[#54aaff] text-white p-6 rounded-t-lg">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold">Histórico Médico</h1>
@@ -96,9 +96,6 @@ const HistoricoMedico = () => {
                 <span className="pi pi-user text-base" />
                 <span>{currentUser?.nome} - {currentUser?.tipo === 'admin' ? 'Administrador' : currentUser?.tipo === 'recepcionista' ? 'Recepcionista' : currentUser?.tipo === 'medico' ? 'Médico' : currentUser?.tipo}</span>
               </div>
-              <p className="text-blue-200 text-sm mt-1">
-                Visualização completa do histórico de pacientes
-              </p>
             </div>
             <div className="text-right">
               <div className="bg-blue-200 rounded-lg p-4 border border-blue-300 flex flex-col items-center justify-start mt-2">

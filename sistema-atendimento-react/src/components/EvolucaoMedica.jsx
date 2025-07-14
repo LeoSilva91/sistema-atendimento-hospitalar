@@ -104,22 +104,22 @@ const EvolucaoMedica = ({ paciente }) => {
             <span className="font-medium text-gray-600">Cadastro:</span>
             <p className="text-gray-800">{formatarData(paciente.horaCadastro)}</p>
           </div>
-          {paciente.horaTriagem && (
+          {paciente.horaFimTriagem && (
             <div>
               <span className="font-medium text-gray-600">Triagem:</span>
-              <p className="text-gray-800">{formatarData(paciente.horaTriagem)}</p>
+              <p className="text-gray-800">{formatarData(paciente.horaFimTriagem)}</p>
             </div>
           )}
-          {paciente.horaAtendimento && (
+          {paciente.horaInicioConsulta && (
             <div>
               <span className="font-medium text-gray-600">Atendimento:</span>
-              <p className="text-gray-800">{formatarData(paciente.horaAtendimento)}</p>
+              <p className="text-gray-800">{formatarData(paciente.horaInicioConsulta)}</p>
             </div>
           )}
-          {paciente.horaConclusao && (
+          {paciente.horaFimConsulta && (
             <div>
               <span className="font-medium text-gray-600">Conclusão:</span>
-              <p className="text-gray-800">{formatarData(paciente.horaConclusao)}</p>
+              <p className="text-gray-800">{formatarData(paciente.horaFimConsulta)}</p>
             </div>
           )}
         </div>
@@ -322,20 +322,27 @@ const EvolucaoMedica = ({ paciente }) => {
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
         <h3 className="text-lg font-semibold text-gray-800 mb-3">📊 Status do Atendimento</h3>
         <div className="flex items-center space-x-4">
-          <div className={`px-4 py-2 rounded-lg font-semibold ${
-            paciente.status === 'atendido' ? 'bg-green-100 text-green-800' :
-            paciente.status === 'em_atendimento' ? 'bg-blue-100 text-blue-800' :
-            paciente.status === 'aguardando' ? 'bg-yellow-100 text-yellow-800' :
-            'bg-orange-100 text-orange-800'
-          }`}>
-            {paciente.status === 'atendido' ? '✅ Atendido' :
-             paciente.status === 'em_atendimento' ? '🩺 Em Atendimento' :
-             paciente.status === 'aguardando' ? '⏳ Aguardando' :
-             '🚨 Aguardando Triagem'}
-          </div>
-          {paciente.status === 'atendido' && (
+          {(() => {
+            const statusMap = {
+              aguardando_triagem: { label: 'Aguardando Triagem', icon: '🚨', cor: 'bg-orange-100 text-orange-800' },
+              em_triagem: { label: 'Em Triagem', icon: '📝', cor: 'bg-orange-100 text-orange-800' },
+              aguardando_avaliacao_medica: { label: 'Aguardando Médico', icon: '⏳', cor: 'bg-yellow-100 text-yellow-800' },
+              em_consulta: { label: 'Em Atendimento', icon: '🩺', cor: 'bg-blue-100 text-blue-800' },
+              atendimento_concluido: { label: 'Atendido', icon: '✅', cor: 'bg-green-100 text-green-800' },
+              aguardando_exame: { label: 'Aguardando Exame', icon: '🧪', cor: 'bg-purple-100 text-purple-800' },
+              internado: { label: 'Internado', icon: '🏥', cor: 'bg-gray-100 text-gray-800' },
+              encaminhado: { label: 'Encaminhado', icon: '➡️', cor: 'bg-gray-100 text-gray-800' }
+            };
+            const st = statusMap[paciente.status] || { label: paciente.status, icon: '', cor: 'bg-gray-100 text-gray-800' };
+            return (
+              <div className={`px-4 py-2 rounded-lg font-semibold flex items-center gap-2 ${st.cor}`}>
+                <span>{st.icon}</span> {st.label}
+              </div>
+            );
+          })()}
+          {paciente.status === 'atendimento_concluido' && paciente.horaFimConsulta && (
             <span className="text-sm text-gray-600">
-              Atendimento concluído em {formatarData(paciente.horaConclusao)}
+              Atendimento concluído em {formatarData(paciente.horaFimConsulta)}
             </span>
           )}
         </div>

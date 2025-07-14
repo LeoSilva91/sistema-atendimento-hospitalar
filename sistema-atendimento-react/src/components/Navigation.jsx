@@ -28,7 +28,7 @@ const Navigation = () => {
   // Obter telas disponíveis baseado no acesso do usuário
   const telasDisponiveis = useMemo(() => {
     if (!currentUser) return [];
-    const todasTelas = ["cadastro", "triagem", "medico", "historico", "publico", "fichas"];
+    const todasTelas = ["cadastro", "triagem", "medico", "historico", "fichas", "publico"];
     return todasTelas.filter(tela => verificarAcesso(tela));
   }, [currentUser, verificarAcesso]);
 

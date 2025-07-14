@@ -193,7 +193,7 @@ export const SistemaAtendimentoProvider = ({ children }) => {
       const novaChamada = {
         id: Date.now(),
         pacienteId: proximoId,
-        pacienteNome: formatarNomePublico(paciente.nome),
+        pacienteNome: paciente.nome, // nome completo
         numeroProntuario: paciente.numeroProntuario,
         horaChamada: new Date().toISOString(),
         tipo: 'triagem',
@@ -205,7 +205,7 @@ export const SistemaAtendimentoProvider = ({ children }) => {
       return pacienteAtualizado;
     }
     return null;
-  }, [filaTriagem, pacientes, formatarNomePublico]);
+  }, [filaTriagem, pacientes]);
 
   // 3. Finalizar triagem e classificar risco
   const finalizarTriagem = useCallback((pacienteId, dadosTriagem) => {
@@ -255,6 +255,32 @@ export const SistemaAtendimentoProvider = ({ children }) => {
         !(chamada.pacienteId === pacienteId && chamada.tipo === 'triagem')
       ));
 
+      // Atualizar ou emitir ficha com prioridade
+      setFichasEmitidas(prev => {
+        const idx = prev.findIndex(f => f.pacienteId === pacienteId);
+        const fichaAtualizada = {
+          ...(idx !== -1 ? prev[idx] : {}),
+          id: idx !== -1 ? prev[idx].id : Date.now(),
+          pacienteId: pacienteAtualizado.id,
+          numeroProntuario: pacienteAtualizado.numeroProntuario,
+          pacienteNome: pacienteAtualizado.nome,
+          cpf: pacienteAtualizado.cpf,
+          motivoVisita: pacienteAtualizado.motivoVisita,
+          horaEmissao: new Date().toISOString(),
+          numeroFicha: `F${String(pacienteAtualizado.id).padStart(4, '0')}`,
+          corTriagem: pacienteAtualizado.corTriagem
+        };
+        if (idx !== -1) {
+          // Atualiza ficha existente
+          const novaLista = [...prev];
+          novaLista[idx] = fichaAtualizada;
+          return novaLista;
+        } else {
+          // Emite nova ficha
+          return [...prev, fichaAtualizada];
+        }
+      });
+
       return pacienteAtualizado;
     }
     return null;
@@ -284,7 +310,7 @@ export const SistemaAtendimentoProvider = ({ children }) => {
       const novaChamada = {
         id: Date.now(),
         pacienteId: proximoId,
-        pacienteNome: formatarNomePublico(paciente.nome),
+        pacienteNome: paciente.nome, // nome completo
         numeroProntuario: paciente.numeroProntuario,
         horaChamada: new Date().toISOString(),
         tipo: 'consulta',
@@ -297,7 +323,7 @@ export const SistemaAtendimentoProvider = ({ children }) => {
       return pacienteAtualizado;
     }
     return null;
-  }, [filaAvaliacaoMedica, pacientes, currentUser, formatarNomePublico]);
+  }, [filaAvaliacaoMedica, pacientes, currentUser]);
 
   // 5. Finalizar consulta médica
   const finalizarConsulta = useCallback((pacienteId, dadosConsulta) => {
