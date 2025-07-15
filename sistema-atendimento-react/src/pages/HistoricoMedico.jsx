@@ -116,14 +116,12 @@ const HistoricoMedico = () => {
 
               {/* Filtros */}
               <div className="flex flex-col md:flex-row gap-2 mb-4 items-center min-w-0">
-                <div className="p-input-icon-left w-full md:w-2/3 min-w-0">
-                  <i className="pi pi-search" />
+                <div className="w-full md:w-2/3 min-w-0">
                   <InputText
                     value={busca}
                     onChange={e => setBusca(e.target.value)}
                     placeholder="Buscar por nome, CPF ou ID..."
                     className="w-full min-w-0"
-                    style={{ paddingLeft: '2rem' }}
                   />
                 </div>
                 <div className="w-full md:w-1/3 min-w-0">
