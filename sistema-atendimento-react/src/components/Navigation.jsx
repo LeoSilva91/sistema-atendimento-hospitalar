@@ -5,10 +5,13 @@ import { TabMenu } from "primereact/tabmenu";
 import { Avatar } from "primereact/avatar";
 import { PrimeIcons } from "primereact/api";
 import { Menu } from "primereact/menu";
+import { Dialog } from "primereact/dialog";
 
 const Navigation = () => {
   const { currentUser, telaAtiva, trocarTela, logout, verificarAcesso } = useSistemaAtendimento();
   const menuUser = useRef(null);
+  const [showCadastroFuncionario, setShowCadastroFuncionario] = React.useState(false);
+  const [openSignal, setOpenSignal] = React.useState(0);
 
   // Mapeamento de ícones e nomes das telas
   const telaConfig = useMemo(() => ({
@@ -44,6 +47,15 @@ const Navigation = () => {
       icon: PrimeIcons.USER,
       command: () => alert('Abrir perfil')
     },
+    // Adiciona o item apenas se for admin
+    ...(currentUser?.tipo === 'admin' ? [{
+      label: "Cadastrar Funcionário",
+      icon: PrimeIcons.USER_PLUS,
+      command: () => {
+        setShowCadastroFuncionario(true);
+        setOpenSignal(s => s + 1);
+      }
+    }] : []),
     {
       label: "Configurações",
       icon: PrimeIcons.COG,
@@ -128,6 +140,16 @@ const Navigation = () => {
         }}
         popupAlignment="right"
       />
+      {/* Modal de Cadastro de Funcionário */}
+      <Dialog 
+        header="Cadastrar Funcionário" 
+        visible={showCadastroFuncionario} 
+        style={{ width: '40vw', maxWidth: 500 }} 
+        onHide={() => setShowCadastroFuncionario(false)}
+        className="rounded-xl"
+      >
+        <CadastroFuncionarioForm onClose={() => setShowCadastroFuncionario(false)} openSignal={openSignal} />
+      </Dialog>
     </>
   );
 
@@ -167,6 +189,199 @@ const Navigation = () => {
         </div>
       </div>
     </nav>
+  );
+};
+
+// Formulário de cadastro de funcionário
+const CadastroFuncionarioForm = ({ onClose, openSignal }) => {
+  const [form, setForm] = React.useState({
+    nome: '',
+    email: '',
+    cpf: '',
+    telefone: '',
+    cargo: '',
+    senha: '',
+    confirmacaoSenha: ''
+  });
+  const [errors, setErrors] = React.useState({});
+  const [submitting, setSubmitting] = React.useState(false);
+  const cargos = [
+    { label: 'Administrador', value: 'admin' },
+    { label: 'Médico', value: 'medico' },
+    { label: 'Recepcionista', value: 'recepcionista' }
+  ];
+
+  const validate = () => {
+    const newErrors = {};
+    if (!form.nome.trim()) newErrors.nome = 'Nome é obrigatório';
+    if (!form.email.trim()) newErrors.email = 'E-mail é obrigatório';
+    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) newErrors.email = 'E-mail inválido';
+    if (!form.cpf.trim()) newErrors.cpf = 'CPF é obrigatório';
+    else if (!/^\d{11}$/.test(form.cpf.replace(/\D/g, ''))) newErrors.cpf = 'CPF deve ter 11 dígitos';
+    if (!form.telefone.trim()) newErrors.telefone = 'Telefone é obrigatório';
+    if (!form.cargo) newErrors.cargo = 'Cargo é obrigatório';
+    if (!form.senha) newErrors.senha = 'Senha é obrigatória';
+    else if (form.senha.length < 6) newErrors.senha = 'Senha deve ter pelo menos 6 caracteres';
+    if (form.senha !== form.confirmacaoSenha) newErrors.confirmacaoSenha = 'As senhas não coincidem';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
+
+  const handleCargoChange = (e) => {
+    setForm((prev) => ({ ...prev, cargo: e.value }));
+    setErrors((prev) => ({ ...prev, cargo: undefined }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    setSubmitting(true);
+    setTimeout(() => {
+      setSubmitting(false);
+      setForm({
+        nome: '',
+        email: '',
+        cpf: '',
+        telefone: '',
+        cargo: '',
+        senha: '',
+        confirmacaoSenha: ''
+      });
+      onClose();
+      // Aqui você pode integrar com backend ou contexto
+      // Exemplo: showToast('Funcionário cadastrado com sucesso!')
+    }, 1000);
+  };
+
+  // Limpar formulário e erros sempre que o modal abrir
+  React.useEffect(() => {
+    setForm({
+      nome: '',
+      email: '',
+      cpf: '',
+      telefone: '',
+      cargo: '',
+      senha: '',
+      confirmacaoSenha: ''
+    });
+    setErrors({});
+  }, [openSignal]);
+
+  return (
+    <form className="space-y-4" onSubmit={handleSubmit} autoComplete="off">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo *</label>
+        <input
+          type="text"
+          name="nome"
+          value={form.nome}
+          onChange={handleChange}
+          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.nome ? 'border-red-400' : 'border-gray-300'}`}
+          placeholder="Digite o nome completo"
+        />
+        {errors.nome && <small className="text-red-500">{errors.nome}</small>}
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">E-mail *</label>
+        <input
+          type="email"
+          name="email"
+          value={form.email}
+          onChange={handleChange}
+          autoComplete="off"
+          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.email ? 'border-red-400' : 'border-gray-300'}`}
+          placeholder="email@exemplo.com"
+        />
+        {errors.email && <small className="text-red-500">{errors.email}</small>}
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">CPF *</label>
+        <input
+          type="text"
+          name="cpf"
+          value={form.cpf}
+          onChange={handleChange}
+          maxLength={14}
+          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.cpf ? 'border-red-400' : 'border-gray-300'}`}
+          placeholder="Somente números"
+        />
+        {errors.cpf && <small className="text-red-500">{errors.cpf}</small>}
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Telefone *</label>
+        <input
+          type="text"
+          name="telefone"
+          value={form.telefone}
+          onChange={handleChange}
+          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.telefone ? 'border-red-400' : 'border-gray-300'}`}
+          placeholder="(00) 00000-0000"
+        />
+        {errors.telefone && <small className="text-red-500">{errors.telefone}</small>}
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Cargo *</label>
+        <select
+          name="cargo"
+          value={form.cargo}
+          onChange={handleChange}
+          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.cargo ? 'border-red-400' : 'border-gray-300'}`}
+        >
+          <option value="">Selecione o cargo</option>
+          {cargos.map((c) => (
+            <option key={c.value} value={c.value}>{c.label}</option>
+          ))}
+        </select>
+        {errors.cargo && <small className="text-red-500">{errors.cargo}</small>}
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Senha *</label>
+        <input
+          type="password"
+          name="senha"
+          value={form.senha}
+          onChange={handleChange}
+          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.senha ? 'border-red-400' : 'border-gray-300'}`}
+          placeholder="Digite a senha"
+        />
+        {errors.senha && <small className="text-red-500">{errors.senha}</small>}
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Confirmação de Senha *</label>
+        <input
+          type="password"
+          name="confirmacaoSenha"
+          value={form.confirmacaoSenha}
+          onChange={handleChange}
+          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.confirmacaoSenha ? 'border-red-400' : 'border-gray-300'}`}
+          placeholder="Confirme a senha"
+        />
+        {errors.confirmacaoSenha && <small className="text-red-500">{errors.confirmacaoSenha}</small>}
+      </div>
+      <div className="flex justify-end pt-2 gap-2">
+        <button
+          type="button"
+          className="px-4 py-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 hover:bg-red-100 hover:text-red-600"
+          onClick={onClose}
+          disabled={submitting}
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 disabled:bg-blue-300"
+          disabled={submitting}
+        >
+          {submitting ? 'Cadastrando...' : 'Cadastrar'}
+        </button>
+      </div>
+    </form>
   );
 };
 

@@ -12,7 +12,23 @@ import TelaTriagem from "./pages/TelaTriagem";
 import { useSistemaAtendimento } from "./context/HospitalContext";
 
 const AppContent = () => {
-  const { currentUser, telaAtiva, verificarAcesso } = useSistemaAtendimento();
+  const { currentUser, telaAtiva, verificarAcesso, trocarTela } = useSistemaAtendimento();
+
+  React.useEffect(() => {
+    if (currentUser && !verificarAcesso(telaAtiva)) {
+      // Definir telas permitidas por tipo de usuário
+      const acessos = {
+        recepcionista: ["cadastro", "triagem", "publico", "fichas"],
+        enfermeiro: ["triagem", "publico", "fichas"],
+        medico: ["medico", "historico", "publico", "fichas"],
+        admin: ["cadastro", "triagem", "medico", "historico", "publico", "fichas"],
+      };
+      const permitidas = acessos[currentUser.tipo] || [];
+      if (permitidas.length > 0) {
+        trocarTela(permitidas[0]);
+      }
+    }
+  }, [currentUser, telaAtiva, verificarAcesso, trocarTela]);
 
   console.log("AppContent: Renderizando", { currentUser, telaAtiva });
 
