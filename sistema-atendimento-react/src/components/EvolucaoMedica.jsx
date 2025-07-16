@@ -32,10 +32,10 @@ const EvolucaoMedica = ({ paciente }) => {
 
   const obterCorDisplay = (cor) => {
     const cores = {
-      'vermelho': { bg: 'bg-red-500', text: 'text-white', nome: 'EMERGÊNCIA', icon: '🚨' },
-      'amarelo': { bg: 'bg-yellow-500', text: 'text-black', nome: 'URGENTE', icon: '⚠️' },
-      'verde': { bg: 'bg-green-500', text: 'text-white', nome: 'POUCO URGENTE', icon: '✅' },
-      'azul': { bg: 'bg-blue-500', text: 'text-white', nome: 'NÃO URGENTE', icon: 'ℹ️' }
+      'vermelho': { bg: 'bg-red-500', text: 'text-white', nome: 'EMERGÊNCIA' },
+      'amarelo': { bg: 'bg-yellow-500', text: 'text-black', nome: 'URGENTE' },
+      'verde': { bg: 'bg-green-500', text: 'text-white', nome: 'POUCO URGENTE' },
+      'azul': { bg: 'bg-blue-500', text: 'text-white', nome: 'NÃO URGENTE' }
     };
     return cores[cor] || cores['verde'];
   };
@@ -89,7 +89,6 @@ const EvolucaoMedica = ({ paciente }) => {
           </div>
           <div className="text-right">
             <div className={`${obterCorDisplay(paciente.corTriagem).bg} ${obterCorDisplay(paciente.corTriagem).text} px-3 py-2 rounded-lg`}>
-              <div className="text-lg">{obterCorDisplay(paciente.corTriagem).icon}</div>
               <div className="text-xs font-bold">{obterCorDisplay(paciente.corTriagem).nome}</div>
             </div>
           </div>
@@ -98,7 +97,7 @@ const EvolucaoMedica = ({ paciente }) => {
 
       {/* Informações de Tempo */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">⏰ Cronologia do Atendimento</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">Cronologia do Atendimento</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div>
             <span className="font-medium text-gray-600">Cadastro:</span>
@@ -129,7 +128,6 @@ const EvolucaoMedica = ({ paciente }) => {
       {secoesTriagem && (
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
           <h3 className="text-xl font-semibold text-orange-800 mb-4 flex items-center">
-            <span className="text-2xl mr-2">🚨</span>
             Ficha de Triagem
             {paciente.horaTriagem && (
               <span className="ml-auto text-sm font-normal text-orange-600">
@@ -141,14 +139,14 @@ const EvolucaoMedica = ({ paciente }) => {
           <div className="space-y-4">
             {secoesTriagem['QUEIXA PRINCIPAL'] && (
               <div className="bg-white rounded-lg p-4 border border-orange-200">
-                <h4 className="font-semibold text-orange-700 mb-2">🏥 Queixa Principal</h4>
+                <h4 className="font-semibold text-orange-700 mb-2">Queixa Principal</h4>
                 <p className="text-gray-700">{secoesTriagem['QUEIXA PRINCIPAL']}</p>
               </div>
             )}
 
             {secoesTriagem['SINAIS VITAIS'] && (
               <div className="bg-white rounded-lg p-4 border border-orange-200">
-                <h4 className="font-semibold text-orange-700 mb-2">💓 Sinais Vitais</h4>
+                <h4 className="font-semibold text-orange-700 mb-2">Sinais Vitais</h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
                   {Array.isArray(secoesTriagem['SINAIS VITAIS']) ? 
                     secoesTriagem['SINAIS VITAIS'].map((sinal, index) => (
@@ -162,35 +160,35 @@ const EvolucaoMedica = ({ paciente }) => {
 
             {secoesTriagem['SINTOMAS'] && (
               <div className="bg-white rounded-lg p-4 border border-orange-200">
-                <h4 className="font-semibold text-orange-700 mb-2">🔍 Sintomas</h4>
+                <h4 className="font-semibold text-orange-700 mb-2">Sintomas</h4>
                 <p className="text-gray-700">{secoesTriagem['SINTOMAS']}</p>
               </div>
             )}
 
             {secoesTriagem['OUTROS SINTOMAS'] && (
               <div className="bg-white rounded-lg p-4 border border-orange-200">
-                <h4 className="font-semibold text-orange-700 mb-2">📝 Outros Sintomas</h4>
+                <h4 className="font-semibold text-orange-700 mb-2">Outros Sintomas</h4>
                 <p className="text-gray-700">{secoesTriagem['OUTROS SINTOMAS']}</p>
               </div>
             )}
 
             {secoesTriagem['HISTÓRICO MÉDICO'] && (
               <div className="bg-white rounded-lg p-4 border border-orange-200">
-                <h4 className="font-semibold text-orange-700 mb-2">📋 Histórico Médico</h4>
+                <h4 className="font-semibold text-orange-700 mb-2">Histórico Médico</h4>
                 <p className="text-gray-700">{secoesTriagem['HISTÓRICO MÉDICO']}</p>
               </div>
             )}
 
             {secoesTriagem['MEDICAMENTOS EM USO'] && (
               <div className="bg-white rounded-lg p-4 border border-orange-200">
-                <h4 className="font-semibold text-orange-700 mb-2">💊 Medicamentos em Uso</h4>
+                <h4 className="font-semibold text-orange-700 mb-2">Medicamentos em Uso</h4>
                 <p className="text-gray-700">{secoesTriagem['MEDICAMENTOS EM USO']}</p>
               </div>
             )}
 
             {secoesTriagem['AVALIAÇÃO DE DOR'] && (
               <div className="bg-white rounded-lg p-4 border border-orange-200">
-                <h4 className="font-semibold text-orange-700 mb-2">😣 Avaliação de Dor</h4>
+                <h4 className="font-semibold text-orange-700 mb-2">Avaliação de Dor</h4>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   {Array.isArray(secoesTriagem['AVALIAÇÃO DE DOR']) ? 
                     secoesTriagem['AVALIAÇÃO DE DOR'].map((dor, index) => (
@@ -204,14 +202,14 @@ const EvolucaoMedica = ({ paciente }) => {
 
             {secoesTriagem['NÍVEL DE CONSCIÊNCIA'] && (
               <div className="bg-white rounded-lg p-4 border border-orange-200">
-                <h4 className="font-semibold text-orange-700 mb-2">⚠️ Nível de Consciência</h4>
+                <h4 className="font-semibold text-orange-700 mb-2">Nível de Consciência</h4>
                 <p className="text-gray-700">{secoesTriagem['NÍVEL DE CONSCIÊNCIA']}</p>
               </div>
             )}
 
             {secoesTriagem['OBSERVAÇÕES'] && (
               <div className="bg-white rounded-lg p-4 border border-orange-200">
-                <h4 className="font-semibold text-orange-700 mb-2">📝 Observações da Triagem</h4>
+                <h4 className="font-semibold text-orange-700 mb-2">Observações da Triagem</h4>
                 <p className="text-gray-700">{secoesTriagem['OBSERVAÇÕES']}</p>
               </div>
             )}
@@ -223,7 +221,6 @@ const EvolucaoMedica = ({ paciente }) => {
       {secoesEvolucao && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-6">
           <h3 className="text-xl font-semibold text-green-800 mb-4 flex items-center">
-            <span className="text-2xl mr-2">👨‍⚕️</span>
             Evolução Clínica
             {paciente.horaConclusao && (
               <span className="ml-auto text-sm font-normal text-green-600">
@@ -235,35 +232,35 @@ const EvolucaoMedica = ({ paciente }) => {
           <div className="space-y-4">
             {secoesEvolucao['QUEIXA ATUAL'] && (
               <div className="bg-white rounded-lg p-4 border border-green-200">
-                <h4 className="font-semibold text-green-700 mb-2">🏥 Queixa Atual</h4>
+                <h4 className="font-semibold text-green-700 mb-2">Queixa Atual</h4>
                 <p className="text-gray-700">{secoesEvolucao['QUEIXA ATUAL']}</p>
               </div>
             )}
 
             {secoesEvolucao['EXAME FÍSICO'] && (
               <div className="bg-white rounded-lg p-4 border border-green-200">
-                <h4 className="font-semibold text-green-700 mb-2">🔍 Exame Físico</h4>
+                <h4 className="font-semibold text-green-700 mb-2">Exame Físico</h4>
                 <p className="text-gray-700">{secoesEvolucao['EXAME FÍSICO']}</p>
               </div>
             )}
 
             {secoesEvolucao['HIPÓTESE DIAGNÓSTICA'] && (
               <div className="bg-white rounded-lg p-4 border border-green-200">
-                <h4 className="font-semibold text-green-700 mb-2">🔬 Hipótese Diagnóstica</h4>
+                <h4 className="font-semibold text-green-700 mb-2">Hipótese Diagnóstica</h4>
                 <p className="text-gray-700">{secoesEvolucao['HIPÓTESE DIAGNÓSTICA']}</p>
               </div>
             )}
 
             {secoesEvolucao['CONDUTA'] && (
               <div className="bg-white rounded-lg p-4 border border-green-200">
-                <h4 className="font-semibold text-green-700 mb-2">📋 Conduta</h4>
+                <h4 className="font-semibold text-green-700 mb-2">Conduta</h4>
                 <p className="text-gray-700">{secoesEvolucao['CONDUTA']}</p>
               </div>
             )}
 
             {secoesEvolucao['PRESCRIÇÕES'] && (
               <div className="bg-white rounded-lg p-4 border border-green-200">
-                <h4 className="font-semibold text-green-700 mb-2">💊 Prescrições</h4>
+                <h4 className="font-semibold text-green-700 mb-2">Prescrições</h4>
                 <div className="space-y-2">
                   {secoesEvolucao['PRESCRIÇÕES'].split('\n').filter(linha => linha.trim()).map((prescricao, index) => (
                     <div key={index} className="text-gray-700 text-sm bg-gray-50 p-2 rounded">
@@ -276,7 +273,7 @@ const EvolucaoMedica = ({ paciente }) => {
 
             {secoesEvolucao['EXAMES SOLICITADOS'] && (
               <div className="bg-white rounded-lg p-4 border border-green-200">
-                <h4 className="font-semibold text-green-700 mb-2">🔬 Exames Solicitados</h4>
+                <h4 className="font-semibold text-green-700 mb-2">Exames Solicitados</h4>
                 <div className="space-y-2">
                   {secoesEvolucao['EXAMES SOLICITADOS'].split('\n').filter(linha => linha.trim()).map((exame, index) => (
                     <div key={index} className="text-gray-700 text-sm bg-gray-50 p-2 rounded">
@@ -289,28 +286,28 @@ const EvolucaoMedica = ({ paciente }) => {
 
             {secoesEvolucao['ORIENTAÇÕES'] && (
               <div className="bg-white rounded-lg p-4 border border-green-200">
-                <h4 className="font-semibold text-green-700 mb-2">📝 Orientações</h4>
+                <h4 className="font-semibold text-green-700 mb-2">Orientações</h4>
                 <p className="text-gray-700">{secoesEvolucao['ORIENTAÇÕES']}</p>
               </div>
             )}
 
             {secoesEvolucao['ENCAMINHAMENTO'] && (
               <div className="bg-white rounded-lg p-4 border border-green-200">
-                <h4 className="font-semibold text-green-700 mb-2">🔄 Encaminhamento</h4>
+                <h4 className="font-semibold text-green-700 mb-2">Encaminhamento</h4>
                 <p className="text-gray-700">{secoesEvolucao['ENCAMINHAMENTO']}</p>
               </div>
             )}
 
             {secoesEvolucao['DATA DE RETORNO'] && (
               <div className="bg-white rounded-lg p-4 border border-green-200">
-                <h4 className="font-semibold text-green-700 mb-2">📅 Data de Retorno</h4>
+                <h4 className="font-semibold text-green-700 mb-2">Data de Retorno</h4>
                 <p className="text-gray-700">{secoesEvolucao['DATA DE RETORNO']}</p>
               </div>
             )}
 
             {secoesEvolucao['Médico Responsável'] && (
               <div className="bg-white rounded-lg p-4 border border-green-200">
-                <h4 className="font-semibold text-green-700 mb-2">👨‍⚕️ Médico Responsável</h4>
+                <h4 className="font-semibold text-green-700 mb-2">Médico Responsável</h4>
                 <p className="text-gray-700">{secoesEvolucao['Médico Responsável']}</p>
               </div>
             )}
@@ -320,23 +317,23 @@ const EvolucaoMedica = ({ paciente }) => {
 
       {/* Status Final */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">📊 Status do Atendimento</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">Status do Atendimento</h3>
         <div className="flex items-center space-x-4">
           {(() => {
             const statusMap = {
-              aguardando_triagem: { label: 'Aguardando Triagem', icon: '🚨', cor: 'bg-orange-100 text-orange-800' },
-              em_triagem: { label: 'Em Triagem', icon: '📝', cor: 'bg-orange-100 text-orange-800' },
-              aguardando_avaliacao_medica: { label: 'Aguardando Médico', icon: '⏳', cor: 'bg-yellow-100 text-yellow-800' },
-              em_consulta: { label: 'Em Atendimento', icon: '🩺', cor: 'bg-blue-100 text-blue-800' },
-              atendimento_concluido: { label: 'Atendido', icon: '✅', cor: 'bg-green-100 text-green-800' },
-              aguardando_exame: { label: 'Aguardando Exame', icon: '🧪', cor: 'bg-purple-100 text-purple-800' },
-              internado: { label: 'Internado', icon: '🏥', cor: 'bg-gray-100 text-gray-800' },
-              encaminhado: { label: 'Encaminhado', icon: '➡️', cor: 'bg-gray-100 text-gray-800' }
+              aguardando_triagem: { label: 'Aguardando Triagem', cor: 'bg-orange-100 text-orange-800' },
+              em_triagem: { label: 'Em Triagem', cor: 'bg-orange-100 text-orange-800' },
+              aguardando_avaliacao_medica: { label: 'Aguardando Médico', cor: 'bg-yellow-100 text-yellow-800' },
+              em_consulta: { label: 'Em Atendimento', cor: 'bg-blue-100 text-blue-800' },
+              atendimento_concluido: { label: 'Atendido', cor: 'bg-green-100 text-green-800' },
+              aguardando_exame: { label: 'Aguardando Exame', cor: 'bg-purple-100 text-purple-800' },
+              internado: { label: 'Internado', cor: 'bg-gray-100 text-gray-800' },
+              encaminhado: { label: 'Encaminhado', cor: 'bg-gray-100 text-gray-800' }
             };
-            const st = statusMap[paciente.status] || { label: paciente.status, icon: '', cor: 'bg-gray-100 text-gray-800' };
+            const st = statusMap[paciente.status] || { label: paciente.status, cor: 'bg-gray-100 text-gray-800' };
             return (
-              <div className={`px-4 py-2 rounded-lg font-semibold flex items-center gap-2 ${st.cor}`}>
-                <span>{st.icon}</span> {st.label}
+              <div className={`px-4 py-2 rounded-lg font-semibold ${st.cor}`}>
+                {st.label}
               </div>
             );
           })()}

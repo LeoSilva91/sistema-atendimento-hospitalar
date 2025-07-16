@@ -37,10 +37,10 @@ const HistoricoMedico = () => {
 
   const obterCorDisplay = (cor) => {
     const cores = {
-      'vermelho': { bg: 'bg-red-500', text: 'text-white', nome: 'EMERGÊNCIA', icon: '🚨' },
-      'amarelo': { bg: 'bg-yellow-500', text: 'text-black', nome: 'URGENTE', icon: '⚠️' },
-      'verde': { bg: 'bg-green-500', text: 'text-white', nome: 'POUCO URGENTE', icon: '✅' },
-      'azul': { bg: 'bg-blue-500', text: 'text-white', nome: 'NÃO URGENTE', icon: 'ℹ️' }
+      'vermelho': { bg: 'bg-red-500', text: 'text-white', nome: 'EMERGÊNCIA' },
+      'amarelo': { bg: 'bg-yellow-500', text: 'text-black', nome: 'URGENTE' },
+      'verde': { bg: 'bg-green-500', text: 'text-white', nome: 'POUCO URGENTE' },
+      'azul': { bg: 'bg-blue-500', text: 'text-white', nome: 'NÃO URGENTE' }
     };
     return cores[cor] || cores['verde'];
   };
@@ -70,10 +70,14 @@ const HistoricoMedico = () => {
 
   const obterStatusDisplay = (status) => {
     const statusInfo = {
-      'aguardando_triagem': { nome: 'Aguardando Triagem', icon: '🚨', cor: 'orange' },
-      'aguardando': { nome: 'Aguardando', icon: '⏳', cor: 'yellow' },
-      'em_atendimento': { nome: 'Em Atendimento', icon: '🩺', cor: 'blue' },
-      'atendido': { nome: 'Atendido', icon: '✅', cor: 'green' }
+      'aguardando_triagem': { nome: 'Aguardando Triagem', cor: 'orange' },
+      'em_triagem': { nome: 'Em Triagem', cor: 'orange' },
+      'aguardando_avaliacao_medica': { nome: 'Aguardando Médico', cor: 'yellow' },
+      'em_consulta': { nome: 'Em Atendimento', cor: 'blue' },
+      'atendimento_concluido': { nome: 'Atendido', cor: 'green' },
+      'aguardando_exame': { nome: 'Aguardando Exame', cor: 'purple' },
+      'internado': { nome: 'Internado', cor: 'red' },
+      'encaminhado': { nome: 'Encaminhado', cor: 'gray' }
     };
     return statusInfo[status] || statusInfo['aguardando_triagem'];
   };
@@ -93,7 +97,6 @@ const HistoricoMedico = () => {
             <div>
               <h1 className="text-3xl font-bold">Histórico Médico</h1>
               <div className="flex items-center gap-2 text-blue-100 mt-1">
-                <span className="pi pi-user text-base" />
                 <span>{currentUser?.nome} - {currentUser?.tipo === 'admin' ? 'Administrador' : currentUser?.tipo === 'recepcionista' ? 'Recepcionista' : currentUser?.tipo === 'medico' ? 'Médico' : currentUser?.tipo}</span>
               </div>
             </div>
@@ -130,9 +133,13 @@ const HistoricoMedico = () => {
                     options={[
                       { label: 'Todos os Status', value: 'todos' },
                       { label: 'Aguardando Triagem', value: 'aguardando_triagem' },
-                      { label: 'Aguardando', value: 'aguardando' },
-                      { label: 'Em Atendimento', value: 'em_atendimento' },
-                      { label: 'Atendidos', value: 'atendido' }
+                      { label: 'Em Triagem', value: 'em_triagem' },
+                      { label: 'Aguardando Médico', value: 'aguardando_avaliacao_medica' },
+                      { label: 'Em Atendimento', value: 'em_consulta' },
+                      { label: 'Atendido', value: 'atendimento_concluido' },
+                      { label: 'Aguardando Exame', value: 'aguardando_exame' },
+                      { label: 'Internado', value: 'internado' },
+                      { label: 'Encaminhado', value: 'encaminhado' }
                     ]}
                     onChange={e => setFiltroStatus(e.value)}
                     className="w-full min-w-0"
@@ -144,9 +151,6 @@ const HistoricoMedico = () => {
               <div className="flex-1 flex flex-col">
                 {pacientesFiltrados.length === 0 ? (
                   <div className="bg-gray-50 rounded-lg p-8 text-center flex-1 flex flex-col justify-center min-h-[220px]">
-                    <div className="text-gray-400 mb-4">
-                      <i className="pi pi-check-circle text-5xl" />
-                    </div>
                     <p className="text-gray-500 text-lg">Nenhum paciente encontrado</p>
                   </div>
                 ) : (
@@ -180,12 +184,15 @@ const HistoricoMedico = () => {
                         <div className="text-xs text-gray-700 truncate max-w-full">{paciente.motivoVisita}</div>
                         <div className="flex items-center gap-2 mt-1">
                           <Tag value={corInfo.nome} className={`${corInfo.bg} ${corInfo.text} px-2 py-0.5 text-xs`} />
-                          <Tag value={statusInfo.nome} className={`px-2 py-0.5 text-xs ${
-                            statusInfo.cor === 'green' ? 'bg-green-100 text-green-700' :
-                            statusInfo.cor === 'blue' ? 'bg-blue-100 text-blue-700' :
-                            statusInfo.cor === 'yellow' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-orange-100 text-orange-700'
-                          }`} />
+                          <Tag value={statusInfo.nome} className={`px-2 py-0.5 text-xs font-bold rounded ${{
+                            green: 'bg-green-500 text-white',
+                            blue: 'bg-blue-500 text-white',
+                            yellow: 'bg-yellow-400 text-gray-900',
+                            orange: 'bg-orange-400 text-white',
+                            purple: 'bg-purple-500 text-white',
+                            red: 'bg-red-500 text-white',
+                            gray: 'bg-gray-400 text-white'
+                          }[statusInfo.cor] || 'bg-gray-200 text-gray-700'}`} />
                         </div>
                       </Card>
                     );
@@ -205,11 +212,6 @@ const HistoricoMedico = () => {
                 </div>
               ) : (
                 <div className="bg-gray-50 rounded-lg p-8 text-center flex-1 flex flex-col justify-center min-h-[220px]">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
                   <p className="text-gray-500 text-lg">Selecione um paciente para visualizar o histórico</p>
                   <p className="text-gray-400 text-sm mt-2">Clique em um paciente da lista ao lado</p>
                 </div>
@@ -218,7 +220,6 @@ const HistoricoMedico = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch min-h-[200px] mt-8">
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
-              <div className="text-orange-600 text-2xl mb-2">🚨</div>
               <p className="text-2xl font-bold text-gray-800">
                 {estatisticas.aguardandoTriagem ?? 0}
               </p>
@@ -226,15 +227,13 @@ const HistoricoMedico = () => {
             </div>
             
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-              <div className="text-yellow-600 text-2xl mb-2">⏳</div>
               <p className="text-2xl font-bold text-gray-800">
                 {estatisticas.aguardandoAvaliacao ?? 0}
               </p>
-              <p className="text-gray-600 text-sm">Aguardando</p>
+              <p className="text-gray-600 text-sm">Aguardando Médico</p>
             </div>
             
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-              <div className="text-blue-600 text-2xl mb-2">🩺</div>
               <p className="text-2xl font-bold text-gray-800">
                 {estatisticas.emConsulta ?? 0}
               </p>
@@ -242,7 +241,6 @@ const HistoricoMedico = () => {
             </div>
             
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-              <div className="text-green-600 text-2xl mb-2">✅</div>
               <p className="text-2xl font-bold text-gray-800">
                 {estatisticas.atendidos ?? 0}
               </p>

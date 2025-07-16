@@ -380,16 +380,14 @@ const CadastroPaciente = () => {
 
   return (
     <div className="mx-auto max-w-4xl p-6 pt-2">
-      <h2 className="mb-6 text-3xl font-bold text-gray-800 flex items-center">
-        <i className={`${PrimeIcons.USER_PLUS} mr-3 text-blue-600`}></i>
+      <h2 className="mb-6 text-3xl font-bold text-gray-800">
         Cadastro de Paciente
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Dados Pessoais */}
         <Card className="shadow-md">
-          <h3 className="mb-4 text-xl font-semibold text-gray-700 flex items-center">
-            <i className={`${PrimeIcons.USER} mr-2 text-blue-600`}></i>
+          <h3 className="mb-4 text-xl font-semibold text-gray-700">
             Dados Pessoais
           </h3>
 
@@ -524,8 +522,7 @@ const CadastroPaciente = () => {
 
         {/* Contato */}
         <Card className="shadow-md">
-          <h3 className="mb-4 text-xl font-semibold text-gray-700 flex items-center">
-            <i className={`${PrimeIcons.PHONE} mr-2 text-green-600`}></i>
+          <h3 className="mb-4 text-xl font-semibold text-gray-700">
             Contato
           </h3>
 
@@ -588,8 +585,7 @@ const CadastroPaciente = () => {
 
         {/* Convênio */}
         <Card className="shadow-md">
-          <h3 className="mb-4 text-xl font-semibold text-gray-700 flex items-center">
-            <i className={`${PrimeIcons.BUILDING} mr-2 text-purple-600`}></i>
+          <h3 className="mb-4 text-xl font-semibold text-gray-700">
             Convênio
           </h3>
 
@@ -655,8 +651,7 @@ const CadastroPaciente = () => {
 
         {/* Motivo da Visita */}
         <Card className="shadow-md">
-          <h3 className="mb-4 text-xl font-semibold text-gray-700 flex items-center">
-            <i className={`${PrimeIcons.EXCLAMATION_TRIANGLE} mr-2 text-orange-600`}></i>
+          <h3 className="mb-4 text-xl font-semibold text-gray-700">
             Motivo da Visita
           </h3>
 
@@ -717,12 +712,10 @@ const CadastroPaciente = () => {
           >
             {isSubmitting ? (
               <div className="flex items-center justify-center">
-                <i className={`${PrimeIcons.SPINNER} animate-spin mr-3`}></i>
                 Cadastrando...
               </div>
             ) : (
               <>
-                <i className={`${PrimeIcons.CHECK} mr-2`}></i>
                 Registrar Paciente
               </>
             )}

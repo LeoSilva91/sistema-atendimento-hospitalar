@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useCallback } from "react";
+import React, { useRef, useMemo, useCallback, useState, useEffect } from "react";
 import { useSistemaAtendimento } from "../context/HospitalContext";
 import { Button } from "primereact/button";
 import { TabMenu } from "primereact/tabmenu";
@@ -10,8 +10,8 @@ import { Dialog } from "primereact/dialog";
 const Navigation = () => {
   const { currentUser, telaAtiva, trocarTela, logout, verificarAcesso } = useSistemaAtendimento();
   const menuUser = useRef(null);
-  const [showCadastroFuncionario, setShowCadastroFuncionario] = React.useState(false);
-  const [openSignal, setOpenSignal] = React.useState(0);
+  const [showCadastroFuncionario, setShowCadastroFuncionario] = useState(false);
+  const [openSignal, setOpenSignal] = useState(0);
 
   // Mapeamento de ícones e nomes das telas
   const telaConfig = useMemo(() => ({
@@ -20,7 +20,8 @@ const Navigation = () => {
     medico: { icon: PrimeIcons.USER, nome: "Painel Médico" },
     historico: { icon: PrimeIcons.CALENDAR, nome: "Histórico Médico" },
     publico: { icon: PrimeIcons.HOME, nome: "Painel Público" },
-    fichas: { icon: PrimeIcons.TICKET, nome: "Emissão de Fichas" }
+    fichas: { icon: PrimeIcons.TICKET, nome: "Emissão de Fichas" },
+    senhas: { icon: PrimeIcons.TICKET, nome: "Gerador de Senhas" }
   }), []);
 
   // Obter configuração da tela
@@ -31,7 +32,7 @@ const Navigation = () => {
   // Obter telas disponíveis baseado no acesso do usuário
   const telasDisponiveis = useMemo(() => {
     if (!currentUser) return [];
-    const todasTelas = ["cadastro", "triagem", "medico", "historico", "fichas", "publico"];
+    const todasTelas = ["cadastro", "triagem", "medico", "historico", "fichas", "publico", "senhas"];
     return todasTelas.filter(tela => verificarAcesso(tela));
   }, [currentUser, verificarAcesso]);
 
@@ -194,7 +195,7 @@ const Navigation = () => {
 
 // Formulário de cadastro de funcionário
 const CadastroFuncionarioForm = ({ onClose, openSignal }) => {
-  const [form, setForm] = React.useState({
+  const [form, setForm] = useState({
     nome: '',
     email: '',
     cpf: '',
@@ -203,8 +204,8 @@ const CadastroFuncionarioForm = ({ onClose, openSignal }) => {
     senha: '',
     confirmacaoSenha: ''
   });
-  const [errors, setErrors] = React.useState({});
-  const [submitting, setSubmitting] = React.useState(false);
+  const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
   const cargos = [
     { label: 'Administrador', value: 'admin' },
     { label: 'Médico', value: 'medico' },
@@ -260,7 +261,7 @@ const CadastroFuncionarioForm = ({ onClose, openSignal }) => {
   };
 
   // Limpar formulário e erros sempre que o modal abrir
-  React.useEffect(() => {
+  useEffect(() => {
     setForm({
       nome: '',
       email: '',

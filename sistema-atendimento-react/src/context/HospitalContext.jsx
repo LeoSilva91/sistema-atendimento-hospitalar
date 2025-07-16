@@ -244,7 +244,6 @@ export const SistemaAtendimentoProvider = ({ children }) => {
           if (prioridadeA !== prioridadeB) {
             return prioridadeB - prioridadeA; // Maior prioridade primeiro
           }
-          
           // Se mesma prioridade, FIFO
           return prev.indexOf(a) - prev.indexOf(b);
         });
@@ -255,7 +254,7 @@ export const SistemaAtendimentoProvider = ({ children }) => {
         !(chamada.pacienteId === pacienteId && chamada.tipo === 'triagem')
       ));
 
-      // Atualizar ou emitir ficha com prioridade
+      // Atualizar ou emitir ficha com todos os dados
       setFichasEmitidas(prev => {
         const idx = prev.findIndex(f => f.pacienteId === pacienteId);
         const fichaAtualizada = {
@@ -268,7 +267,20 @@ export const SistemaAtendimentoProvider = ({ children }) => {
           motivoVisita: pacienteAtualizado.motivoVisita,
           horaEmissao: new Date().toISOString(),
           numeroFicha: `F${String(pacienteAtualizado.id).padStart(4, '0')}`,
-          corTriagem: pacienteAtualizado.corTriagem
+          corTriagem: pacienteAtualizado.corTriagem,
+          sinaisVitais: pacienteAtualizado.sinaisVitais,
+          queixaPrincipal: pacienteAtualizado.queixaPrincipal,
+          nivelDor: pacienteAtualizado.nivelDor,
+          observacoesTriagem: pacienteAtualizado.observacoesTriagem,
+          nivelConsciencia: pacienteAtualizado.nivelConsciencia,
+          status: pacienteAtualizado.status,
+          // Dados médicos podem ser preenchidos depois
+          diagnostico: prev[idx]?.diagnostico || '',
+          condutas: prev[idx]?.condutas || '',
+          prescricoes: prev[idx]?.prescricoes || [],
+          exames: prev[idx]?.exames || [],
+          orientacoes: prev[idx]?.orientacoes || '',
+          encaminhamento: prev[idx]?.encaminhamento || ''
         };
         if (idx !== -1) {
           // Atualiza ficha existente
@@ -353,6 +365,27 @@ export const SistemaAtendimentoProvider = ({ children }) => {
         !(chamada.pacienteId === pacienteId && chamada.tipo === 'consulta')
       ));
 
+      // Atualizar ficha com dados médicos e status
+      setFichasEmitidas(prev => {
+        const idx = prev.findIndex(f => f.pacienteId === pacienteId);
+        if (idx !== -1) {
+          const fichaAtualizada = {
+            ...prev[idx],
+            diagnostico: pacienteAtualizado.diagnostico,
+            condutas: pacienteAtualizado.condutas,
+            prescricoes: pacienteAtualizado.prescricoes,
+            exames: pacienteAtualizado.exames,
+            orientacoes: pacienteAtualizado.orientacoes,
+            encaminhamento: pacienteAtualizado.encaminhamento,
+            status: pacienteAtualizado.status
+          };
+          const novaLista = [...prev];
+          novaLista[idx] = fichaAtualizada;
+          return novaLista;
+        }
+        return prev;
+      });
+
       return pacienteAtualizado;
     }
     return null;
@@ -418,6 +451,13 @@ export const SistemaAtendimentoProvider = ({ children }) => {
     const aguardandoExame = pacientes.filter((p) => p.status === "aguardando_exame").length;
     const internados = pacientes.filter((p) => p.status === "internado").length;
 
+    // Estatísticas por cor de triagem
+    const emergencia = pacientes.filter((p) => p.corTriagem === "vermelho").length;
+    const muitoUrgente = pacientes.filter((p) => p.corTriagem === "laranja").length;
+    const urgente = pacientes.filter((p) => p.corTriagem === "amarelo").length;
+    const poucoUrgente = pacientes.filter((p) => p.corTriagem === "verde").length;
+    const naoUrgente = pacientes.filter((p) => p.corTriagem === "azul").length;
+
     return { 
       total, 
       aguardandoTriagem, 
@@ -426,7 +466,12 @@ export const SistemaAtendimentoProvider = ({ children }) => {
       emConsulta, 
       atendidos, 
       aguardandoExame, 
-      internados 
+      internados,
+      emergencia,
+      muitoUrgente,
+      urgente,
+      poucoUrgente,
+      naoUrgente
     };
   }, [pacientes]);
 
@@ -455,10 +500,10 @@ export const SistemaAtendimentoProvider = ({ children }) => {
   const verificarAcesso = useCallback((tela) => {
     if (!currentUser) return false;
     const acessos = {
-      recepcionista: ["cadastro", "triagem", "publico", "fichas"],
+      recepcionista: ["cadastro", "publico", "fichas", "senhas"],
       enfermeiro: ["triagem", "publico", "fichas"],
       medico: ["medico", "historico", "publico", "fichas"],
-      admin: ["cadastro", "triagem", "medico", "historico", "publico", "fichas"],
+      admin: ["cadastro", "triagem", "medico", "historico", "publico", "fichas", "senhas"],
     };
     return acessos[currentUser.tipo]?.includes(tela) || false;
   }, [currentUser]);

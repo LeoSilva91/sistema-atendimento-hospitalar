@@ -9,6 +9,7 @@ import PainelPublico from "./pages/PainelPublico";
 import HistoricoMedico from "./pages/HistoricoMedico";
 import EmissaoFichas from "./components/EmissaoFichas";
 import TelaTriagem from "./pages/TelaTriagem";
+import GeradorSenha from "./components/GeradorSenha";
 import { useSistemaAtendimento } from "./context/HospitalContext";
 
 const AppContent = () => {
@@ -18,10 +19,10 @@ const AppContent = () => {
     if (currentUser && !verificarAcesso(telaAtiva)) {
       // Definir telas permitidas por tipo de usuário
       const acessos = {
-        recepcionista: ["cadastro", "triagem", "publico", "fichas"],
+        recepcionista: ["cadastro", "publico", "fichas", "senhas"],
         enfermeiro: ["triagem", "publico", "fichas"],
         medico: ["medico", "historico", "publico", "fichas"],
-        admin: ["cadastro", "triagem", "medico", "historico", "publico", "fichas"],
+        admin: ["cadastro", "triagem", "medico", "historico", "publico", "fichas", "senhas"],
       };
       const permitidas = acessos[currentUser.tipo] || [];
       if (permitidas.length > 0) {
@@ -56,6 +57,8 @@ const AppContent = () => {
         return verificarAcesso("publico") ? <PainelPublico /> : <div>Acesso negado</div>;
       case "fichas":
         return verificarAcesso("fichas") ? <EmissaoFichas /> : <div>Acesso negado</div>;
+      case "senhas":
+        return verificarAcesso("senhas") ? <GeradorSenha /> : <div>Acesso negado</div>;
       default:
         console.log("AppContent: Tela padrão - TelaCadastro");
         return <TelaCadastro />;
