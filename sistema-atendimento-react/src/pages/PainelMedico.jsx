@@ -652,6 +652,7 @@ const PainelMedico = () => {
                   </h2>
                   <Button
                     label="Chamar Próximo"
+                    icon="pi pi-user-plus"
                     disabled={pacientesAguardandoMedico.length === 0}
                     onClick={handleCallNextPatient}
                     className="bg-blue-600 hover:bg-blue-700 border-0 text-white"

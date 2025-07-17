@@ -132,166 +132,142 @@ const GeradorSenha = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 pt-2">
+    <div className="min-h-screen bg-gray-50 p-2 sm:p-4 pt-2">
       <div className="max-w-4xl mx-auto">
         {/* Header minimalista */}
         <div className="mb-4">
-          <h1 className="text-3xl font-bold text-gray-800">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
             Gerador de Senhas
           </h1>
-          <div className="flex items-center text-gray-500 text-sm mt-1">
+          <div className="flex items-center text-gray-500 text-xs sm:text-sm mt-1">
             {currentTime.toLocaleTimeString('pt-BR')} • {currentTime.toLocaleDateString('pt-BR')}
           </div>
         </div>
 
         {/* Botões de Geração */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <button
             onClick={() => gerarSenha('normal')}
-            className="w-full flex justify-center items-center focus:outline-none bg-transparent border-none p-0"
+            className="w-full h-32 sm:h-40 bg-green-500 hover:bg-green-600 text-white font-semibold text-lg sm:text-xl rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-300"
             aria-label="Emitir senha normal"
-            tabIndex={0}
-            onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && gerarSenha('normal')}
             type="button"
           >
-            <div 
-              style={{ background: '#00d34d' }} 
-              className="w-64 h-64 rounded-full flex flex-col items-center justify-center shadow-lg hover:scale-105 active:scale-95 cursor-pointer transition-all"
-            >
-              <span style={{ color: '#fff' }} className="text-2xl font-bold">
-                NORMAL
-              </span>
-            </div>
+            NORMAL
           </button>
           <button
             onClick={() => gerarSenha('prioridade')}
-            className="w-full flex justify-center items-center focus:outline-none bg-transparent border-none p-0"
+            className="w-full h-32 sm:h-40 bg-red-500 hover:bg-red-600 text-white font-semibold text-lg sm:text-xl rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-300"
             aria-label="Emitir senha prioridade"
-            tabIndex={0}
-            onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && gerarSenha('prioridade')}
             type="button"
           >
-            <div 
-              style={{ background: '#ff3232' }} 
-              className="w-64 h-64 rounded-full flex flex-col items-center justify-center shadow-lg hover:scale-105 active:scale-95 cursor-pointer transition-all"
-            >
-              <span style={{ color: '#fff' }} className="text-2xl font-bold">
-                PRIORIDADE
-              </span>
-            </div>
+            PRIORIDADE
           </button>
         </div>
 
         {/* Instruções */}
         <Card className="shadow-md bg-blue-50 border-blue-200">
-          <h3 className="text-lg font-semibold text-blue-800 mb-3">
+          <h3 className="text-base sm:text-lg font-semibold text-blue-800 mb-3">
             Como Escolher sua Senha
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="font-semibold text-green-800 mb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
+              <h4 className="font-semibold text-green-800 mb-2 text-sm sm:text-base">
                 Senha Normal (Verde)
               </h4>
-              <div className="text-green-700 space-y-1 text-sm">
+              <div className="text-green-700 space-y-1 text-xs sm:text-sm">
                 <p>• Consultas de rotina</p>
                 <p>• Exames agendados</p>
                 <p>• Retornos médicos</p>
                 <p>• Casos não urgentes</p>
               </div>
             </div>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <h4 className="font-semibold text-red-800 mb-2">
-                Senha Prioridade (Vermelha)
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
+              <h4 className="font-semibold text-red-800 mb-2 text-sm sm:text-base">
+                Senha Prioridade (Vermelho)
               </h4>
-              <div className="text-red-700 space-y-1 text-sm">
-                <p>• Emergências médicas</p>
+              <div className="text-red-700 space-y-1 text-xs sm:text-sm">
+                <p>• Emergências</p>
                 <p>• Casos urgentes</p>
-                <p>• Dor intensa</p>
-                <p>• Sintomas graves</p>
+                <p>• Idosos e gestantes</p>
+                <p>• Crianças pequenas</p>
               </div>
             </div>
           </div>
-          <div className="mt-4 text-blue-700 space-y-1 text-sm">
-            <p>• Aguarde ser chamado na recepção</p>
-            <p>• Mantenha sua senha em local visível</p>
-            <p>• Em caso de dúvida, procure a recepção</p>
-          </div>
         </Card>
 
-        {/* Dialog da Senha Gerada */}
+        {/* Últimas Senhas Geradas */}
+        {ultimasSenhas.length > 0 && (
+          <Card className="shadow-md mt-4 sm:mt-6">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
+              Últimas Senhas Geradas
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {ultimasSenhas.map((senha) => {
+                const corInfo = obterCorTipo(senha.tipo);
+                return (
+                  <div
+                    key={senha.id}
+                    className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200 flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`rounded-full flex items-center justify-center font-bold text-lg sm:text-xl ${corInfo.bg} ${corInfo.text}`}
+                        style={{ width: 50, height: 50 }}
+                      >
+                        {senha.prefixo}{senha.numero.toString().padStart(3, '0')}
+                      </div>
+                      <div>
+                        <div className={`font-semibold text-sm ${corInfo.text}`}>{corInfo.nome}</div>
+                        <div className="text-xs text-gray-500">{formatarHora(senha.horaGeracao)}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        )}
+
+        {/* Modal de Senha Gerada */}
         <Dialog
-          header="Senha Gerada com Sucesso!"
           visible={showDialog}
-          style={{ width: '100%', maxWidth: 380 }}
           onHide={() => setShowDialog(false)}
-          className="rounded-xl"
+          style={{ width: '90vw', maxWidth: 350 }}
+          className="rounded-lg"
+          header={false}
           closable={false}
         >
           {senhaGerada && (
-            <div className="flex flex-col items-center justify-center p-6 gap-5">
-              <div
-                style={{
-                  background: senhaGerada.tipo === 'prioridade' ? '#ff3232' : '#00d34d',
-                  color: '#fff',
-                  width: 170,
-                  height: 170,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: '9999px',
-                  fontWeight: 'bold',
-                  fontSize: '3rem',
-                  boxShadow: '0 4px 24px 0 rgba(0,0,0,0.10)'
-                }}
-              >
-                {senhaGerada.prefixo}{senhaGerada.numero.toString().padStart(3, '0')}
+            <div className="text-center p-6">
+              <div className="mb-6">
+                <div
+                  className={`rounded-lg flex items-center justify-center font-bold text-5xl mx-auto mb-4 ${obterCorTipo(senhaGerada.tipo).bg} ${obterCorTipo(senhaGerada.tipo).text}`}
+                  style={{ width: 100, height: 100 }}
+                >
+                  {senhaGerada.prefixo}{senhaGerada.numero.toString().padStart(3, '0')}
+                </div>
+                <div className="text-gray-600 text-sm">
+                  Gerada às {formatarHora(senhaGerada.horaGeracao)}
+                </div>
               </div>
-              <span 
-                className={`px-5 py-1 rounded-full text-sm font-bold tracking-wide shadow-sm ${
-                  senhaGerada.tipo === 'prioridade' 
-                    ? 'bg-[#ff3232]/90 text-white' 
-                    : 'bg-[#00d34d]/90 text-white'
-                }`}
-                style={{letterSpacing: 2}}
-              >
-                {senhaGerada.tipo === 'prioridade' ? 'PRIORIDADE' : 'NORMAL'}
-              </span>
-              <span className="text-gray-400 text-xs mt-0.5">
-                Gerada às {formatarHora(senhaGerada.horaGeracao)}
-              </span>
-              <div className="bg-gray-100 rounded-lg p-3 w-full text-center text-gray-700 text-base font-medium">
-                Aguarde ser chamado na recepção
-              </div>
-              <div className="flex gap-3 w-full mt-2">
+              <div className="flex gap-3">
                 <Button
                   label="Imprimir"
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-0 py-2 font-semibold text-base rounded-lg shadow-sm"
-                  onClick={() => {
-                    imprimirSenha(senhaGerada);
-                    setShowDialog(false);
-                  }}
+                  icon="pi pi-print"
+                  onClick={() => imprimirSenha(senhaGerada)}
+                  className="flex-1 !bg-blue-600 !text-white !border-0"
                 />
                 <Button
                   label="Fechar"
                   outlined
-                  className="flex-1 border-blue-600 text-blue-600 px-0 py-2 font-semibold text-base rounded-lg shadow-sm transition-colors duration-200 custom-fechar-btn"
                   onClick={() => setShowDialog(false)}
-                  style={{}}
+                  className="flex-1 !bg-gray-100 !text-gray-700 !border-0"
                 />
               </div>
             </div>
           )}
         </Dialog>
       </div>
-      {/* CSS customizado para garantir hover vermelho no botão Fechar */}
-      <style>{`
-        .custom-fechar-btn:hover,
-        .custom-fechar-btn:focus {
-          background: #ff3232 !important;
-          color: #fff !important;
-          border-color: #ff3232 !important;
-        }
-      `}</style>
     </div>
   );
 };

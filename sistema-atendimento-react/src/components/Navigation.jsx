@@ -6,12 +6,14 @@ import { Avatar } from "primereact/avatar";
 import { PrimeIcons } from "primereact/api";
 import { Menu } from "primereact/menu";
 import { Dialog } from "primereact/dialog";
+import { Sidebar } from "primereact/sidebar";
 
 const Navigation = () => {
   const { currentUser, telaAtiva, trocarTela, logout, verificarAcesso } = useSistemaAtendimento();
   const menuUser = useRef(null);
   const [showCadastroFuncionario, setShowCadastroFuncionario] = useState(false);
   const [openSignal, setOpenSignal] = useState(0);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   // Mapeamento de ícones e nomes das telas
   const telaConfig = useMemo(() => ({
@@ -39,6 +41,7 @@ const Navigation = () => {
   // Handlers de eventos
   const handleTelaClick = useCallback((tela) => {
     trocarTela(tela);
+    setShowMobileMenu(false); // Fechar menu mobile ao clicar
   }, [trocarTela]);
 
   // Menu do usuário
@@ -104,7 +107,7 @@ const Navigation = () => {
               style={{ background: 'none', boxShadow: 'none', border: 'none' }}
             >
             <span className={`${config.icon} ${isActive ? 'text-blue-600' : 'text-gray-500'} text-base`} />
-            <span>{config.nome}</span>
+            <span className="hidden sm:inline">{config.nome}</span>
           </div>
           );
         }
@@ -126,7 +129,7 @@ const Navigation = () => {
         tabIndex={0}
       >
         <span className="pi pi-user text-blue-600 text-xl" />
-        <span className="font-medium text-gray-800 text-sm">{currentUser.nome}</span>
+        <span className="font-medium text-gray-800 text-sm hidden sm:inline">{currentUser.nome}</span>
       </Button>
       <Menu 
         model={userMenuItems} 
@@ -149,13 +152,53 @@ const Navigation = () => {
       <Dialog 
         header="Cadastrar Funcionário" 
         visible={showCadastroFuncionario} 
-        style={{ width: '40vw', maxWidth: 500 }} 
+        style={{ width: '90vw', maxWidth: 500 }} 
         onHide={() => setShowCadastroFuncionario(false)}
         className="rounded-xl"
       >
         <CadastroFuncionarioForm onClose={() => setShowCadastroFuncionario(false)} openSignal={openSignal} />
       </Dialog>
     </>
+  );
+
+  // Menu mobile
+  const MobileMenu = () => (
+    <Sidebar
+      visible={showMobileMenu}
+      position="left"
+      onHide={() => setShowMobileMenu(false)}
+      className="w-80"
+      pt={{
+        root: { className: 'bg-white' },
+        header: { className: 'bg-blue-600 text-white' },
+        headerContent: { className: 'text-lg font-semibold' },
+        closeButton: { className: 'text-white hover:bg-blue-700' }
+      }}
+    >
+      <div className="p-4">
+        <h2 className="text-xl font-bold text-gray-800 mb-6">Menu de Navegação</h2>
+        <div className="space-y-2">
+          {telasDisponiveis.map((tela) => {
+            const config = obterConfigTela(tela);
+            const isActive = telaAtiva === tela;
+            return (
+              <button
+                key={tela}
+                onClick={() => handleTelaClick(tela)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-150 text-left ${
+                  isActive 
+                    ? 'bg-blue-100 text-blue-700 border-l-4 border-blue-600' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <span className={`${config.icon} text-lg ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
+                <span className="font-medium">{config.nome}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </Sidebar>
   );
 
   // Se não há usuário logado, não renderiza nada
@@ -165,13 +208,20 @@ const Navigation = () => {
     <nav className="bg-white shadow-lg border-b border-gray-200" role="navigation" aria-label="Navegação principal">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+          {/* Logo e Menu Mobile */}
           <div className="flex items-center h-16">
-            <img src="/logo-menu.png" alt="Logo SIAH" className="h-16 w-auto mr-1" />
+            <button
+              onClick={() => setShowMobileMenu(true)}
+              className="lg:hidden mr-3 p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Abrir menu de navegação"
+            >
+              <span className="pi pi-bars text-gray-600 text-xl" />
+            </button>
+            <img src="/logo-menu.png" alt="Logo SIAH" className="h-12 lg:h-16 w-auto mr-1" />
           </div>
 
-          {/* TabMenu de navegação */}
-          <div className="flex flex-1 justify-center">
+          {/* TabMenu de navegação - Desktop */}
+          <div className="hidden lg:flex flex-1 justify-center">
             <TabMenu 
               model={tabMenuItems}
               className="border-none bg-transparent"
@@ -188,11 +238,14 @@ const Navigation = () => {
           </div>
 
           {/* Perfil e menu do usuário */}
-          <div className="flex items-center gap-3 ml-8 md:ml-12">
+          <div className="flex items-center gap-3 ml-4 lg:ml-12">
             <UserProfile />
           </div>
         </div>
       </div>
+
+      {/* Menu Mobile */}
+      <MobileMenu />
     </nav>
   );
 };
