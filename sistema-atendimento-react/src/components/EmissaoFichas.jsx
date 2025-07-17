@@ -27,7 +27,7 @@ const EmissaoFichas = () => {
   const filtrarFichas = () => {
     if (!busca.trim()) return fichasEmitidas;
     const termoBusca = busca.toLowerCase();
-    return fichasEmitidas.filter(ficha => 
+    return fichasEmitidas.filter(ficha =>
       ficha.pacienteNome.toLowerCase().includes(termoBusca) ||
       ficha.cpf.includes(termoBusca) ||
       ficha.numeroFicha.toLowerCase().includes(termoBusca)
@@ -50,7 +50,7 @@ const EmissaoFichas = () => {
       ---
       Esta ficha deve ser apresentada no momento da triagem.
     `;
-    
+
     const janela = window.open('', '_blank');
     janela.document.write(`
       <html>
@@ -86,11 +86,10 @@ const EmissaoFichas = () => {
           </div>
           <div class="info">
             <span class="label">Prioridade:</span> 
-            <span class="priority" style="background-color: ${
-              ficha.corTriagem === 'vermelho' ? '#ef4444' :
-              ficha.corTriagem === 'amarelo' ? '#eab308' :
-              ficha.corTriagem === 'verde' ? '#22c55e' : '#3b82f6'
-            }">
+            <span class="priority" style="background-color: ${ficha.corTriagem === 'vermelho' ? '#ef4444' :
+        ficha.corTriagem === 'amarelo' ? '#eab308' :
+          ficha.corTriagem === 'verde' ? '#22c55e' : '#3b82f6'
+      }">
               ${obterCorDisplay(ficha.corTriagem).nome}
             </span>
           </div>
@@ -121,7 +120,7 @@ Prioridade: ${obterCorDisplay(ficha.corTriagem).nome}
 ---
 Esta ficha deve ser apresentada no momento da triagem.
     `;
-    
+
     const blob = new Blob([conteudo], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -185,16 +184,19 @@ Esta ficha deve ser apresentada no momento da triagem.
                       return (
                         <Card
                           key={ficha.id}
-                          className={`transition-all cursor-pointer rounded-lg px-3 py-2 border min-w-0 shadow-sm !mb-0 !mt-0 ${
-                            isSelected
-                              ? '!border-blue-500 !bg-blue-50'
-                              : '!border-gray-200 hover:!border-gray-300 !bg-white'
-                          }`}
+                          className={`transition-all cursor-pointer rounded-lg px-3 py-2 border min-w-0 shadow-sm !mb-0 !mt-0 ${isSelected
+                            ? '!border-blue-500 !bg-blue-50'
+                            : '!border-gray-200 hover:!border-gray-300 !bg-white'
+                            }`}
                           onClick={() => setFichaSelecionada(ficha)}
                         >
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className="bg-blue-500 text-white font-bold text-xs px-2 py-0.5 rounded-full flex-shrink-0">{ficha.numeroFicha}</span>
-                            <span className="font-medium text-gray-800 text-sm truncate max-w-[120px]">{ficha.pacienteNome}</span>
+                            <span className="bg-blue-500 text-white font-bold text-xs px-2 py-0.5 rounded-full flex-shrink-0">
+                              {ficha.numeroFicha}
+                            </span>
+                            <span className="font-medium text-gray-800 text-sm truncate max-w-[120px]">
+                              {ficha.pacienteNome}
+                            </span>
                             {isSelected && (
                               <span className="ml-2 text-xs text-blue-600 font-semibold">Selecionada</span>
                             )}
@@ -202,9 +204,14 @@ Esta ficha deve ser apresentada no momento da triagem.
                           <div className="flex items-center gap-2 text-xs text-gray-500">
                             <span>{formatarData(ficha.horaEmissao)}</span>
                           </div>
-                          <div className="text-xs text-gray-700 truncate max-w-full">{ficha.motivoVisita}</div>
+                          <div className="text-xs text-gray-700 truncate max-w-full">
+                            {ficha.motivoVisita}
+                          </div>
                           <div className="flex items-center gap-2 mt-1">
-                            <Tag value={corInfo.nome} className={`${corInfo.bg} ${corInfo.text} px-2 py-0.5 text-xs`} />
+                            <Tag
+                              value={corInfo.nome}
+                              className={`${corInfo.bg} ${corInfo.text} px-2 py-0.5 text-xs`}
+                            />
                           </div>
                         </Card>
                       );
@@ -221,31 +228,53 @@ Esta ficha deve ser apresentada no momento da triagem.
                 <div className="flex-1">
                   <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-300 rounded-lg p-6">
                     <div className="text-center mb-6">
-                      <h3 className="text-2xl font-bold text-blue-800 mb-2">FICHA DE ATENDIMENTO HOSPITALAR</h3>
-                      <div className="text-lg font-semibold text-blue-600">{fichaSelecionada.numeroFicha}</div>
+                      <h3 className="text-2xl font-bold text-blue-800 mb-2">
+                        FICHA DE ATENDIMENTO HOSPITALAR
+                      </h3>
+                      <div className="text-lg font-semibold text-blue-600">
+                        {fichaSelecionada.numeroFicha}
+                      </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Data/Hora de Emissão</label>
-                          <p className="font-semibold text-gray-800">{formatarData(fichaSelecionada.horaEmissao)}</p>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">
+                            Data/Hora de Emissão
+                          </label>
+                          <p className="font-semibold text-gray-800">
+                            {formatarData(fichaSelecionada.horaEmissao)}
+                          </p>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Nome do Paciente</label>
-                          <p className="font-semibold text-gray-800">{fichaSelecionada.pacienteNome}</p>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">
+                            Nome do Paciente
+                          </label>
+                          <p className="font-semibold text-gray-800">
+                            {fichaSelecionada.pacienteNome}
+                          </p>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">CPF</label>
-                          <p className="font-semibold text-gray-800">{fichaSelecionada.cpf}</p>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">
+                            CPF
+                          </label>
+                          <p className="font-semibold text-gray-800">
+                            {fichaSelecionada.cpf}
+                          </p>
                         </div>
                       </div>
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Motivo da Visita</label>
-                          <p className="font-semibold text-gray-800 bg-white p-3 rounded border">{fichaSelecionada.motivoVisita}</p>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">
+                            Motivo da Visita
+                          </label>
+                          <p className="font-semibold text-gray-800 bg-white p-3 rounded border">
+                            {fichaSelecionada.motivoVisita}
+                          </p>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Prioridade de Atendimento</label>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">
+                            Prioridade de Atendimento
+                          </label>
                           <div className={`${obterCorDisplay(fichaSelecionada.corTriagem).bg} ${obterCorDisplay(fichaSelecionada.corTriagem).text} px-4 py-2 rounded-lg text-center font-bold`}>
                             {obterCorDisplay(fichaSelecionada.corTriagem).icon} {obterCorDisplay(fichaSelecionada.corTriagem).nome}
                           </div>
@@ -253,7 +282,9 @@ Esta ficha deve ser apresentada no momento da triagem.
                       </div>
                     </div>
                     <div className="mt-6 text-center">
-                      <p className="text-sm text-gray-600 italic">Esta ficha deve ser apresentada no momento da triagem</p>
+                      <p className="text-sm text-gray-600 italic">
+                        Esta ficha deve ser apresentada no momento da triagem
+                      </p>
                     </div>
                   </Card>
                   {/* Ações */}

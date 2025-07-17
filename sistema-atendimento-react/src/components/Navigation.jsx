@@ -92,18 +92,22 @@ const Navigation = () => {
         icon: config.icon,
         command: () => handleTelaClick(tela),
         className: '',
-        template: (item, options) => (
-          <div
-            {...options}
-            className={`flex items-center gap-1 px-2 py-1 mx-2 cursor-pointer transition-colors duration-150 rounded-none select-none 
-              ${isActive ? 'text-blue-600 font-medium' : 'text-gray-800'} 
-              hover:text-blue-500`}
-            style={{ background: 'none', boxShadow: 'none', border: 'none' }}
-          >
+        template: (item, options) => {
+          // Filtrar apenas propriedades válidas para elementos DOM
+          const { labelClassName, iconClassName, active, ...validProps } = options;
+          return (
+            <div
+              {...validProps}
+              className={`flex items-center gap-1 px-2 py-1 mx-2 cursor-pointer transition-colors duration-150 rounded-none select-none 
+                ${isActive ? 'text-blue-600 font-medium' : 'text-gray-800'} 
+                hover:text-blue-500`}
+              style={{ background: 'none', boxShadow: 'none', border: 'none' }}
+            >
             <span className={`${config.icon} ${isActive ? 'text-blue-600' : 'text-gray-500'} text-base`} />
             <span>{config.nome}</span>
           </div>
-        )
+          );
+        }
       };
     });
   }, [telasDisponiveis, obterConfigTela, handleTelaClick, telaAtiva]);

@@ -136,7 +136,9 @@ const GeradorSenha = () => {
       <div className="max-w-4xl mx-auto">
         {/* Header minimalista */}
         <div className="mb-4">
-          <h1 className="text-3xl font-bold text-gray-800">Gerador de Senhas</h1>
+          <h1 className="text-3xl font-bold text-gray-800">
+            Gerador de Senhas
+          </h1>
           <div className="flex items-center text-gray-500 text-sm mt-1">
             {currentTime.toLocaleTimeString('pt-BR')} • {currentTime.toLocaleDateString('pt-BR')}
           </div>
@@ -152,8 +154,13 @@ const GeradorSenha = () => {
             onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && gerarSenha('normal')}
             type="button"
           >
-            <div style={{ background: '#00d34d' }} className="w-64 h-64 rounded-full flex flex-col items-center justify-center shadow-lg hover:scale-105 active:scale-95 cursor-pointer transition-all">
-              <span style={{ color: '#fff' }} className="text-2xl font-bold">NORMAL</span>
+            <div 
+              style={{ background: '#00d34d' }} 
+              className="w-64 h-64 rounded-full flex flex-col items-center justify-center shadow-lg hover:scale-105 active:scale-95 cursor-pointer transition-all"
+            >
+              <span style={{ color: '#fff' }} className="text-2xl font-bold">
+                NORMAL
+              </span>
             </div>
           </button>
           <button
@@ -164,18 +171,27 @@ const GeradorSenha = () => {
             onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && gerarSenha('prioridade')}
             type="button"
           >
-            <div style={{ background: '#ff3232' }} className="w-64 h-64 rounded-full flex flex-col items-center justify-center shadow-lg hover:scale-105 active:scale-95 cursor-pointer transition-all">
-              <span style={{ color: '#fff' }} className="text-2xl font-bold">PRIORIDADE</span>
+            <div 
+              style={{ background: '#ff3232' }} 
+              className="w-64 h-64 rounded-full flex flex-col items-center justify-center shadow-lg hover:scale-105 active:scale-95 cursor-pointer transition-all"
+            >
+              <span style={{ color: '#fff' }} className="text-2xl font-bold">
+                PRIORIDADE
+              </span>
             </div>
           </button>
         </div>
 
         {/* Instruções */}
         <Card className="shadow-md bg-blue-50 border-blue-200">
-          <h3 className="text-lg font-semibold text-blue-800 mb-3">Como Escolher sua Senha</h3>
+          <h3 className="text-lg font-semibold text-blue-800 mb-3">
+            Como Escolher sua Senha
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="font-semibold text-green-800 mb-2">Senha Normal (Verde)</h4>
+              <h4 className="font-semibold text-green-800 mb-2">
+                Senha Normal (Verde)
+              </h4>
               <div className="text-green-700 space-y-1 text-sm">
                 <p>• Consultas de rotina</p>
                 <p>• Exames agendados</p>
@@ -184,7 +200,9 @@ const GeradorSenha = () => {
               </div>
             </div>
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <h4 className="font-semibold text-red-800 mb-2">Senha Prioridade (Vermelha)</h4>
+              <h4 className="font-semibold text-red-800 mb-2">
+                Senha Prioridade (Vermelha)
+              </h4>
               <div className="text-red-700 space-y-1 text-sm">
                 <p>• Emergências médicas</p>
                 <p>• Casos urgentes</p>
@@ -228,11 +246,19 @@ const GeradorSenha = () => {
               >
                 {senhaGerada.prefixo}{senhaGerada.numero.toString().padStart(3, '0')}
               </div>
-              <span className={`px-5 py-1 rounded-full text-sm font-bold tracking-wide shadow-sm ${senhaGerada.tipo === 'prioridade' ? 'bg-[#ff3232]/90 text-white' : 'bg-[#00d34d]/90 text-white'}`}
-                style={{letterSpacing: 2}}>
+              <span 
+                className={`px-5 py-1 rounded-full text-sm font-bold tracking-wide shadow-sm ${
+                  senhaGerada.tipo === 'prioridade' 
+                    ? 'bg-[#ff3232]/90 text-white' 
+                    : 'bg-[#00d34d]/90 text-white'
+                }`}
+                style={{letterSpacing: 2}}
+              >
                 {senhaGerada.tipo === 'prioridade' ? 'PRIORIDADE' : 'NORMAL'}
               </span>
-              <span className="text-gray-400 text-xs mt-0.5">Gerada às {formatarHora(senhaGerada.horaGeracao)}</span>
+              <span className="text-gray-400 text-xs mt-0.5">
+                Gerada às {formatarHora(senhaGerada.horaGeracao)}
+              </span>
               <div className="bg-gray-100 rounded-lg p-3 w-full text-center text-gray-700 text-base font-medium">
                 Aguarde ser chamado na recepção
               </div>
@@ -257,16 +283,15 @@ const GeradorSenha = () => {
           )}
         </Dialog>
       </div>
-
-        {/* CSS customizado para garantir hover vermelho no botão Fechar */}
-        <style>{`
-          .custom-fechar-btn:hover,
-          .custom-fechar-btn:focus {
-            background: #ff3232 !important;
-            color: #fff !important;
-            border-color: #ff3232 !important;
-          }
-        `}</style>
+      {/* CSS customizado para garantir hover vermelho no botão Fechar */}
+      <style>{`
+        .custom-fechar-btn:hover,
+        .custom-fechar-btn:focus {
+          background: #ff3232 !important;
+          color: #fff !important;
+          border-color: #ff3232 !important;
+        }
+      `}</style>
     </div>
   );
 };

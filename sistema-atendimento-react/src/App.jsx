@@ -11,6 +11,7 @@ import EmissaoFichas from "./components/EmissaoFichas";
 import TelaTriagem from "./pages/TelaTriagem";
 import GeradorSenha from "./components/GeradorSenha";
 import { useSistemaAtendimento } from "./context/HospitalContext";
+import VLibras from "@djpfs/react-vlibras";
 
 const AppContent = () => {
   const { currentUser, telaAtiva, verificarAcesso, trocarTela } = useSistemaAtendimento();

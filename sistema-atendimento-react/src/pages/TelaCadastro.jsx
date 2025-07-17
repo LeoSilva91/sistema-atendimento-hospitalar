@@ -508,104 +508,104 @@ const TelaCadastro = () => {
 
               {/* Formulário de Cadastro */}
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo *</label>
-                    <InputText name="nome" value={formData.nome} onChange={handleInputChange} className={`w-full ${errors.nome ? 'p-invalid' : ''}`} placeholder="Digite o nome completo" />
-                    {errors.nome && <small className="p-error">{errors.nome}</small>}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo *</label>
+              <InputText name="nome" value={formData.nome} onChange={handleInputChange} className={`w-full ${errors.nome ? 'p-invalid' : ''}`} placeholder="Digite o nome completo" />
+              {errors.nome && <small className="p-error">{errors.nome}</small>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento *</label>
+              <InputText name="dataNascimento" value={formData.dataNascimento} onChange={handleInputChange} className={`w-full ${errors.dataNascimento ? 'p-invalid' : ''}`} placeholder="dd/mm/aaaa" />
+              {errors.dataNascimento && <small className="p-error">{errors.dataNascimento}</small>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">CPF *</label>
+              <InputText name="cpf" value={formData.cpf} onChange={(e) => { const formatted = formatCPF(e.target.value); setFormData(prev => ({ ...prev, cpf: formatted })); if (errors.cpf) { setErrors(prev => ({ ...prev, cpf: '' })); } }} className={`w-full ${errors.cpf ? 'p-invalid' : ''}`} placeholder="000.000.000-00" maxLength="14" />
+              {errors.cpf && <small className="p-error">{errors.cpf}</small>}
+        </div>
+                    <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">RG *</label>
+              <InputText name="rg" value={formData.rg} onChange={handleInputChange} className={`w-full ${errors.rg ? 'p-invalid' : ''}`} placeholder="000000000" />
+              {errors.rg && <small className="p-error">{errors.rg}</small>}
+                    </div>
+                    <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Mãe *</label>
+              <InputText name="nomeMae" value={formData.nomeMae} onChange={handleInputChange} className={`w-full ${errors.nomeMae ? 'p-invalid' : ''}`} placeholder="Digite o nome completo da mãe" />
+              {errors.nomeMae && <small className="p-error">{errors.nomeMae}</small>}
+                    </div>
+                    <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sexo *</label>
+              <Dropdown value={formData.sexo} onChange={(e) => handleDropdownChange(e, 'sexo')} options={opcoesSexo} optionLabel="label" optionValue="value" placeholder="Selecione o sexo" className={`w-full ${errors.sexo ? 'p-invalid' : ''}`} />
+              {errors.sexo && <small className="p-error">{errors.sexo}</small>}
+                    </div>
+                    <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Telefone *</label>
+              <InputText name="telefone" value={formData.telefone} onChange={(e) => { const formatted = formatPhone(e.target.value); setFormData(prev => ({ ...prev, telefone: formatted })); if (errors.telefone) { setErrors(prev => ({ ...prev, telefone: '' })); } }} className={`w-full ${errors.telefone ? 'p-invalid' : ''}`} placeholder="(00) 00000-0000" maxLength="15" />
+              {errors.telefone && <small className="p-error">{errors.telefone}</small>}
+                    </div>
+                    <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+              <InputText name="email" value={formData.email} onChange={handleInputChange} className="w-full" placeholder="email@exemplo.com" />
+                    </div>
+            <div className="md:col-span-2">
+              <div className="flex gap-2 items-end">
+                <div className="flex-[2_2_0%]">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Endereço Completo *</label>
+                  <InputText name="endereco" value={formData.endereco} onChange={handleInputChange} className={`w-full ${errors.endereco ? 'p-invalid' : ''}`} placeholder="Rua, número, bairro, cidade - UF" />
+                  {errors.endereco && <small className="p-error">{errors.endereco}</small>}
+                </div>
+                <div className="flex-[1_1_0%] min-w-[110px]">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">CEP</label>
+                  <div className="flex gap-1">
+                    <InputText name="cep" value={cep} onChange={e => setCep(e.target.value)} maxLength={9} placeholder="00000-000" className="w-full" />
+                    <Button icon="pi pi-search" loading={isCepLoading} type="button" onClick={buscarEnderecoPorCep} className="!px-2 !py-2" />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento *</label>
-                    <InputText name="dataNascimento" value={formData.dataNascimento} onChange={handleInputChange} className={`w-full ${errors.dataNascimento ? 'p-invalid' : ''}`} placeholder="dd/mm/aaaa" />
-                    {errors.dataNascimento && <small className="p-error">{errors.dataNascimento}</small>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">CPF *</label>
-                    <InputText name="cpf" value={formData.cpf} onChange={(e) => { const formatted = formatCPF(e.target.value); setFormData(prev => ({ ...prev, cpf: formatted })); if (errors.cpf) { setErrors(prev => ({ ...prev, cpf: '' })); } }} className={`w-full ${errors.cpf ? 'p-invalid' : ''}`} placeholder="000.000.000-00" maxLength="14" />
-                    {errors.cpf && <small className="p-error">{errors.cpf}</small>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">RG *</label>
-                    <InputText name="rg" value={formData.rg} onChange={handleInputChange} className={`w-full ${errors.rg ? 'p-invalid' : ''}`} placeholder="000000000" />
-                    {errors.rg && <small className="p-error">{errors.rg}</small>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Mãe *</label>
-                    <InputText name="nomeMae" value={formData.nomeMae} onChange={handleInputChange} className={`w-full ${errors.nomeMae ? 'p-invalid' : ''}`} placeholder="Digite o nome completo da mãe" />
-                    {errors.nomeMae && <small className="p-error">{errors.nomeMae}</small>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Sexo *</label>
-                    <Dropdown value={formData.sexo} onChange={(e) => handleDropdownChange(e, 'sexo')} options={opcoesSexo} optionLabel="label" optionValue="value" placeholder="Selecione o sexo" className={`w-full ${errors.sexo ? 'p-invalid' : ''}`} />
-                    {errors.sexo && <small className="p-error">{errors.sexo}</small>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Telefone *</label>
-                    <InputText name="telefone" value={formData.telefone} onChange={(e) => { const formatted = formatPhone(e.target.value); setFormData(prev => ({ ...prev, telefone: formatted })); if (errors.telefone) { setErrors(prev => ({ ...prev, telefone: '' })); } }} className={`w-full ${errors.telefone ? 'p-invalid' : ''}`} placeholder="(00) 00000-0000" maxLength="15" />
-                    {errors.telefone && <small className="p-error">{errors.telefone}</small>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
-                    <InputText name="email" value={formData.email} onChange={handleInputChange} className="w-full" placeholder="email@exemplo.com" />
-                  </div>
-                  <div className="md:col-span-2">
-                    <div className="flex gap-2 items-end">
-                      <div className="flex-[2_2_0%]">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Endereço Completo *</label>
-                        <InputText name="endereco" value={formData.endereco} onChange={handleInputChange} className={`w-full ${errors.endereco ? 'p-invalid' : ''}`} placeholder="Rua, número, bairro, cidade - UF" />
-                        {errors.endereco && <small className="p-error">{errors.endereco}</small>}
-                      </div>
-                      <div className="flex-[1_1_0%] min-w-[110px]">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">CEP</label>
-                        <div className="flex gap-1">
-                          <InputText name="cep" value={cep} onChange={e => setCep(e.target.value)} maxLength={9} placeholder="00000-000" className="w-full" />
-                          <Button icon="pi pi-search" loading={isCepLoading} type="button" onClick={buscarEnderecoPorCep} className="!px-2 !py-2" />
-                        </div>
-                      </div>
+                </div>
                     </div>
                   </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Contato de Emergência *</label>
-                    <InputText name="contatoEmergencia" value={formData.contatoEmergencia} onChange={(e) => { const formatted = formatPhone(e.target.value); setFormData(prev => ({ ...prev, contatoEmergencia: formatted })); if (errors.contatoEmergencia) { setErrors(prev => ({ ...prev, contatoEmergencia: '' })); } }} className={`w-full ${errors.contatoEmergencia ? 'p-invalid' : ''}`} placeholder="(00) 00000-0000" maxLength="15" />
-                    {errors.contatoEmergencia && <small className="p-error">{errors.contatoEmergencia}</small>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Convênio</label>
-                    <Dropdown value={formData.convenio} onChange={(e) => handleDropdownChange(e, 'convenio')} options={opcoesConvenio} optionLabel="label" optionValue="value" placeholder="Selecione o convênio" className="w-full" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Número da Carteirinha</label>
-                    <InputText name="numeroCarteirinha" value={formData.numeroCarteirinha} onChange={handleInputChange} className="w-full" placeholder="Número da carteirinha" />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Motivo da Visita *</label>
-                    <InputTextarea name="motivoVisita" value={formData.motivoVisita} onChange={handleInputChange} rows="3" className={`w-full ${errors.motivoVisita ? 'p-invalid' : ''}`} placeholder="Descreva o motivo da visita e sintomas principais..." />
-                    {errors.motivoVisita && <small className="p-error">{errors.motivoVisita}</small>}
-                    {formData.motivoVisita && formData.motivoVisita.trim().length >= 3 && (
-                      <div className="flex items-center gap-2 mt-2 text-sm">
-                        <span className={
-                          classificarMotivoVisita(formData.motivoVisita) === 'vermelho' ? 'text-red-600 font-semibold' :
-                          classificarMotivoVisita(formData.motivoVisita) === 'amarelo' ? 'text-yellow-700 font-semibold' :
-                          'text-green-700 font-semibold'
-                        }>
-                          {obterNomePrioridade(classificarMotivoVisita(formData.motivoVisita))}
-                        </span>
-                        <span className="text-gray-400 ml-2">(classificação automática)</span>
-                      </div>
-                    )}
-                  </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Contato de Emergência *</label>
+              <InputText name="contatoEmergencia" value={formData.contatoEmergencia} onChange={(e) => { const formatted = formatPhone(e.target.value); setFormData(prev => ({ ...prev, contatoEmergencia: formatted })); if (errors.contatoEmergencia) { setErrors(prev => ({ ...prev, contatoEmergencia: '' })); } }} className={`w-full ${errors.contatoEmergencia ? 'p-invalid' : ''}`} placeholder="(00) 00000-0000" maxLength="15" />
+              {errors.contatoEmergencia && <small className="p-error">{errors.contatoEmergencia}</small>}
                 </div>
-                <Divider />
-                <div className="pt-2 flex justify-end">
-                  <Button type="submit" disabled={isSubmitting} className="px-8 py-3 bg-neutral-800 hover:bg-neutral-700 border-0 text-white rounded-lg shadow-sm font-semibold text-base transition-colors">
-                    {isSubmitting ? (
+                  <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Convênio</label>
+              <Dropdown value={formData.convenio} onChange={(e) => handleDropdownChange(e, 'convenio')} options={opcoesConvenio} optionLabel="label" optionValue="value" placeholder="Selecione o convênio" className="w-full" />
+                  </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Número da Carteirinha</label>
+              <InputText name="numeroCarteirinha" value={formData.numeroCarteirinha} onChange={handleInputChange} className="w-full" placeholder="Número da carteirinha" />
+                    </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Motivo da Visita *</label>
+              <InputTextarea name="motivoVisita" value={formData.motivoVisita} onChange={handleInputChange} rows="3" className={`w-full ${errors.motivoVisita ? 'p-invalid' : ''}`} placeholder="Descreva o motivo da visita e sintomas principais..." />
+              {errors.motivoVisita && <small className="p-error">{errors.motivoVisita}</small>}
+              {formData.motivoVisita && formData.motivoVisita.trim().length >= 3 && (
+                <div className="flex items-center gap-2 mt-2 text-sm">
+                  <span className={
+                    classificarMotivoVisita(formData.motivoVisita) === 'vermelho' ? 'text-red-600 font-semibold' :
+                    classificarMotivoVisita(formData.motivoVisita) === 'amarelo' ? 'text-yellow-700 font-semibold' :
+                    'text-green-700 font-semibold'
+                  }>
+                    {obterNomePrioridade(classificarMotivoVisita(formData.motivoVisita))}
+                  </span>
+                  <span className="text-gray-400 ml-2">(classificação automática)</span>
+                </div>
+              )}
+            </div>
+          </div>
+          <Divider />
+          <div className="pt-2 flex justify-end">
+            <Button type="submit" disabled={isSubmitting} className="px-8 py-3 bg-neutral-800 hover:bg-neutral-700 border-0 text-white rounded-lg shadow-sm font-semibold text-base transition-colors">
+              {isSubmitting ? (
                       <span className="flex items-center">Cadastrando...</span>
-                    ) : (
+              ) : (
                       <span className="flex items-center">Registrar Paciente</span>
-                    )}
-                  </Button>
+              )}
+            </Button>
                 </div>
-              </form>
+        </form>
             </Card>
           </div>
         ) : (
