@@ -218,27 +218,7 @@ const Login = () => {
 
             <Divider />
 
-            {/* Credenciais de Demonstração */}
-            <div className="mt-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">
-                <i className="pi pi-info-circle mr-2"></i>
-                Credenciais de Demonstração:
-              </h3>
-              <div className="space-y-2 text-xs text-gray-600">
-                <div className="bg-gray-50 p-3 rounded flex items-center">
-                  <i className="pi pi-id-card mr-2 text-blue-600"></i>
-                  <strong>Recepcionista:</strong> recepcionista / 123456
-                </div>
-                <div className="bg-gray-50 p-3 rounded flex items-center">
-                  <i className="pi pi-user-md mr-2 text-green-600"></i>
-                  <strong>Médico:</strong> medico / 123456
-                </div>
-                <div className="bg-gray-50 p-3 rounded flex items-center">
-                  <i className="pi pi-shield mr-2 text-purple-600"></i>
-                  <strong>Admin:</strong> admin / 123456
-                </div>
-              </div>
-            </div>
+
           </Card>
 
           {/* Footer */}

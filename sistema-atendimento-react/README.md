@@ -1,164 +1,246 @@
-# Sistema de Atendimento Hospitalar - React
+# SIAH - Sistema Inteligente de Atendimento Hospitalar
 
-Uma aplicação React moderna para gerenciamento de fila hospitalar, refatorada a partir do sistema original em JavaScript vanilla. Implementa triagem médica por prioridade, gestão de pacientes e painel público de chamadas.
+> Transformando a gestão hospitalar com tecnologia moderna e eficiência operacional
 
-## 🚀 Tecnologias Utilizadas
+## Visão Geral
 
-- **React 18** - Biblioteca JavaScript para interfaces de usuário
-- **Vite** - Build tool e dev server
-- **Tailwind CSS** - Framework CSS utilitário
-- **Context API** - Gerenciamento de estado global
-- **localStorage** - Persistência de dados local
+O SIAH é uma solução completa para otimização do fluxo de atendimento hospitalar, desenvolvida para modernizar e simplificar os processos de recepção, triagem e atendimento médico. O sistema resolve os desafios comuns de gestão de filas, classificação de prioridades e comunicação entre equipes médicas.
 
-## 📋 Funcionalidades Implementadas
+### Problema Resolvido
+Hospitais e clínicas frequentemente enfrentam desafios como:
+- Filas desorganizadas e longos tempos de espera
+- Dificuldade na classificação de prioridades de atendimento
+- Falta de visibilidade do status dos pacientes
+- Processos manuais ineficientes
 
-### ✅ Completamente Funcionais
-- **Sistema de Autenticação** - Login com diferentes tipos de usuário
-- **Cadastro de Pacientes** - Formulário completo com validações
-- **Painel de Triagem** - Gerenciamento da fila de triagem
-- **Painel Público** - Exibição de chamadas em tempo real
-- **Navegação Responsiva** - Menu adaptativo por tipo de usuário
-- **Persistência de Dados** - Armazenamento local automático
+### Nossa Solução
+O SIAH oferece um sistema integrado que:
+- **Gerencia filas inteligentes** com classificação automática de prioridades
+- **Otimiza o fluxo de triagem** com classificação de risco (vermelho, laranja, amarelo, verde, azul)
+- **Fornece painel público** para transparência no atendimento
+- **Automatiza processos** de cadastro e emissão de senhas
+- **Facilita a comunicação** entre equipes médicas
 
-### 🔄 Em Desenvolvimento
-- **Avaliação de Triagem** - Formulário de classificação por prioridade
-- **Painel do Médico** - Atendimento e conclusão de consultas
-- **Evolução Médica** - Registro de evoluções clínicas
-- **Emissão de Fichas** - Geração e impressão de fichas
+### Funcionalidades Principais
 
-## 🏗️ Arquitetura do Projeto
+- **Cadastro de Pacientes**: Interface intuitiva para registro completo de dados
+- **Triagem Inteligente**: Classificação automática de risco com sinais vitais
+- **Painel Médico**: Evolução clínica completa com prescrições e exames
+- **Painel Público**: Exibição transparente de chamadas e filas
+- **Gerador de Senhas**: Sistema de senhas com priorização automática
+- **Gestão de Filas**: Controle eficiente de fluxo de pacientes
+- **Acessibilidade**: Integração com VLibras para inclusão
 
-```
-src/
-├── components/          # Componentes React reutilizáveis
-│   ├── Navigation.jsx   # Navegação principal
-│   ├── Login.jsx        # Tela de autenticação
-│   ├── CadastroPaciente.jsx  # Formulário de cadastro
-│   ├── PainelTriagem.jsx     # Painel de triagem
-│   └── PainelPublico.jsx     # Painel público
-├── utils/
-│   └── SistemaAtendimentoContext.jsx  # Contexto global
-├── pages/               # Páginas da aplicação
-├── assets/              # Recursos estáticos
-└── App.jsx              # Componente principal
-```
+## Tecnologias Utilizadas
 
-## 🚀 Como Executar
+### Frontend
+- **[React 18](https://react.dev/)** - Biblioteca JavaScript para interfaces de usuário
+- **[PrimeReact](https://primereact.org/)** - Componentes UI ricos e acessíveis
+- **[Tailwind CSS](https://tailwindcss.com/)** - Framework CSS utilitário para design responsivo
+- **[Vite](https://vitejs.dev/)** - Build tool rápida para desenvolvimento moderno
 
-### Pré-requisitos
-- Node.js 18+ 
-- npm ou yarn
+### Acessibilidade
+- **[VLibras](https://www.gov.br/governodigital/pt-br/vlibras)** - Tradução automática para Língua Brasileira de Sinais
 
-### Instalação
+### Armazenamento
+- **LocalStorage** - Persistência de dados no navegador (solução temporária)
 
-1. **Clone o repositório**
+### Por que essas tecnologias?
+
+- **React**: Componentização eficiente e ecossistema robusto
+- **PrimeReact**: Componentes prontos para produção com acessibilidade nativa
+- **Tailwind CSS**: Desenvolvimento rápido com design responsivo mobile-first
+- **Vite**: Build e hot reload extremamente rápidos para desenvolvimento
+
+## Pré-requisitos
+
+Antes de começar, certifique-se de ter instalado:
+
+- **[Node.js](https://nodejs.org/)** (versão 16 ou superior)
+- **[npm](https://www.npmjs.com/)** ou **[yarn](https://yarnpkg.com/)**
+
+## Instalação
+
+Siga estes passos para configurar o projeto localmente:
+
+### 1. Clone o repositório
 ```bash
-git clone <url-do-repositorio>
-cd sistema-atendimento-react
+git clone https://github.com/seu-usuario/sistema-atendimento-hospitalar.git
+cd sistema-atendimento-hospitalar/sistema-atendimento-react
 ```
 
-2. **Instale as dependências**
+### 2. Instale as dependências
 ```bash
 npm install
+# ou
+yarn install
 ```
 
-3. **Execute o servidor de desenvolvimento**
+### 3. Inicie o servidor de desenvolvimento
 ```bash
 npm run dev
+# ou
+yarn dev
 ```
 
-4. **Acesse no navegador**
+### 4. Acesse a aplicação
+Abra [http://localhost:5173](http://localhost:5173) no seu navegador.
+
+## Estrutura de Pastas
+
 ```
-http://localhost:5173
+sistema-atendimento-react/
+├── public/                 # Arquivos estáticos (logos, imagens)
+├── src/
+│   ├── components/         # Componentes reutilizáveis
+│   │   ├── Navigation.jsx  # Navegação principal
+│   │   ├── GeradorSenha.jsx # Gerador de senhas
+│   │   ├── LoadingSpinner.jsx # Indicador de carregamento
+│   │   └── ...
+│   ├── pages/             # Páginas principais da aplicação
+│   │   ├── Login.jsx      # Tela de autenticação
+│   │   ├── TelaCadastro.jsx # Cadastro de pacientes
+│   │   ├── TelaTriagem.jsx # Triagem de pacientes
+│   │   ├── PainelMedico.jsx # Painel médico
+│   │   └── ...
+│   ├── context/           # Contextos React (estado global)
+│   │   ├── HospitalContext.jsx # Contexto principal
+│   │   └── ToastProvider.jsx # Notificações
+│   ├── styles/            # Arquivos de estilo
+│   │   └── index.css      # Estilos globais
+│   ├── App.jsx            # Componente raiz
+│   └── main.jsx           # Ponto de entrada
+├── package.json           # Dependências e scripts
+├── tailwind.config.js     # Configuração do Tailwind
+└── vite.config.js         # Configuração do Vite
 ```
 
-## 👤 Dados de Teste
+## Funcionalidades Detalhadas
 
-### Credenciais de Login
-- **Atendente**: usuario: `atendente`, senha: `123`
-- **Triagem**: usuario: `triagem`, senha: `123`
-- **Médico**: usuario: `medico`, senha: `123`
-- **Admin**: usuario: `admin`, senha: `123`
+### Sistema de Autenticação
+- Login baseado em roles (Recepcionista, Enfermeiro, Médico, Admin)
+- Controle de acesso por funcionalidade
+- Interface responsiva e acessível
 
-### Permissões por Tipo de Usuário
-- **Atendente**: Cadastro, Fichas, Painel Público
-- **Triagem**: Triagem, Avaliação, Evolução, Fichas, Painel Público
-- **Médico**: Painel Médico, Evolução, Fichas, Painel Público
-- **Admin**: Acesso completo a todas as funcionalidades
+### Gestão de Pacientes
+- Cadastro completo com validação de dados
+- Busca automática de endereço por CEP
+- Classificação automática de prioridade por sintomas
+- Geração automática de prontuário
 
-## 🎨 Design System
+### Triagem Inteligente
+- Classificação de risco em 5 níveis
+- Registro de sinais vitais
+- Avaliação de nível de dor e consciência
+- Geração de etiquetas para pulseiras
 
-### Cores Principais
-- **Azul Primário**: `#2563eb` (blue-600)
-- **Azul Escuro**: `#1d4ed8` (blue-700)
-- **Verde Sucesso**: `#16a34a` (green-600)
-- **Vermelho Emergência**: `#dc2626` (red-600)
-- **Amarelo Urgente**: `#ca8a04` (yellow-500)
+### Painel Médico
+- Evolução clínica completa
+- Prescrição de medicamentos
+- Solicitação de exames
+- Orientações e encaminhamentos
 
-### Componentes
-- **Cards**: Bordas arredondadas, sombras suaves
-- **Botões**: Estados hover, disabled, loading
-- **Formulários**: Validação visual, máscaras automáticas
-- **Tabelas**: Responsivas, com hover states
+### Painel Público
+- Exibição transparente de chamadas
+- Fila de espera em tempo real
+- Integração com VLibras para acessibilidade
 
-## 📱 Responsividade
-
-A aplicação é totalmente responsiva e funciona em:
-- **Desktop**: Layout completo com todas as funcionalidades
-- **Tablet**: Layout adaptado com navegação otimizada
-- **Mobile**: Interface mobile-first com navegação simplificada
-
-## 🔧 Scripts Disponíveis
+## Scripts Disponíveis
 
 ```bash
-npm run dev          # Servidor de desenvolvimento
-npm run build        # Build para produção
-npm run preview      # Preview do build
-npm run lint         # Linting do código
+# Desenvolvimento
+npm run dev          # Inicia servidor de desenvolvimento
+npm run build        # Gera build de produção
+npm run preview      # Visualiza build de produção
+npm run lint         # Executa linter
 ```
 
-## 📊 Estado da Refatoração
+## Contribuição
 
-### ✅ Migrado para React
-- [x] Sistema de autenticação
-- [x] Cadastro de pacientes
-- [x] Painel de triagem
-- [x] Painel público
-- [x] Navegação e controle de acesso
-- [x] Persistência de dados
+Contribuições são sempre bem-vindas! Para contribuir com o projeto:
 
-### 🔄 Em Progresso
-- [ ] Avaliação de triagem
-- [ ] Painel do médico
-- [ ] Evolução médica
-- [ ] Emissão de fichas
+### Como Contribuir
 
-### 📋 Próximos Passos
-- [ ] Implementar avaliação de triagem completa
-- [ ] Criar painel do médico funcional
-- [ ] Adicionar sistema de evolução médica
-- [ ] Implementar emissão de fichas
-- [ ] Adicionar testes unitários
-- [ ] Otimizar performance
+1. **Fork o projeto** no GitHub
+2. **Crie uma branch** para sua feature (`git checkout -b feature/AmazingFeature`)
+3. **Commit suas mudanças** (`git commit -m 'Add some AmazingFeature'`)
+4. **Push para a branch** (`git push origin feature/AmazingFeature`)
+5. **Abra um Pull Request**
 
-## 🐛 Problemas Conhecidos
+### Diretrizes de Contribuição
 
-- Algumas funcionalidades ainda estão em desenvolvimento
-- O sistema de roteamento pode ser melhorado com React Router
-- Falta implementação de testes automatizados
+- Mantenha o código limpo e bem documentado
+- Siga os padrões de código existentes
+- Teste suas mudanças antes de submeter
+- Use commits descritivos e claros
+- Respeite as diretrizes de acessibilidade
 
-## 🤝 Contribuição
+### Reportando Bugs
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+Se encontrar um bug, por favor:
+1. Verifique se já não foi reportado nas [Issues](https://github.com/seu-usuario/sistema-atendimento-hospitalar/issues)
+2. Crie uma nova issue com descrição detalhada
+3. Inclua passos para reproduzir o problema
+4. Adicione screenshots se relevante
 
-## 📄 Licença
+## Responsividade
 
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+O SIAH foi desenvolvido com design mobile-first, garantindo uma experiência consistente em:
+- Smartphones (320px+)
+- Tablets (768px+)
+- Desktops (1024px+)
+- Telas grandes (1280px+)
 
-## 👨‍💻 Desenvolvedor
+## Acessibilidade
 
-Sistema refatorado como parte do processo de modernização de aplicações web, convertendo JavaScript vanilla para React com Tailwind CSS. 
+O sistema prioriza a inclusão digital:
+- **VLibras integrado** para tradução automática em Libras
+- **Navegação por teclado** em todos os componentes
+- **Contraste adequado** seguindo WCAG 2.1
+- **Labels semânticos** para leitores de tela
+- **Design responsivo** para diferentes dispositivos
+
+## Segurança
+
+- Autenticação baseada em roles
+- Validação de dados no frontend
+- Sanitização de inputs
+- Controle de acesso por funcionalidade
+
+## Roadmap
+
+### Próximas Funcionalidades
+- [ ] Integração com banco de dados real
+- [ ] API REST para backend
+- [ ] Sistema de notificações push
+- [ ] Relatórios e dashboards
+- [ ] Integração com sistemas hospitalares
+- [ ] App mobile nativo
+
+### Melhorias Planejadas
+- [ ] Cache inteligente
+- [ ] PWA (Progressive Web App)
+- [ ] Modo offline
+- [ ] Backup automático
+- [ ] Logs de auditoria
+
+## Licença
+
+Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+## Equipe
+
+- **Desenvolvedor Principal**: [Seu Nome]
+- **Designer UX/UI**: [Nome do Designer]
+- **Testador**: [Nome do Testador]
+
+## Suporte
+
+Para suporte técnico ou dúvidas:
+- Email: suporte@siah.com.br
+- Discord: [Link do servidor]
+- WhatsApp: [Número de suporte]
+
+---
+
+**SIAH** - Transformando a saúde com tecnologia moderna e eficiência operacional. 

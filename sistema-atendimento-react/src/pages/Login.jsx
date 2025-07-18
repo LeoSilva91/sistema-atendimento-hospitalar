@@ -194,16 +194,7 @@ const Login = () => {
               </div>
             </form>
             
-            {/* Informações de credenciais para desenvolvimento */}
-            <div className="mt-6 p-3 bg-gray-50 rounded-lg border border-gray-200">
-              <h3 className="text-xs font-semibold text-gray-700 mb-2">Credenciais de Teste:</h3>
-              <div className="text-xs text-gray-600 space-y-1">
-                <div><strong>Recepcionista:</strong> recepcionista / 123456</div>
-                <div><strong>Enfermeiro:</strong> enfermeiro / 123456</div>
-                <div><strong>Médico:</strong> medico / 123456</div>
-                <div><strong>Admin:</strong> admin / 123456</div>
-              </div>
-            </div>
+
             
             {/* Footer */}
             <div className="text-center mt-6 sm:mt-8 text-xs sm:text-sm text-gray-500">
