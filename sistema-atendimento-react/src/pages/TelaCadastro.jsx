@@ -675,7 +675,7 @@ const TelaCadastro = () => {
                           <div className="flex items-center gap-3">
                             <div
                               className={`rounded-full flex items-center justify-center font-bold text-lg sm:text-xl ${obterCorTipo(senha.tipo).bg} ${obterCorTipo(senha.tipo).text}`}
-                              style={{ width: 50, height: 50 }}
+                              style={{ width: 60, height: 60 }}
                             >
                               {senha.prefixo}{senha.numero.toString().padStart(3, '0')}
                             </div>
@@ -763,7 +763,7 @@ const TelaCadastro = () => {
                 <div className="flex items-center gap-3">
                   <div
                     className={`rounded-full flex items-center justify-center font-bold text-lg ${obterCorTipo(senha.tipo).bg} ${obterCorTipo(senha.tipo).text}`}
-                    style={{ width: 50, height: 50 }}
+                    style={{ width: 60, height: 60 }}
                   >
                     {senha.prefixo}{senha.numero.toString().padStart(3, '0')}
                   </div>

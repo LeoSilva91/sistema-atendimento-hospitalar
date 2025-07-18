@@ -110,24 +110,25 @@ const HistoricoMedico = () => {
         </div>
 
         <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch min-h-[400px] mb-8">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start min-h-[400px] mb-8">
             {/* Lista de Pacientes */}
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-full xl:col-span-1">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
                 Lista de Pacientes
               </h2>
 
               {/* Filtros */}
-              <div className="flex flex-col md:flex-row gap-2 mb-4 items-center min-w-0">
-                <div className="w-full md:w-2/3 min-w-0">
+              <div className="space-y-3 mb-4">
+                <div className="w-full">
                   <InputText
                     value={busca}
                     onChange={e => setBusca(e.target.value)}
                     placeholder="Buscar por nome, CPF ou ID..."
-                    className="w-full min-w-0"
+                    className="w-full"
+                    style={{ minWidth: '200px' }}
                   />
                 </div>
-                <div className="w-full md:w-1/3 min-w-0">
+                <div className="w-full">
                   <Dropdown
                     value={filtroStatus}
                     options={[
@@ -142,7 +143,8 @@ const HistoricoMedico = () => {
                       { label: 'Encaminhado', value: 'encaminhado' }
                     ]}
                     onChange={e => setFiltroStatus(e.value)}
-                    className="w-full min-w-0"
+                    className="w-full"
+                    style={{ minWidth: '200px' }}
                     placeholder="Filtrar Status"
                   />
                 </div>
@@ -203,7 +205,7 @@ const HistoricoMedico = () => {
             </div>
 
             {/* Histórico Detalhado */}
-            <div className="lg:col-span-2 flex flex-col h-full">
+            <div className="xl:col-span-2 flex flex-col h-full">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Histórico Detalhado</h2>
               
               {pacienteSelecionado ? (
@@ -218,7 +220,7 @@ const HistoricoMedico = () => {
               )}
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch min-h-[200px] mt-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
               <p className="text-2xl font-bold text-gray-800">
                 {estatisticas.aguardandoTriagem ?? 0}

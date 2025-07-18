@@ -52,70 +52,114 @@ const GeradorSenha = () => {
         <head>
           <title>Senha ${senha.prefixo}${senha.numero}</title>
           <style>
+            @page {
+              size: 80mm auto;
+              margin: 5mm;
+            }
+            @media print {
+              body { 
+                margin: 0; 
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+              }
+              .senha-print { 
+                page-break-inside: avoid; 
+                box-shadow: none !important;
+              }
+            }
             body { 
-              font-family: Arial, sans-serif; 
+              font-family: 'Courier New', monospace; 
               margin: 0; 
-              padding: 20px; 
+              padding: 10px; 
               text-align: center;
               background: white;
+              font-size: 12px;
             }
             .senha-print {
-              border: 3px solid #2563eb;
-              border-radius: 10px;
-              padding: 20px;
-              margin: 10px;
+              border: 2px solid #000;
+              border-radius: 5px;
+              padding: 10px;
+              width: 160px;
+              margin: 0 auto;
               background: white;
             }
-            .numero-senha {
-              font-size: 48px;
+            .header {
+              font-size: 10px;
               font-weight: bold;
-              color: #2563eb;
-              margin: 10px 0;
+              color: #000;
+              margin-bottom: 5px;
+            }
+            .numero-senha {
+              font-size: 28px;
+              font-weight: bold;
+              color: ${senha.tipo === 'prioridade' ? '#000' : '#000'};
+              margin: 8px 0;
+              letter-spacing: 2px;
+              border: 1px solid #000;
+              padding: 5px;
+              background: ${senha.tipo === 'prioridade' ? '#f0f0f0' : '#fff'};
             }
             .tipo-senha {
-              font-size: 24px;
-              color: ${senha.tipo === 'prioridade' ? '#dc2626' : '#059669'};
+              font-size: 11px;
+              color: #000;
               font-weight: bold;
-              margin: 10px 0;
+              margin: 5px 0;
+              text-transform: uppercase;
             }
             .hora {
-              font-size: 16px;
-              color: #6b7280;
-              margin: 10px 0;
+              font-size: 10px;
+              color: #000;
+              margin: 5px 0;
             }
             .instrucoes {
-              font-size: 14px;
-              color: #374151;
-              margin-top: 20px;
-              border-top: 1px solid #e5e7eb;
-              padding-top: 10px;
+              font-size: 9px;
+              color: #000;
+              margin-top: 8px;
+              border-top: 1px dashed #000;
+              padding-top: 5px;
+              line-height: 1.2;
             }
           </style>
         </head>
         <body>
           <div class="senha-print">
-            <div class="tipo-senha">
-              ${senha.tipo === 'prioridade' ? '🚨 PRIORIDADE' : '📋 NORMAL'}
-            </div>
-            <div class="numero-senha">
-              ${senha.prefixo}${senha.numero.toString().padStart(3, '0')}
-            </div>
-            <div class="hora">
-              ${new Date(senha.horaGeracao).toLocaleTimeString('pt-BR')}
-            </div>
-            <div class="instrucoes">
-              Aguarde ser chamado na recepção
-            </div>
+            <div class="header">SIAH - Sistema Hospitalar</div>
+            <div class="tipo-senha">${senha.tipo === 'prioridade' ? '*** PRIORIDADE ***' : 'ATENDIMENTO NORMAL'}</div>
+            <div class="numero-senha">${senha.prefixo}${senha.numero.toString().padStart(3, '0')}</div>
+            <div class="hora">${new Date(senha.horaGeracao).toLocaleString('pt-BR')}</div>
+            <div class="instrucoes">Aguarde ser chamado<br/>Guarde este comprovante</div>
           </div>
         </body>
       </html>
     `;
 
-    const janela = window.open('', '', 'width=400,height=300');
-    janela.document.write(conteudo);
-    janela.document.close();
-    janela.print();
-    janela.close();
+    try {
+      const janela = window.open('', '_blank', 'width=300,height=400,scrollbars=no,resizable=no');
+      
+      if (!janela) {
+        alert('Bloqueador de pop-up ativo. Permita pop-ups para imprimir.');
+        return;
+      }
+
+      janela.document.open();
+      janela.document.write(conteudo);
+      janela.document.close();
+      
+      // Aguardar carregamento e focar na janela
+      janela.focus();
+      
+      setTimeout(() => {
+        janela.print();
+        setTimeout(() => {
+          janela.close();
+        }, 1000);
+      }, 500);
+      
+    } catch (error) {
+      console.error('Erro ao imprimir:', error);
+      alert('Erro ao abrir janela de impressão. Tente novamente.');
+    }
   };
 
   const obterCorTipo = (tipo) => {
@@ -232,17 +276,18 @@ const GeradorSenha = () => {
         <Dialog
           visible={showDialog}
           onHide={() => setShowDialog(false)}
-          style={{ width: '90vw', maxWidth: 350 }}
-          className="rounded-lg"
+          style={{ width: '320px' }}
           header={false}
           closable={false}
+          modal
+          className="p-0"
         >
           {senhaGerada && (
-            <div className="text-center p-6">
-              <div className="mb-6">
+            <div className="text-center p-4">
+              {/* Número da Senha */}
+              <div className="mb-4">
                 <div
-                  className={`rounded-lg flex items-center justify-center font-bold text-5xl mx-auto mb-4 ${obterCorTipo(senhaGerada.tipo).bg} ${obterCorTipo(senhaGerada.tipo).text}`}
-                  style={{ width: 100, height: 100 }}
+                  className={`w-20 h-20 rounded-lg flex items-center justify-center font-bold text-2xl mx-auto mb-3 ${obterCorTipo(senhaGerada.tipo).bg} ${obterCorTipo(senhaGerada.tipo).text}`}
                 >
                   {senhaGerada.prefixo}{senhaGerada.numero.toString().padStart(3, '0')}
                 </div>
@@ -250,18 +295,20 @@ const GeradorSenha = () => {
                   Gerada às {formatarHora(senhaGerada.horaGeracao)}
                 </div>
               </div>
-              <div className="flex gap-3">
+              
+              {/* Botões */}
+              <div className="space-y-2">
                 <Button
                   label="Imprimir"
                   icon="pi pi-print"
                   onClick={() => imprimirSenha(senhaGerada)}
-                  className="flex-1 !bg-blue-600 !text-white !border-0"
+                  className="w-full !bg-blue-600 !text-white !border-blue-600"
                 />
                 <Button
                   label="Fechar"
-                  outlined
                   onClick={() => setShowDialog(false)}
-                  className="flex-1 !bg-gray-100 !text-gray-700 !border-0"
+                  className="w-full !bg-gray-100 !text-gray-700 !border-gray-300"
+                  outlined
                 />
               </div>
             </div>

@@ -619,23 +619,36 @@ const TelaTriagem = () => {
         <Dialog
           visible={showSuccessModal}
           onHide={() => setShowSuccessModal(false)}
-          header="Triagem Finalizada com Sucesso!"
-          style={{ width: '90vw', maxWidth: 500 }}
+          header="Triagem Finalizada"
+          style={{ width: '90vw', maxWidth: 400 }}
           className="rounded-xl"
-          footer={
-            <div className="flex justify-end gap-2">
-              <Button
-                label="Imprimir Etiqueta"
-                icon="pi pi-print"
+        >
+          <div className="p-6">
+            <div className="mb-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {pacienteAtualTriagem?.nome}
+              </h3>
+              <p className="text-gray-600 mb-3">
+                Classificação: <span className={`font-medium ${getPriorityColor(triageData.corTriagem)}`}>
+                  {getPriorityName(triageData.corTriagem)}
+                </span>
+              </p>
+              <p className="text-sm text-gray-500">
+                Paciente direcionado para atendimento médico.
+              </p>
+            </div>
+            
+            <div className="flex gap-3">
+              <button
                 onClick={() => {
                   setShowEtiquetaModal(true);
                   setShowSuccessModal(false);
                 }}
-                className="!bg-blue-600 !text-white !border-0 px-4 py-2 rounded-lg font-semibold transition-colors hover:!bg-blue-700"
-              />
-              <Button
-                label="Fechar"
-                outlined
+                className="flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
+              >
+                Imprimir Etiqueta
+              </button>
+              <button
                 onClick={() => {
                   setShowSuccessModal(false);
                   setShowTriageForm(false);
@@ -655,24 +668,11 @@ const TelaTriagem = () => {
                     observacoesTriagem: ''
                   });
                 }}
-                className="!bg-gray-100 !text-gray-700 !border-0 px-4 py-2 rounded-lg font-semibold transition-colors hover:!bg-gray-200"
-              />
+                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
+              >
+                Fechar
+              </button>
             </div>
-          }
-        >
-          <div className="text-center p-4">
-            <div className="text-6xl mb-4">✅</div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Triagem de {pacienteAtualTriagem?.nome} Finalizada!
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Classificação: <strong className={`${getPriorityColor(triageData.corTriagem)}`}>
-                {getPriorityName(triageData.corTriagem)}
-              </strong>
-            </p>
-            <p className="text-sm text-gray-500">
-              O paciente foi direcionado para a fila de atendimento médico.
-            </p>
           </div>
         </Dialog>
 
