@@ -13,7 +13,7 @@ import { Slider } from "primereact/slider";
 import { Panel } from "primereact/panel";
 import { Dialog } from "primereact/dialog";
 
-// Função utilitária para calcular idade a partir de string (dd/mm/yyyy ou ISO)
+// Função utilitária para calcular idade a partir de string
 function calcularIdade(dataNascimento) {
   if (!dataNascimento) return '';
   let partes;
