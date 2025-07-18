@@ -298,18 +298,18 @@ const GeradorSenha = () => {
               
               {/* Botões */}
               <div className="space-y-2">
-                <Button
-                  label="Imprimir"
-                  icon="pi pi-print"
+                <button
                   onClick={() => imprimirSenha(senhaGerada)}
-                  className="w-full !bg-blue-600 !text-white !border-blue-600"
-                />
-                <Button
-                  label="Fechar"
+                  className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
+                >
+                  Imprimir
+                </button>
+                <button
                   onClick={() => setShowDialog(false)}
-                  className="w-full !bg-gray-100 !text-gray-700 !border-gray-300"
-                  outlined
-                />
+                  className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
+                >
+                  Fechar
+                </button>
               </div>
             </div>
           )}
