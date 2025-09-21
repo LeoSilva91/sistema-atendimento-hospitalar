@@ -24,6 +24,7 @@ export const SistemaAtendimentoProvider = ({ children }) => {
   const [proximoId, setProximoId] = useState(1);
   const [fichasEmitidas, setFichasEmitidas] = useState([]);
   const [chamadasAtivas, setChamadasAtivas] = useState([]);
+  
 
   console.log("HospitalContext: Estados inicializados", {
     pacientes: pacientes.length,

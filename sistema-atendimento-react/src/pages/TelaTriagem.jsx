@@ -348,18 +348,18 @@ const TelaTriagem = () => {
                 </div>
 
                 {/* Nível de Dor */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                     Nível de Dor: {triageData.nivelDor}/10
-                  </label>
-                  <Slider
-                    value={triageData.nivelDor}
+                      </label>
+                      <Slider
+                        value={triageData.nivelDor}
                     onChange={(e) => setTriageData(prev => ({ ...prev, nivelDor: e.value }))}
-                    min={0}
-                    max={10}
-                    step={1}
-                    className="w-full"
-                  />
+                        min={0}
+                        max={10}
+                        step={1}
+                        className="w-full"
+                      />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>Sem dor</span>
                     <span>Dor leve</span>
@@ -471,11 +471,11 @@ const TelaTriagem = () => {
                     </p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <Button
-                      label="Chamar Próximo"
+                  <Button
+                    label="Chamar Próximo"
                       icon="pi pi-user-plus"
                       onClick={handleCallNextPatient}
-                      disabled={pacientesAguardandoTriagem.length === 0}
+                    disabled={pacientesAguardandoTriagem.length === 0}
                       className="!bg-blue-600 !text-white !border-0 px-4 py-2 rounded-lg font-semibold transition-colors hover:!bg-blue-700 text-sm"
                     />
                     <Button
@@ -487,7 +487,7 @@ const TelaTriagem = () => {
                     />
                   </div>
                 </div>
-
+                
                 {pacientesAguardandoTriagem.length > 0 ? (
                   <div className="space-y-3">
                     {pacientesAguardandoTriagem.map((paciente, index) => (
@@ -512,7 +512,7 @@ const TelaTriagem = () => {
                                 {calcularIdade(paciente.dataNascimento)} anos • {paciente.sexo === 'M' ? 'M' : 'F'} • {obterTempoEspera(paciente.horaCadastro)}
                               </div>
                             </div>
-                          </div>
+                            </div>
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                             <Tag
                               value="Aguardando Triagem"
@@ -636,7 +636,7 @@ const TelaTriagem = () => {
               <p className="text-sm text-gray-500">
                 Paciente direcionado para atendimento médico.
               </p>
-            </div>
+          </div>
             
             <div className="flex gap-3">
               <button
@@ -650,23 +650,23 @@ const TelaTriagem = () => {
               </button>
               <button
                 onClick={() => {
-                  setShowSuccessModal(false);
-                  setShowTriageForm(false);
-                  setTriageData({
-                    corTriagem: 'verde',
-                    queixaPrincipal: '',
-                    nivelDor: 0,
-                    nivelConsciencia: 'Alerta',
-                    sinaisVitais: {
-                      pressaoArterial: '',
-                      temperatura: '',
-                      frequenciaCardiaca: '',
-                      saturacaoOxigenio: '',
-                      frequenciaRespiratoria: '',
-                      peso: ''
-                    },
-                    observacoesTriagem: ''
-                  });
+              setShowSuccessModal(false);
+              setShowTriageForm(false);
+              setTriageData({
+                corTriagem: 'verde',
+                queixaPrincipal: '',
+                nivelDor: 0,
+                nivelConsciencia: 'Alerta',
+                sinaisVitais: {
+                  pressaoArterial: '',
+                  temperatura: '',
+                  frequenciaCardiaca: '',
+                  saturacaoOxigenio: '',
+                  frequenciaRespiratoria: '',
+                  peso: ''
+                },
+                observacoesTriagem: ''
+              });
                 }}
                 className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
               >
@@ -726,15 +726,15 @@ const TelaTriagem = () => {
               </div>
               <div className="linha">
                 <b>Classificação:</b> {getPriorityName(triageData.corTriagem)}
-              </div>
+                          </div>
               <div className="linha">
                 <b>Dor:</b> {triageData.nivelDor}/10 | <b>Consciência:</b> {triageData.nivelConsciencia}
-              </div>
+                        </div>
               <div className="data">
                 {new Date().toLocaleString('pt-BR')} | {currentUser?.nome}
               </div>
-            </div>
-          )}
+              </div>
+            )}
         </Dialog>
       </div>
     </div>

@@ -509,93 +509,93 @@ const TelaCadastro = () => {
               {/* Formulário de Cadastro */}
               <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-4 sm:gap-x-6 gap-y-4 sm:gap-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo *</label>
-                    <InputText name="nome" value={formData.nome} onChange={handleInputChange} className={`w-full ${errors.nome ? 'p-invalid' : ''}`} placeholder="Digite o nome completo" />
-                    {errors.nome && <small className="p-error">{errors.nome}</small>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento *</label>
-                    <InputText name="dataNascimento" value={formData.dataNascimento} onChange={handleInputChange} className={`w-full ${errors.dataNascimento ? 'p-invalid' : ''}`} placeholder="dd/mm/aaaa" />
-                    {errors.dataNascimento && <small className="p-error">{errors.dataNascimento}</small>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">CPF *</label>
-                    <InputText name="cpf" value={formData.cpf} onChange={(e) => { const formatted = formatCPF(e.target.value); setFormData(prev => ({ ...prev, cpf: formatted })); if (errors.cpf) { setErrors(prev => ({ ...prev, cpf: '' })); } }} className={`w-full ${errors.cpf ? 'p-invalid' : ''}`} placeholder="000.000.000-00" maxLength="14" />
-                    {errors.cpf && <small className="p-error">{errors.cpf}</small>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">RG *</label>
-                    <InputText name="rg" value={formData.rg} onChange={handleInputChange} className={`w-full ${errors.rg ? 'p-invalid' : ''}`} placeholder="000000000" />
-                    {errors.rg && <small className="p-error">{errors.rg}</small>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Mãe *</label>
-                    <InputText name="nomeMae" value={formData.nomeMae} onChange={handleInputChange} className={`w-full ${errors.nomeMae ? 'p-invalid' : ''}`} placeholder="Digite o nome completo da mãe" />
-                    {errors.nomeMae && <small className="p-error">{errors.nomeMae}</small>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Sexo *</label>
-                    <Dropdown value={formData.sexo} onChange={(e) => handleDropdownChange(e, 'sexo')} options={opcoesSexo} optionLabel="label" optionValue="value" placeholder="Selecione o sexo" className={`w-full ${errors.sexo ? 'p-invalid' : ''}`} />
-                    {errors.sexo && <small className="p-error">{errors.sexo}</small>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Telefone *</label>
-                    <InputText name="telefone" value={formData.telefone} onChange={(e) => { const formatted = formatPhone(e.target.value); setFormData(prev => ({ ...prev, telefone: formatted })); if (errors.telefone) { setErrors(prev => ({ ...prev, telefone: '' })); } }} className={`w-full ${errors.telefone ? 'p-invalid' : ''}`} placeholder="(00) 00000-0000" maxLength="15" />
-                    {errors.telefone && <small className="p-error">{errors.telefone}</small>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
-                    <InputText name="email" value={formData.email} onChange={handleInputChange} className="w-full" placeholder="email@exemplo.com" />
-                  </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo *</label>
+              <InputText name="nome" value={formData.nome} onChange={handleInputChange} className={`w-full ${errors.nome ? 'p-invalid' : ''}`} placeholder="Digite o nome completo" />
+              {errors.nome && <small className="p-error">{errors.nome}</small>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento *</label>
+              <InputText name="dataNascimento" value={formData.dataNascimento} onChange={handleInputChange} className={`w-full ${errors.dataNascimento ? 'p-invalid' : ''}`} placeholder="dd/mm/aaaa" />
+              {errors.dataNascimento && <small className="p-error">{errors.dataNascimento}</small>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">CPF *</label>
+              <InputText name="cpf" value={formData.cpf} onChange={(e) => { const formatted = formatCPF(e.target.value); setFormData(prev => ({ ...prev, cpf: formatted })); if (errors.cpf) { setErrors(prev => ({ ...prev, cpf: '' })); } }} className={`w-full ${errors.cpf ? 'p-invalid' : ''}`} placeholder="000.000.000-00" maxLength="14" />
+              {errors.cpf && <small className="p-error">{errors.cpf}</small>}
+        </div>
+                    <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">RG *</label>
+              <InputText name="rg" value={formData.rg} onChange={handleInputChange} className={`w-full ${errors.rg ? 'p-invalid' : ''}`} placeholder="000000000" />
+              {errors.rg && <small className="p-error">{errors.rg}</small>}
+                    </div>
+                    <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Mãe *</label>
+              <InputText name="nomeMae" value={formData.nomeMae} onChange={handleInputChange} className={`w-full ${errors.nomeMae ? 'p-invalid' : ''}`} placeholder="Digite o nome completo da mãe" />
+              {errors.nomeMae && <small className="p-error">{errors.nomeMae}</small>}
+                    </div>
+                    <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sexo *</label>
+              <Dropdown value={formData.sexo} onChange={(e) => handleDropdownChange(e, 'sexo')} options={opcoesSexo} optionLabel="label" optionValue="value" placeholder="Selecione o sexo" className={`w-full ${errors.sexo ? 'p-invalid' : ''}`} />
+              {errors.sexo && <small className="p-error">{errors.sexo}</small>}
+                    </div>
+                    <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Telefone *</label>
+              <InputText name="telefone" value={formData.telefone} onChange={(e) => { const formatted = formatPhone(e.target.value); setFormData(prev => ({ ...prev, telefone: formatted })); if (errors.telefone) { setErrors(prev => ({ ...prev, telefone: '' })); } }} className={`w-full ${errors.telefone ? 'p-invalid' : ''}`} placeholder="(00) 00000-0000" maxLength="15" />
+              {errors.telefone && <small className="p-error">{errors.telefone}</small>}
+                    </div>
+                    <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+              <InputText name="email" value={formData.email} onChange={handleInputChange} className="w-full" placeholder="email@exemplo.com" />
+                    </div>
                   <div className="lg:col-span-2">
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 items-end">
-                      <div className="flex-[2_2_0%]">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Endereço Completo *</label>
-                        <InputText name="endereco" value={formData.endereco} onChange={handleInputChange} className={`w-full ${errors.endereco ? 'p-invalid' : ''}`} placeholder="Rua, número, bairro, cidade - UF" />
-                        {errors.endereco && <small className="p-error">{errors.endereco}</small>}
-                      </div>
-                      <div className="flex-[1_1_0%] min-w-[110px]">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">CEP</label>
-                        <div className="flex gap-1">
-                          <InputText name="cep" value={cep} onChange={e => setCep(e.target.value)} maxLength={9} placeholder="00000-000" className="w-full" />
-                          <Button icon="pi pi-search" loading={isCepLoading} type="button" onClick={buscarEnderecoPorCep} className="!px-2 !py-2" />
-                        </div>
-                      </div>
+                <div className="flex-[2_2_0%]">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Endereço Completo *</label>
+                  <InputText name="endereco" value={formData.endereco} onChange={handleInputChange} className={`w-full ${errors.endereco ? 'p-invalid' : ''}`} placeholder="Rua, número, bairro, cidade - UF" />
+                  {errors.endereco && <small className="p-error">{errors.endereco}</small>}
+                </div>
+                <div className="flex-[1_1_0%] min-w-[110px]">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">CEP</label>
+                  <div className="flex gap-1">
+                    <InputText name="cep" value={cep} onChange={e => setCep(e.target.value)} maxLength={9} placeholder="00000-000" className="w-full" />
+                    <Button icon="pi pi-search" loading={isCepLoading} type="button" onClick={buscarEnderecoPorCep} className="!px-2 !py-2" />
+                  </div>
+                </div>
                     </div>
                   </div>
                   <div className="lg:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Contato de Emergência *</label>
-                    <InputText name="contatoEmergencia" value={formData.contatoEmergencia} onChange={(e) => { const formatted = formatPhone(e.target.value); setFormData(prev => ({ ...prev, contatoEmergencia: formatted })); if (errors.contatoEmergencia) { setErrors(prev => ({ ...prev, contatoEmergencia: '' })); } }} className={`w-full ${errors.contatoEmergencia ? 'p-invalid' : ''}`} placeholder="(00) 00000-0000" maxLength="15" />
-                    {errors.contatoEmergencia && <small className="p-error">{errors.contatoEmergencia}</small>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Convênio</label>
-                    <Dropdown value={formData.convenio} onChange={(e) => handleDropdownChange(e, 'convenio')} options={opcoesConvenio} optionLabel="label" optionValue="value" placeholder="Selecione o convênio" className="w-full" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Número da Carteirinha</label>
-                    <InputText name="numeroCarteirinha" value={formData.numeroCarteirinha} onChange={handleInputChange} className="w-full" placeholder="Número da carteirinha" />
-                  </div>
-                  <div className="lg:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Motivo da Visita *</label>
-                    <InputTextarea name="motivoVisita" value={formData.motivoVisita} onChange={handleInputChange} rows="3" className={`w-full ${errors.motivoVisita ? 'p-invalid' : ''}`} placeholder="Descreva o motivo da visita e sintomas principais..." />
-                    {errors.motivoVisita && <small className="p-error">{errors.motivoVisita}</small>}
-                    {formData.motivoVisita && formData.motivoVisita.trim().length >= 3 && (
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2 text-xs sm:text-sm">
-                        <span className={
-                          classificarMotivoVisita(formData.motivoVisita) === 'vermelho' ? 'text-red-600 font-semibold' :
-                          classificarMotivoVisita(formData.motivoVisita) === 'amarelo' ? 'text-yellow-700 font-semibold' :
-                          'text-green-700 font-semibold'
-                        }>
-                          {obterNomePrioridade(classificarMotivoVisita(formData.motivoVisita))}
-                        </span>
-                        <span className="text-gray-400 sm:ml-2">(classificação automática)</span>
-                      </div>
-                    )}
-                  </div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Contato de Emergência *</label>
+              <InputText name="contatoEmergencia" value={formData.contatoEmergencia} onChange={(e) => { const formatted = formatPhone(e.target.value); setFormData(prev => ({ ...prev, contatoEmergencia: formatted })); if (errors.contatoEmergencia) { setErrors(prev => ({ ...prev, contatoEmergencia: '' })); } }} className={`w-full ${errors.contatoEmergencia ? 'p-invalid' : ''}`} placeholder="(00) 00000-0000" maxLength="15" />
+              {errors.contatoEmergencia && <small className="p-error">{errors.contatoEmergencia}</small>}
                 </div>
-                <Divider />
+                  <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Convênio</label>
+              <Dropdown value={formData.convenio} onChange={(e) => handleDropdownChange(e, 'convenio')} options={opcoesConvenio} optionLabel="label" optionValue="value" placeholder="Selecione o convênio" className="w-full" />
+                  </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Número da Carteirinha</label>
+              <InputText name="numeroCarteirinha" value={formData.numeroCarteirinha} onChange={handleInputChange} className="w-full" placeholder="Número da carteirinha" />
+                    </div>
+                  <div className="lg:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Motivo da Visita *</label>
+              <InputTextarea name="motivoVisita" value={formData.motivoVisita} onChange={handleInputChange} rows="3" className={`w-full ${errors.motivoVisita ? 'p-invalid' : ''}`} placeholder="Descreva o motivo da visita e sintomas principais..." />
+              {errors.motivoVisita && <small className="p-error">{errors.motivoVisita}</small>}
+              {formData.motivoVisita && formData.motivoVisita.trim().length >= 3 && (
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2 text-xs sm:text-sm">
+                  <span className={
+                    classificarMotivoVisita(formData.motivoVisita) === 'vermelho' ? 'text-red-600 font-semibold' :
+                    classificarMotivoVisita(formData.motivoVisita) === 'amarelo' ? 'text-yellow-700 font-semibold' :
+                    'text-green-700 font-semibold'
+                  }>
+                    {obterNomePrioridade(classificarMotivoVisita(formData.motivoVisita))}
+                  </span>
+                        <span className="text-gray-400 sm:ml-2">(classificação automática)</span>
+                </div>
+              )}
+            </div>
+          </div>
+          <Divider />
                 <div className="pt-2 flex flex-col sm:flex-row justify-end gap-2">
                   <Button
                     label="Limpar Formulário"
@@ -629,7 +629,7 @@ const TelaCadastro = () => {
                     className="!bg-blue-600 !text-white !border-0 px-6 py-2 rounded-lg font-semibold transition-colors hover:!bg-blue-700 text-sm"
                   />
                 </div>
-              </form>
+        </form>
             </Card>
           </div>
         ) : (
@@ -646,10 +646,10 @@ const TelaCadastro = () => {
                     </p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <Button
-                      label="Chamar Próximo"
+                  <Button
+                    label="Chamar Próximo"
                       icon="pi pi-user-plus"
-                      onClick={handleChamarProximoPaciente}
+                    onClick={handleChamarProximoPaciente}
                       disabled={pacientesAguardandoCadastro.length === 0}
                       className="!bg-blue-600 !text-white !border-0 px-4 py-2 rounded-lg font-semibold transition-colors hover:!bg-blue-700 text-sm"
                     />
@@ -659,15 +659,15 @@ const TelaCadastro = () => {
                       icon="pi pi-refresh"
                       onClick={() => window.location.reload()}
                       className="!bg-gray-100 !text-gray-700 !border-0 px-4 py-2 rounded-lg font-semibold transition-colors hover:!bg-gray-200 text-sm"
-                    />
-                  </div>
+                  />
                 </div>
+                  </div>
 
                 {pacientesAguardandoCadastro.length > 0 ? (
                   <div className="space-y-3">
                     {pacientesAguardandoCadastro.map((senha, index) => (
-                      <div
-                        key={senha.id}
+                        <div
+                          key={senha.id}
                         className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer"
                         onClick={() => handleChamarPaciente(senha)}
                       >
@@ -682,11 +682,11 @@ const TelaCadastro = () => {
                             <div>
                               <div className={`font-semibold text-sm sm:text-base ${obterCorTipo(senha.tipo).text}`}>
                                 {obterCorTipo(senha.tipo).nome}
-                              </div>
+                                </div>
                               <div className="text-xs sm:text-sm text-gray-500">
                                 #{index + 1} na fila • {obterTempoEspera(senha.horaGeracao)}
                               </div>
-                            </div>
+                              </div>
                           </div>
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                             <Tag
@@ -702,10 +702,10 @@ const TelaCadastro = () => {
                                 handleChamarPaciente(senha);
                               }}
                               className="!bg-blue-600 !text-white !border-0 px-3 py-1 rounded-lg font-semibold transition-colors hover:!bg-blue-700 text-xs"
-                            />
+                              />
+                            </div>
                           </div>
                         </div>
-                      </div>
                     ))}
                   </div>
                 ) : (
@@ -713,8 +713,8 @@ const TelaCadastro = () => {
                     <h3 className="text-xl font-semibold text-gray-600 mb-2">Fila Vazia</h3>
                     <p className="text-gray-500 text-center">
                       Nenhum paciente aguardando cadastro no momento.
-                    </p>
-                  </div>
+                  </p>
+                </div>
                 )}
               </Card>
             </div>
@@ -727,24 +727,24 @@ const TelaCadastro = () => {
                   <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                     <div className="text-2xl font-bold text-blue-600 mb-1">{pacientesAguardandoCadastro.length}</div>
                     <div className="text-gray-700 text-sm font-medium">Aguardando Cadastro</div>
-                  </div>
+                </div>
                   <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                     <div className="text-2xl font-bold text-green-600 mb-1">
                       {pacientesAguardandoCadastro.filter(s => s.tipo === 'normal').length}
-                    </div>
+              </div>
                     <div className="text-gray-700 text-sm font-medium">Senhas Normais</div>
-                  </div>
+                </div>
                   <div className="bg-red-50 rounded-lg p-4 border border-red-200">
                     <div className="text-2xl font-bold text-red-600 mb-1">
                       {pacientesAguardandoCadastro.filter(s => s.tipo === 'prioridade').length}
-                    </div>
+              </div>
                     <div className="text-gray-700 text-sm font-medium">Senhas Prioridade</div>
-                  </div>
+              </div>
                 </div>
               </Card>
-            </div>
           </div>
-        )}
+        </div>
+          )}
 
         {/* Modal de Fila de Senhas */}
         <Dialog
@@ -776,16 +776,16 @@ const TelaCadastro = () => {
                     </div>
                   </div>
                 </div>
-                <Button
+              <Button
                   label="Chamar"
                   size="small"
-                  onClick={() => {
+                onClick={() => {
                     handleChamarPaciente(senha);
-                    setShowFilaSenhas(false);
-                  }}
+                  setShowFilaSenhas(false);
+                }}
                   className="!bg-blue-600 !text-white !border-0 px-3 py-1 rounded-lg font-semibold transition-colors hover:!bg-blue-700"
-                />
-              </div>
+              />
+            </div>
             ))}
           </div>
         </Dialog>
@@ -811,7 +811,7 @@ const TelaCadastro = () => {
                 onClick={() => setPacienteCadastrado(null)}
                 className="!bg-gray-100 !text-gray-700 !border-0 px-4 py-2 rounded-lg font-semibold transition-colors hover:!bg-gray-200"
               />
-            </div>
+              </div>
           }
         >
           {pacienteCadastrado && (
@@ -819,41 +819,41 @@ const TelaCadastro = () => {
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">Ficha do Paciente</h2>
                 <p className="text-gray-600">Sistema de Atendimento Hospitalar</p>
-              </div>
+                        </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div>
                   <label className="font-semibold text-gray-700">Nome:</label>
                   <p className="text-gray-800">{pacienteCadastrado.nome}</p>
-                </div>
+                            </div>
                 <div>
                   <label className="font-semibold text-gray-700">Data de Nascimento:</label>
                   <p className="text-gray-800">{pacienteCadastrado.dataNascimento}</p>
-                </div>
+                          </div>
                 <div>
                   <label className="font-semibold text-gray-700">CPF:</label>
                   <p className="text-gray-800">{pacienteCadastrado.cpf}</p>
-                </div>
+                          </div>
                 <div>
                   <label className="font-semibold text-gray-700">RG:</label>
                   <p className="text-gray-800">{pacienteCadastrado.rg}</p>
-                </div>
+                        </div>
                 <div>
                   <label className="font-semibold text-gray-700">Nome da Mãe:</label>
                   <p className="text-gray-800">{pacienteCadastrado.nomeMae}</p>
-                </div>
+                      </div>
                 <div>
                   <label className="font-semibold text-gray-700">Sexo:</label>
                   <p className="text-gray-800">{pacienteCadastrado.sexo === 'M' ? 'Masculino' : pacienteCadastrado.sexo === 'F' ? 'Feminino' : 'Outro'}</p>
-                </div>
+                    </div>
                 <div>
                   <label className="font-semibold text-gray-700">Telefone:</label>
                   <p className="text-gray-800">{pacienteCadastrado.telefone}</p>
-                </div>
+              </div>
                 <div>
                   <label className="font-semibold text-gray-700">E-mail:</label>
                   <p className="text-gray-800">{pacienteCadastrado.email || 'Não informado'}</p>
-                </div>
+          </div>
                 <div className="sm:col-span-2">
                   <label className="font-semibold text-gray-700">Endereço:</label>
                   <p className="text-gray-800">{pacienteCadastrado.endereco}</p>
