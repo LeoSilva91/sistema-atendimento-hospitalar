@@ -53,37 +53,25 @@ async function criarUsuarios() {
   const usuarios = [
     {
       email: 'admin@siah.com',
-      senha: await bcrypt.hash('admin123', 12),
+      senha: await bcrypt.hash('123456', 12),
       nome: 'Administrador SIAH',
       tipo: 'ADMINISTRADOR'
     },
     {
-      email: 'medico1@siah.com',
-      senha: await bcrypt.hash('medico123', 12),
+      email: 'medico@siah.com',
+      senha: await bcrypt.hash('123456', 12),
       nome: 'Dr. João Silva',
       tipo: 'MEDICO'
     },
     {
-      email: 'medico2@siah.com',
-      senha: await bcrypt.hash('medico123', 12),
-      nome: 'Dra. Maria Santos',
-      tipo: 'MEDICO'
-    },
-    {
-      email: 'enfermeiro1@siah.com',
-      senha: await bcrypt.hash('enfermeiro123', 12),
+      email: 'enfermeiro@siah.com',
+      senha: await bcrypt.hash('123456', 12),
       nome: 'Enf. Ana Costa',
       tipo: 'ENFERMEIRO'
     },
     {
-      email: 'enfermeiro2@siah.com',
-      senha: await bcrypt.hash('enfermeiro123', 12),
-      nome: 'Enf. Carlos Oliveira',
-      tipo: 'ENFERMEIRO'
-    },
-    {
-      email: 'recepcionista1@siah.com',
-      senha: await bcrypt.hash('recepcionista123', 12),
+      email: 'recepcionista@siah.com',
+      senha: await bcrypt.hash('123456', 12),
       nome: 'Recepcionista Paula Lima',
       tipo: 'RECEPCIONISTA'
     }

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSistemaAtendimento } from "../context/HospitalContext";
 import { useToast } from "../context/ToastProvider";
 import LoadingSpinner from "../components/LoadingSpinner";
+import api from "../services/api";
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Dropdown } from "primereact/dropdown";
@@ -66,19 +67,25 @@ const TelaCadastro = () => {
 
   // Carregar pacientes aguardando cadastro (senhas aguardando)
   useEffect(() => {
-    const carregarPacientesAguardando = () => {
-      const todasSenhas = JSON.parse(localStorage.getItem('senhas') || '[]');
-      const senhasAguardando = todasSenhas
-        .filter(s => s.status === 'aguardando')
-        .sort((a, b) => {
-          // Ordenar: prioridade primeiro, depois por hora de geração
-          if (a.tipo !== b.tipo) {
-            return a.tipo === 'prioridade' ? -1 : 1;
-          }
-          return new Date(a.horaGeracao) - new Date(b.horaGeracao);
-        });
-      
-      setPacientesAguardandoCadastro(senhasAguardando);
+    const carregarPacientesAguardando = async () => {
+      try {
+        const response = await api.get('/senhas');
+        if (response.data.success) {
+          const senhasAguardando = response.data.data
+            .filter(s => s.status === 'AGUARDANDO')
+            .sort((a, b) => {
+              // Ordenar: prioridade primeiro, depois por hora de geração
+              if (a.tipo !== b.tipo) {
+                return a.tipo === 'PRIORIDADE' ? -1 : 1;
+              }
+              return new Date(a.createdAt) - new Date(b.createdAt);
+            });
+          
+          setPacientesAguardandoCadastro(senhasAguardando);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar senhas:', error);
+      }
     };
 
     carregarPacientesAguardando();
@@ -170,7 +177,7 @@ const TelaCadastro = () => {
   };
 
   const obterCorTipo = (tipo) => {
-    return tipo === 'prioridade' 
+    return tipo === 'PRIORIDADE' 
       ? { bg: 'bg-red-500', text: 'text-white', nome: 'PRIORIDADE' }
       : { bg: 'bg-green-500', text: 'text-white', nome: 'NORMAL' };
   };
@@ -182,14 +189,36 @@ const TelaCadastro = () => {
     });
   };
 
-  const handleChamarPaciente = (senha) => {
-    setSenhaAtual(senha);
-    setShowFilaSenhas(false);
-    setShowCadastroForm(true);
-    showToast(`Iniciando cadastro para senha ${senha.prefixo}${senha.numero.toString().padStart(3, '0')}`);
+  const handleChamarPaciente = async (senha) => {
+    try {
+      // Marcar senha como chamada via API
+      await api.post('/senhas/chamar', { senhaId: senha.id });
+      
+      setSenhaAtual(senha);
+      setShowFilaSenhas(false);
+      setShowCadastroForm(true);
+      showToast(`Iniciando cadastro para senha ${senha.numero}`);
+      
+      // Recarregar a fila de senhas
+      const response = await api.get('/senhas');
+      if (response.data.success) {
+        const senhasAguardando = response.data.data
+          .filter(s => s.status === 'AGUARDANDO')
+          .sort((a, b) => {
+            if (a.tipo !== b.tipo) {
+              return a.tipo === 'PRIORIDADE' ? -1 : 1;
+            }
+            return new Date(a.createdAt) - new Date(b.createdAt);
+          });
+        setPacientesAguardandoCadastro(senhasAguardando);
+      }
+    } catch (error) {
+      console.error('Erro ao chamar senha:', error);
+      showError('Erro ao chamar senha. Tente novamente.');
+    }
   };
 
-  const handleChamarProximoPaciente = () => {
+  const handleChamarProximoPaciente = async () => {
     if (pacientesAguardandoCadastro.length === 0) {
       showError('Nenhum paciente aguardando cadastro');
       return;
@@ -197,16 +226,31 @@ const TelaCadastro = () => {
 
     const proximaSenha = pacientesAguardandoCadastro[0];
     
-    // Marcar senha como chamada
-    const todasSenhas = JSON.parse(localStorage.getItem('senhas') || '[]');
-    const senhasAtualizadas = todasSenhas.map(s => 
-      s.id === proximaSenha.id ? { ...s, status: 'chamada', horaChamada: new Date().toISOString() } : s
-    );
-    localStorage.setItem('senhas', JSON.stringify(senhasAtualizadas));
-    
-    setSenhaAtual(proximaSenha);
-    setShowCadastroForm(true);
-    showToast(`Iniciando cadastro para senha ${proximaSenha.prefixo}${proximaSenha.numero.toString().padStart(3, '0')}`);
+    try {
+      // Marcar senha como chamada via API
+      await api.post('/senhas/chamar', { senhaId: proximaSenha.id });
+      
+      setSenhaAtual(proximaSenha);
+      setShowCadastroForm(true);
+      showToast(`Iniciando cadastro para senha ${proximaSenha.numero}`);
+      
+      // Recarregar a fila de senhas
+      const response = await api.get('/senhas');
+      if (response.data.success) {
+        const senhasAguardando = response.data.data
+          .filter(s => s.status === 'AGUARDANDO')
+          .sort((a, b) => {
+            if (a.tipo !== b.tipo) {
+              return a.tipo === 'PRIORIDADE' ? -1 : 1;
+            }
+            return new Date(a.createdAt) - new Date(b.createdAt);
+          });
+        setPacientesAguardandoCadastro(senhasAguardando);
+      }
+    } catch (error) {
+      console.error('Erro ao chamar senha:', error);
+      showError('Erro ao chamar senha. Tente novamente.');
+    }
   };
 
   const limparSenhaAtual = () => {
@@ -677,14 +721,14 @@ const TelaCadastro = () => {
                               className={`rounded-full flex items-center justify-center font-bold text-lg sm:text-xl ${obterCorTipo(senha.tipo).bg} ${obterCorTipo(senha.tipo).text}`}
                               style={{ width: 60, height: 60 }}
                             >
-                              {senha.prefixo}{senha.numero.toString().padStart(3, '0')}
+                              {senha.numero}
                             </div>
                             <div>
                               <div className={`font-semibold text-sm sm:text-base ${obterCorTipo(senha.tipo).text}`}>
                                 {obterCorTipo(senha.tipo).nome}
                                 </div>
                               <div className="text-xs sm:text-sm text-gray-500">
-                                #{index + 1} na fila • {obterTempoEspera(senha.horaGeracao)}
+                                #{index + 1} na fila • {obterTempoEspera(senha.createdAt)}
                               </div>
                               </div>
                           </div>
@@ -730,13 +774,13 @@ const TelaCadastro = () => {
                 </div>
                   <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                     <div className="text-2xl font-bold text-green-600 mb-1">
-                      {pacientesAguardandoCadastro.filter(s => s.tipo === 'normal').length}
+                      {pacientesAguardandoCadastro.filter(s => s.tipo === 'NORMAL').length}
               </div>
                     <div className="text-gray-700 text-sm font-medium">Senhas Normais</div>
                 </div>
                   <div className="bg-red-50 rounded-lg p-4 border border-red-200">
                     <div className="text-2xl font-bold text-red-600 mb-1">
-                      {pacientesAguardandoCadastro.filter(s => s.tipo === 'prioridade').length}
+                      {pacientesAguardandoCadastro.filter(s => s.tipo === 'PRIORIDADE').length}
               </div>
                     <div className="text-gray-700 text-sm font-medium">Senhas Prioridade</div>
               </div>
@@ -765,14 +809,14 @@ const TelaCadastro = () => {
                     className={`rounded-full flex items-center justify-center font-bold text-lg ${obterCorTipo(senha.tipo).bg} ${obterCorTipo(senha.tipo).text}`}
                     style={{ width: 60, height: 60 }}
                   >
-                    {senha.prefixo}{senha.numero.toString().padStart(3, '0')}
+                    {senha.numero}
                   </div>
                   <div>
                     <div className={`font-semibold ${obterCorTipo(senha.tipo).text}`}>
                       {obterCorTipo(senha.tipo).nome}
                     </div>
                     <div className="text-sm text-gray-500">
-                      #{index + 1} na fila • {obterTempoEspera(senha.horaGeracao)}
+                      #{index + 1} na fila • {obterTempoEspera(senha.createdAt)}
                     </div>
                   </div>
                 </div>

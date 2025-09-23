@@ -160,4 +160,66 @@ export class DashboardController {
       next(error);
     }
   }
+
+  async getDadosFilas(req, res, next) {
+    try {
+      const dados = await this.dashboardService.obterDadosFilas();
+      
+      res.json({
+        success: true,
+        data: dados,
+        message: 'Dados das filas obtidos com sucesso'
+      });
+    } catch (error) {
+      logger.error('Erro ao buscar dados das filas:', error);
+      next(error);
+    }
+  }
+
+  async getPainelPublico(req, res, next) {
+    try {
+      const filtros = req.query;
+      const dados = await this.dashboardService.obterDadosPainelPublico(filtros);
+      
+      res.json({
+        success: true,
+        data: dados,
+        message: 'Dados do painel público obtidos com sucesso'
+      });
+    } catch (error) {
+      logger.error('Erro ao buscar dados do painel público:', error);
+      next(error);
+    }
+  }
+
+  async gerarRelatorio(req, res, next) {
+    try {
+      const { tipo, dataInicio, dataFim, formato } = req.body;
+      const dados = await this.dashboardService.gerarRelatorio(tipo, dataInicio, dataFim, formato);
+      
+      res.json({
+        success: true,
+        data: dados,
+        message: 'Relatório gerado com sucesso'
+      });
+    } catch (error) {
+      logger.error('Erro ao gerar relatório:', error);
+      next(error);
+    }
+  }
+
+  async getMetricasTempoReal(req, res, next) {
+    try {
+      const metricas = await this.dashboardService.obterMetricasTempoReal();
+      
+      res.json({
+        success: true,
+        data: metricas,
+        message: 'Métricas em tempo real obtidas com sucesso'
+      });
+    } catch (error) {
+      logger.error('Erro ao buscar métricas em tempo real:', error);
+      next(error);
+    }
+  }
 }

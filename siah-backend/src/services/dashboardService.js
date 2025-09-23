@@ -1,508 +1,398 @@
-import { database } from '../utils/database.js';
-import { logger } from '../utils/logger.js';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export class DashboardService {
-  constructor() {
-    this.prisma = database.getPrisma();
-  }
-
   async overview() {
     try {
-      const hoje = new Date();
-      const inicioDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-      const fimDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1);
-
       const [
         totalPacientes,
-        totalUsuarios,
-        atendimentosHoje,
-        triagensHoje,
-        senhasHoje,
-        prontuariosHoje
+        aguardandoTriagem,
+        emTriagem,
+        aguardandoMedico,
+        emConsulta,
+        atendidos
       ] = await Promise.all([
-        this.prisma.paciente.count({ where: { ativo: true } }),
-        this.prisma.usuario.count({ where: { ativo: true } }),
-        this.prisma.atendimento.count({
-          where: {
-            dataHora: {
-              gte: inicioDia,
-              lt: fimDia
-            }
-          }
-        }),
-        this.prisma.triagem.count({
-          where: {
-            createdAt: {
-              gte: inicioDia,
-              lt: fimDia
-            }
-          }
-        }),
-        this.prisma.senha.count({
-          where: {
-            createdAt: {
-              gte: inicioDia,
-              lt: fimDia
-            }
-          }
-        }),
-        this.prisma.prontuario.count({
-          where: {
-            createdAt: {
-              gte: inicioDia,
-              lt: fimDia
-            }
-          }
-        })
+        prisma.paciente.count(),
+        prisma.paciente.count({ where: { status: 'AGUARDANDO_TRIAGEM' } }),
+        prisma.paciente.count({ where: { status: 'EM_TRIAGEM' } }),
+        prisma.paciente.count({ where: { status: 'AGUARDANDO_AVALIACAO_MEDICA' } }),
+        prisma.paciente.count({ where: { status: 'EM_CONSULTA' } }),
+        prisma.paciente.count({ where: { status: 'ATENDIMENTO_CONCLUIDO' } })
       ]);
 
       return {
         totalPacientes,
-        totalUsuarios,
-        atendimentosHoje,
-        triagensHoje,
-        senhasHoje,
-        prontuariosHoje,
-        data: hoje.toISOString().split('T')[0]
+        aguardandoTriagem,
+        emTriagem,
+        aguardandoMedico,
+        emConsulta,
+        atendidos
       };
     } catch (error) {
-      logger.error('Erro ao obter overview:', error);
-      throw error;
+      throw new Error(`Erro ao obter overview: ${error.message}`);
     }
   }
 
-  async estatisticas(dataInicio, dataFim) {
+  async obterEstatisticasGerais(filtros = {}) {
     try {
-      const where = {};
+      const { dataInicio, dataFim } = filtros;
       
-      if (dataInicio || dataFim) {
-        where.createdAt = {};
-        if (dataInicio) where.createdAt.gte = new Date(dataInicio);
-        if (dataFim) where.createdAt.lte = new Date(dataFim);
+      const where = {};
+      if (dataInicio && dataFim) {
+        where.horaCadastro = {
+          gte: new Date(dataInicio),
+          lte: new Date(dataFim)
+        };
       }
 
       const [
         totalPacientes,
-        totalUsuarios,
-        totalAtendimentos,
-        totalTriagens,
-        totalSenhas,
-        totalProntuarios,
-        distribuicaoUsuarios,
-        distribuicaoAtendimentos,
-        distribuicaoTriagens
+        aguardandoTriagem,
+        emTriagem,
+        aguardandoMedico,
+        emConsulta,
+        atendidos,
+        aguardandoExame,
+        internados,
+        encaminhados,
+        porCorTriagem,
+        porStatus
       ] = await Promise.all([
-        this.prisma.paciente.count({ where: { ativo: true } }),
-        this.prisma.usuario.count({ where: { ativo: true } }),
-        this.prisma.atendimento.count(where),
-        this.prisma.triagem.count(where),
-        this.prisma.senha.count(where),
-        this.prisma.prontuario.count(where),
-        
-        this.prisma.usuario.groupBy({
-          by: ['tipo'],
-          where: { ativo: true },
-          _count: { tipo: true }
+        prisma.paciente.count({ where }),
+        prisma.paciente.count({ where: { ...where, status: 'AGUARDANDO_TRIAGEM' } }),
+        prisma.paciente.count({ where: { ...where, status: 'EM_TRIAGEM' } }),
+        prisma.paciente.count({ where: { ...where, status: 'AGUARDANDO_AVALIACAO_MEDICA' } }),
+        prisma.paciente.count({ where: { ...where, status: 'EM_CONSULTA' } }),
+        prisma.paciente.count({ where: { ...where, status: 'ATENDIMENTO_CONCLUIDO' } }),
+        prisma.paciente.count({ where: { ...where, status: 'AGUARDANDO_EXAME' } }),
+        prisma.paciente.count({ where: { ...where, status: 'INTERNADO' } }),
+        prisma.paciente.count({ where: { ...where, status: 'ENCAMINHADO' } }),
+        prisma.paciente.groupBy({
+          by: ['corTriagem'],
+          where: { ...where, corTriagem: { not: null } },
+          _count: { corTriagem: true }
         }),
-        
-        this.prisma.atendimento.groupBy({
+        prisma.paciente.groupBy({
           by: ['status'],
           where,
           _count: { status: true }
-        }),
-        
-        this.prisma.triagem.groupBy({
-          by: ['nivelRisco'],
-          where,
-          _count: { nivelRisco: true }
         })
       ]);
 
       return {
-        totais: {
-          pacientes: totalPacientes,
-          usuarios: totalUsuarios,
-          atendimentos: totalAtendimentos,
-          triagens: totalTriagens,
-          senhas: totalSenhas,
-          prontuarios: totalProntuarios
-        },
-        distribuicoes: {
-          usuarios: distribuicaoUsuarios.reduce((acc, item) => {
-            acc[item.tipo] = item._count.tipo;
-            return acc;
-          }, {}),
-          atendimentos: distribuicaoAtendimentos.reduce((acc, item) => {
-            acc[item.status] = item._count.status;
-            return acc;
-          }, {}),
-          triagens: distribuicaoTriagens.reduce((acc, item) => {
-            acc[item.nivelRisco] = item._count.nivelRisco;
-            return acc;
-          }, {})
-        },
-        periodo: {
-          inicio: dataInicio || null,
-          fim: dataFim || null
-        }
+        totalPacientes,
+        aguardandoTriagem,
+        emTriagem,
+        aguardandoMedico,
+        emConsulta,
+        atendidos,
+        aguardandoExame,
+        internados,
+        encaminhados,
+        porCorTriagem: porCorTriagem.reduce((acc, item) => {
+          acc[item.corTriagem] = item._count.corTriagem;
+          return acc;
+        }, {}),
+        porStatus: porStatus.reduce((acc, item) => {
+          acc[item.status] = item._count.status;
+          return acc;
+        }, {})
       };
     } catch (error) {
-      logger.error('Erro ao obter estatísticas:', error);
-      throw error;
+      throw new Error(`Erro ao obter estatísticas gerais: ${error.message}`);
     }
   }
 
-  async statusFilas() {
+  async obterDadosFilas() {
     try {
+      const [filaTriagem, filaMedico, chamadasAtivas] = await Promise.all([
+        prisma.paciente.findMany({
+          where: { status: 'AGUARDANDO_TRIAGEM' },
+          orderBy: { horaCadastro: 'asc' },
+          select: {
+            id: true,
+            nome: true,
+            cpf: true,
+            dataNascimento: true,
+            sexo: true,
+            motivoVisita: true,
+            horaCadastro: true,
+            numeroProntuario: true
+          }
+        }),
+        prisma.paciente.findMany({
+          where: { status: 'AGUARDANDO_AVALIACAO_MEDICA' },
+          orderBy: [
+            { corTriagem: 'desc' },
+            { horaFimTriagem: 'asc' }
+          ],
+          select: {
+            id: true,
+            nome: true,
+            cpf: true,
+            dataNascimento: true,
+            sexo: true,
+            motivoVisita: true,
+            queixaPrincipal: true,
+            corTriagem: true,
+            horaFimTriagem: true,
+            numeroProntuario: true
+          }
+        }),
+        prisma.chamada.findMany({
+          where: { ativa: true },
+          orderBy: { horaChamada: 'desc' },
+          take: 10,
+          include: {
+            paciente: {
+              select: {
+                id: true,
+                nome: true,
+                cpf: true,
+                numeroProntuario: true,
+                corTriagem: true
+              }
+            },
+            usuario: {
+              select: {
+                id: true,
+                nome: true,
+                tipo: true
+              }
+            }
+          }
+        })
+      ]);
+
+      return {
+        filaTriagem,
+        filaMedico,
+        chamadasAtivas
+      };
+    } catch (error) {
+      throw new Error(`Erro ao obter dados das filas: ${error.message}`);
+    }
+  }
+
+  async obterDadosPainelPublico(filtros = {}) {
+    try {
+      const { incluirChamadas = true, incluirSenhas = true } = filtros;
+
       const [
-        senhasAguardando,
-        senhasChamadas,
-        triagensAguardando,
-        atendimentosEmAndamento
+        estatisticas,
+        chamadasAtivas,
+        senhasChamadas
       ] = await Promise.all([
-        this.prisma.senha.count({
-          where: { status: 'AGUARDANDO' }
-        }),
-        this.prisma.senha.count({
-          where: { status: 'CHAMADA' }
-        }),
-        this.prisma.triagem.count({
-          where: {
-            nivelRisco: { in: ['VERMELHO', 'LARANJA'] }
+        this.obterEstatisticasGerais(),
+        incluirChamadas ? prisma.chamada.findMany({
+          where: { ativa: true },
+          orderBy: { horaChamada: 'desc' },
+          take: 5,
+          include: {
+            paciente: {
+              select: {
+                id: true,
+                nome: true,
+                cpf: true,
+                numeroProntuario: true,
+                corTriagem: true
+              }
+            }
           }
-        }),
-        this.prisma.atendimento.count({
-          where: { status: 'EM_ANDAMENTO' }
-        })
+        }) : [],
+        incluirSenhas ? prisma.senha.findMany({
+          where: { status: 'CHAMADA' },
+          orderBy: { horaChamada: 'desc' },
+          take: 3,
+          include: {
+            paciente: {
+              select: {
+                id: true,
+                nome: true,
+                cpf: true
+              }
+            }
+          }
+        }) : []
       ]);
 
       return {
-        senhas: {
-          aguardando: senhasAguardando,
-          chamadas: senhasChamadas,
-          total: senhasAguardando + senhasChamadas
-        },
-        triagens: {
-          aguardando: triagensAguardando,
-          total: triagensAguardando
-        },
-        atendimentos: {
-          emAndamento: atendimentosEmAndamento,
-          total: atendimentosEmAndamento
-        }
+        estatisticas,
+        chamadasAtivas,
+        senhasChamadas
       };
     } catch (error) {
-      logger.error('Erro ao obter status das filas:', error);
-      throw error;
+      throw new Error(`Erro ao obter dados do painel público: ${error.message}`);
     }
   }
 
-  async atendimentosHoje(medicoId) {
+  async gerarRelatorio(tipo, dataInicio, dataFim, formato = 'json') {
     try {
-      const hoje = new Date();
-      const inicioDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-      const fimDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1);
-
       const where = {
-        dataHora: {
-          gte: inicioDia,
-          lt: fimDia
+        horaCadastro: {
+          gte: new Date(dataInicio),
+          lte: new Date(dataFim)
         }
       };
 
-      if (medicoId) {
-        where.usuarioId = medicoId;
+      let dados;
+
+      switch (tipo) {
+        case 'atendimentos':
+          dados = await prisma.paciente.findMany({
+            where: {
+              ...where,
+              status: 'ATENDIMENTO_CONCLUIDO'
+            },
+            include: {
+              triagens: {
+                include: {
+                  usuario: {
+                    select: {
+                      nome: true,
+                      tipo: true
+                    }
+                  }
+                }
+              },
+              prontuarios: {
+                include: {
+                  usuario: {
+                    select: {
+                      nome: true,
+                      especialidade: true
+                    }
+                  }
+                }
+              }
+            },
+            orderBy: { horaFimConsulta: 'desc' }
+          });
+          break;
+
+        case 'triagem':
+          dados = await prisma.triagem.findMany({
+            where: {
+              createdAt: {
+                gte: new Date(dataInicio),
+                lte: new Date(dataFim)
+              }
+            },
+            include: {
+              paciente: {
+                select: {
+                  id: true,
+                  nome: true,
+                  cpf: true,
+                  numeroProntuario: true
+                }
+              },
+              usuario: {
+                select: {
+                  nome: true,
+                  tipo: true
+                }
+              }
+            },
+            orderBy: { createdAt: 'desc' }
+          });
+          break;
+
+        case 'pacientes':
+          dados = await prisma.paciente.findMany({
+            where,
+            include: {
+              triagens: true,
+              prontuarios: true
+            },
+            orderBy: { horaCadastro: 'desc' }
+          });
+          break;
+
+        default:
+          throw new Error('Tipo de relatório inválido');
       }
 
-      const atendimentos = await this.prisma.atendimento.findMany({
-        where,
-        include: {
-          paciente: {
-            select: {
-              id: true,
-              nome: true,
-              cpf: true,
-              dataNascimento: true,
-              sexo: true,
-              telefone: true
-            }
-          },
-          usuario: {
-            select: {
-              id: true,
-              nome: true,
-              tipo: true
-            }
-          }
-        },
-        orderBy: {
-          dataHora: 'asc'
-        }
-      });
-
-      return atendimentos;
-    } catch (error) {
-      logger.error('Erro ao obter atendimentos de hoje:', error);
-      throw error;
-    }
-  }
-
-  async triagensHoje(enfermeiroId) {
-    try {
-      const hoje = new Date();
-      const inicioDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-      const fimDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1);
-
-      const where = {
-        createdAt: {
-          gte: inicioDia,
-          lt: fimDia
-        }
-      };
-
-      if (enfermeiroId) {
-        where.usuarioId = enfermeiroId;
+      if (formato === 'json') {
+        return dados;
       }
 
-      const triagens = await this.prisma.triagem.findMany({
-        where,
-        include: {
-          paciente: {
-            select: {
-              id: true,
-              nome: true,
-              cpf: true,
-              dataNascimento: true,
-              sexo: true,
-              telefone: true
-            }
-          },
-          usuario: {
-            select: {
-              id: true,
-              nome: true,
-              tipo: true
-            }
-          }
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      });
-
-      return triagens;
+      // Aqui você implementaria a geração de PDF ou Excel
+      // Por enquanto, retornamos os dados em JSON
+      return dados;
     } catch (error) {
-      logger.error('Erro ao obter triagens de hoje:', error);
-      throw error;
+      throw new Error(`Erro ao gerar relatório: ${error.message}`);
     }
   }
 
-  async senhasHoje(tipo) {
+  async obterMetricasTempoReal() {
     try {
-      const hoje = new Date();
-      const inicioDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-      const fimDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1);
+      const agora = new Date();
+      const umaHoraAtras = new Date(agora.getTime() - 60 * 60 * 1000);
 
-      const where = {
-        createdAt: {
-          gte: inicioDia,
-          lt: fimDia
-        }
+      const [
+        pacientesUltimaHora,
+        triagensUltimaHora,
+        atendimentosUltimaHora,
+        tempoMedioEspera
+      ] = await Promise.all([
+        prisma.paciente.count({
+          where: {
+            horaCadastro: { gte: umaHoraAtras }
+          }
+        }),
+        prisma.triagem.count({
+          where: {
+            createdAt: { gte: umaHoraAtras }
+          }
+        }),
+        prisma.atendimento.count({
+          where: {
+            createdAt: { gte: umaHoraAtras }
+          }
+        }),
+        this.calcularTempoMedioEspera()
+      ]);
+
+      return {
+        pacientesUltimaHora,
+        triagensUltimaHora,
+        atendimentosUltimaHora,
+        tempoMedioEspera
       };
-
-      if (tipo) {
-        where.tipo = tipo;
-      }
-
-      const senhas = await this.prisma.senha.findMany({
-        where,
-        include: {
-          paciente: {
-            select: {
-              id: true,
-              nome: true,
-              cpf: true,
-              dataNascimento: true,
-              sexo: true,
-              telefone: true
-            }
-          }
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      });
-
-      return senhas;
     } catch (error) {
-      logger.error('Erro ao obter senhas de hoje:', error);
-      throw error;
+      throw new Error(`Erro ao obter métricas em tempo real: ${error.message}`);
     }
   }
 
-  async medicosAtivos() {
+  async calcularTempoMedioEspera() {
     try {
-      const medicos = await this.prisma.usuario.findMany({
+      const pacientesAtendidos = await prisma.paciente.findMany({
         where: {
-          tipo: 'MEDICO',
-          ativo: true
+          status: 'ATENDIMENTO_CONCLUIDO',
+          horaFimConsulta: { not: null }
         },
         select: {
-          id: true,
-          nome: true,
-          email: true,
-          createdAt: true
-        },
-        orderBy: {
-          nome: 'asc'
+          horaCadastro: true,
+          horaFimConsulta: true
         }
       });
 
-      return medicos;
-    } catch (error) {
-      logger.error('Erro ao obter médicos ativos:', error);
-      throw error;
-    }
-  }
-
-  async pacientesRecentes(limit = 10) {
-    try {
-      const pacientes = await this.prisma.paciente.findMany({
-        where: { ativo: true },
-        select: {
-          id: true,
-          nome: true,
-          cpf: true,
-          dataNascimento: true,
-          sexo: true,
-          telefone: true,
-          createdAt: true
-        },
-        orderBy: {
-          createdAt: 'desc'
-        },
-        take: limit
-      });
-
-      return pacientes;
-    } catch (error) {
-      logger.error('Erro ao obter pacientes recentes:', error);
-      throw error;
-    }
-  }
-
-  async alertas() {
-    try {
-      const alertas = [];
-
-      // Verificar senhas aguardando há muito tempo
-      const senhasAguardando = await this.prisma.senha.count({
-        where: {
-          status: 'AGUARDANDO',
-          createdAt: {
-            lt: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 horas atrás
-          }
-        }
-      });
-
-      if (senhasAguardando > 0) {
-        alertas.push({
-          tipo: 'warning',
-          titulo: 'Senhas Aguardando',
-          mensagem: `${senhasAguardando} senha(s) aguardando há mais de 2 horas`,
-          prioridade: 'media'
-        });
+      if (pacientesAtendidos.length === 0) {
+        return 0;
       }
 
-      // Verificar triagens de alto risco
-      const triagensAltoRisco = await this.prisma.triagem.count({
-        where: {
-          nivelRisco: { in: ['VERMELHO', 'LARANJA'] },
-          createdAt: {
-            gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // últimas 24 horas
-          }
-        }
+      const temposEspera = pacientesAtendidos.map(paciente => {
+        const inicio = new Date(paciente.horaCadastro);
+        const fim = new Date(paciente.horaFimConsulta);
+        return (fim - inicio) / (1000 * 60); // em minutos
       });
 
-      if (triagensAltoRisco > 0) {
-        alertas.push({
-          tipo: 'danger',
-          titulo: 'Triagens de Alto Risco',
-          mensagem: `${triagensAltoRisco} triagem(ns) de alto risco nas últimas 24 horas`,
-          prioridade: 'alta'
-        });
-      }
-
-      // Verificar atendimentos em andamento há muito tempo
-      const atendimentosLongos = await this.prisma.atendimento.count({
-        where: {
-          status: 'EM_ANDAMENTO',
-          dataHora: {
-            lt: new Date(Date.now() - 4 * 60 * 60 * 1000) // 4 horas atrás
-          }
-        }
-      });
-
-      if (atendimentosLongos > 0) {
-        alertas.push({
-          tipo: 'warning',
-          titulo: 'Atendimentos Longos',
-          mensagem: `${atendimentosLongos} atendimento(s) em andamento há mais de 4 horas`,
-          prioridade: 'media'
-        });
-      }
-
-      return alertas;
+      const tempoMedio = temposEspera.reduce((acc, tempo) => acc + tempo, 0) / temposEspera.length;
+      return Math.round(tempoMedio);
     } catch (error) {
-      logger.error('Erro ao obter alertas:', error);
-      throw error;
-    }
-  }
-
-  async relatorios() {
-    try {
-      const relatorios = [
-        {
-          id: 'atendimentos-por-medico',
-          nome: 'Atendimentos por Médico',
-          descricao: 'Relatório de atendimentos realizados por cada médico',
-          tipo: 'atendimento',
-          parametros: ['dataInicio', 'dataFim', 'medicoId']
-        },
-        {
-          id: 'triagens-por-risco',
-          nome: 'Triagens por Nível de Risco',
-          descricao: 'Distribuição de triagens por nível de risco',
-          tipo: 'triagem',
-          parametros: ['dataInicio', 'dataFim', 'nivelRisco']
-        },
-        {
-          id: 'senhas-por-tipo',
-          nome: 'Senhas por Tipo',
-          descricao: 'Relatório de senhas geradas por tipo',
-          tipo: 'senha',
-          parametros: ['dataInicio', 'dataFim', 'tipo']
-        },
-        {
-          id: 'pacientes-por-periodo',
-          nome: 'Pacientes por Período',
-          descricao: 'Relatório de pacientes cadastrados por período',
-          tipo: 'paciente',
-          parametros: ['dataInicio', 'dataFim']
-        },
-        {
-          id: 'prontuarios-por-medico',
-          nome: 'Prontuários por Médico',
-          descricao: 'Relatório de prontuários criados por médico',
-          tipo: 'prontuario',
-          parametros: ['dataInicio', 'dataFim', 'medicoId']
-        }
-      ];
-
-      return relatorios;
-    } catch (error) {
-      logger.error('Erro ao obter relatórios:', error);
-      throw error;
+      return 0;
     }
   }
 }

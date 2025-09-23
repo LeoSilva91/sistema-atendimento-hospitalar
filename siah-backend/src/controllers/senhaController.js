@@ -6,75 +6,12 @@ export class SenhaController {
     this.senhaService = new SenhaService();
   }
 
-  async listarSenhas(req, res, next) {
+  async gerarSenha(req, res) {
     try {
-      const { 
-        page = 1, 
-        limit = 10, 
-        tipo, 
-        status, 
-        dataInicio, 
-        dataFim,
-        pacienteId 
-      } = req.query;
+      const { tipo } = req.body;
+      const senha = await this.senhaService.gerarSenha(tipo);
 
-      const filtros = {
-        tipo,
-        status,
-        dataInicio,
-        dataFim,
-        pacienteId
-      };
-
-      const result = await this.senhaService.listarSenhas({
-        page: parseInt(page),
-        limit: parseInt(limit),
-        filtros
-      });
-
-      res.json({
-        success: true,
-        data: result,
-        message: 'Senhas listadas com sucesso'
-      });
-    } catch (error) {
-      logger.error('Erro ao listar senhas:', error);
-      next(error);
-    }
-  }
-
-  async buscarSenha(req, res, next) {
-    try {
-      const { id } = req.params;
-      const senha = await this.senhaService.buscarSenha(id);
-
-      if (!senha) {
-        return res.status(404).json({
-          success: false,
-          error: 'Senha não encontrada'
-        });
-      }
-
-      res.json({
-        success: true,
-        data: senha,
-        message: 'Senha encontrada com sucesso'
-      });
-    } catch (error) {
-      logger.error('Erro ao buscar senha:', error);
-      next(error);
-    }
-  }
-
-  async gerarSenha(req, res, next) {
-    try {
-      const dadosSenha = {
-        ...req.body,
-        geradaPor: req.user.id // Usuário logado
-      };
-
-      const senha = await this.senhaService.gerarSenha(dadosSenha);
-
+      logger.info(`Nova senha gerada: ${senha.prefixo}${senha.numero}`);
       res.status(201).json({
         success: true,
         data: senha,
@@ -82,99 +19,38 @@ export class SenhaController {
       });
     } catch (error) {
       logger.error('Erro ao gerar senha:', error);
-      next(error);
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
     }
   }
 
-  async atualizarSenha(req, res, next) {
+  async listarSenhasAguardando(req, res) {
     try {
-      const { id } = req.params;
-      const dadosAtualizacao = req.body;
-
-      const senha = await this.senhaService.atualizarSenha(id, dadosAtualizacao);
+      const senhas = await this.senhaService.listarSenhasAguardando();
 
       res.json({
         success: true,
-        data: senha,
-        message: 'Senha atualizada com sucesso'
+        data: senhas
       });
     } catch (error) {
-      logger.error('Erro ao atualizar senha:', error);
-      next(error);
+      logger.error('Erro ao listar senhas aguardando:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
     }
   }
 
-  async atualizarStatus(req, res, next) {
+  async chamarSenha(req, res) {
     try {
-      const { id } = req.params;
-      const { status } = req.body;
+      const { senhaId } = req.body;
+      const { id: usuarioId } = req.user;
 
-      const senha = await this.senhaService.atualizarStatus(id, status);
+      const senha = await this.senhaService.chamarSenha(senhaId, usuarioId);
 
-      res.json({
-        success: true,
-        data: senha,
-        message: 'Status da senha atualizado com sucesso'
-      });
-    } catch (error) {
-      logger.error('Erro ao atualizar status da senha:', error);
-      next(error);
-    }
-  }
-
-  async cancelarSenha(req, res, next) {
-    try {
-      const { id } = req.params;
-      const { motivo } = req.body;
-
-      await this.senhaService.cancelarSenha(id, motivo);
-
-      res.json({
-        success: true,
-        message: 'Senha cancelada com sucesso'
-      });
-    } catch (error) {
-      logger.error('Erro ao cancelar senha:', error);
-      next(error);
-    }
-  }
-
-  async filaAguardando(req, res, next) {
-    try {
-      const fila = await this.senhaService.filaAguardando();
-
-      res.json({
-        success: true,
-        data: fila,
-        message: 'Fila de senhas obtida com sucesso'
-      });
-    } catch (error) {
-      logger.error('Erro ao obter fila de senhas:', error);
-      next(error);
-    }
-  }
-
-  async senhasHoje(req, res, next) {
-    try {
-      const { tipo } = req.query;
-      const senhas = await this.senhaService.senhasHoje(tipo);
-
-      res.json({
-        success: true,
-        data: senhas,
-        message: 'Senhas de hoje listadas com sucesso'
-      });
-    } catch (error) {
-      logger.error('Erro ao listar senhas de hoje:', error);
-      next(error);
-    }
-  }
-
-  async chamarSenha(req, res, next) {
-    try {
-      const { id } = req.params;
-      const senha = await this.senhaService.chamarSenha(id, req.user.id);
-
+      logger.info(`Senha ${senha.prefixo}${senha.numero} chamada pelo usuário ${usuarioId}`);
       res.json({
         success: true,
         data: senha,
@@ -182,81 +58,85 @@ export class SenhaController {
       });
     } catch (error) {
       logger.error('Erro ao chamar senha:', error);
-      next(error);
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
     }
   }
 
-  async atenderSenha(req, res, next) {
+  async marcarSenhaCadastrada(req, res) {
     try {
-      const { id } = req.params;
-      const senha = await this.senhaService.atenderSenha(id, req.user.id);
+      const { senhaId, pacienteId } = req.body;
 
+      const senha = await this.senhaService.marcarSenhaCadastrada(senhaId, pacienteId);
+
+      logger.info(`Senha ${senha.prefixo}${senha.numero} marcada como cadastrada`);
       res.json({
         success: true,
         data: senha,
-        message: 'Senha marcada como atendida com sucesso'
+        message: 'Senha marcada como cadastrada'
       });
     } catch (error) {
-      logger.error('Erro ao atender senha:', error);
-      next(error);
+      logger.error('Erro ao marcar senha como cadastrada:', error);
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
     }
   }
 
-  async estatisticasSenhas(req, res, next) {
+  async listarSenhas(req, res) {
     try {
-      const { dataInicio, dataFim } = req.query;
-      const estatisticas = await this.senhaService.estatisticasSenhas(dataInicio, dataFim);
+      const filtros = req.query;
+      const resultado = await this.senhaService.listarSenhas(filtros);
 
       res.json({
         success: true,
-        data: estatisticas,
-        message: 'Estatísticas de senhas obtidas com sucesso'
+        data: resultado.data,
+        pagination: resultado.pagination
+      });
+    } catch (error) {
+      logger.error('Erro ao listar senhas:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  async buscarSenhaPorId(req, res) {
+    try {
+      const { id } = req.params;
+      const senha = await this.senhaService.buscarSenhaPorId(id);
+
+      res.json({
+        success: true,
+        data: senha
+      });
+    } catch (error) {
+      logger.error('Erro ao buscar senha:', error);
+      res.status(404).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  async obterEstatisticasSenhas(req, res) {
+    try {
+      const estatisticas = await this.senhaService.obterEstatisticasSenhas();
+
+      res.json({
+        success: true,
+        data: estatisticas
       });
     } catch (error) {
       logger.error('Erro ao obter estatísticas de senhas:', error);
-      next(error);
-    }
-  }
-
-  async senhasPorTipo(req, res, next) {
-    try {
-      const { tipo } = req.params;
-      const { page = 1, limit = 10 } = req.query;
-
-      const result = await this.senhaService.senhasPorTipo(tipo, {
-        page: parseInt(page),
-        limit: parseInt(limit)
+      res.status(500).json({
+        success: false,
+        message: error.message
       });
-
-      res.json({
-        success: true,
-        data: result,
-        message: `Senhas do tipo ${tipo} listadas com sucesso`
-      });
-    } catch (error) {
-      logger.error('Erro ao listar senhas por tipo:', error);
-      next(error);
-    }
-  }
-
-  async senhasPorPaciente(req, res, next) {
-    try {
-      const { pacienteId } = req.params;
-      const { page = 1, limit = 10 } = req.query;
-
-      const result = await this.senhaService.senhasPorPaciente(pacienteId, {
-        page: parseInt(page),
-        limit: parseInt(limit)
-      });
-
-      res.json({
-        success: true,
-        data: result,
-        message: 'Senhas do paciente listadas com sucesso'
-      });
-    } catch (error) {
-      logger.error('Erro ao listar senhas do paciente:', error);
-      next(error);
     }
   }
 }

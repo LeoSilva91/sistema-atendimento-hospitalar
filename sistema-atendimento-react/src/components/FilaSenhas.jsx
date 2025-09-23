@@ -4,6 +4,7 @@ import { Button } from 'primereact/button';
 import { Tag } from 'primereact/tag';
 import { Dialog } from 'primereact/dialog';
 import { useToast } from '../context/ToastProvider';
+import api from '../services/api';
 
 const FilaSenhas = ({ onChamarPaciente }) => {
   const [senhas, setSenhas] = useState([]);
@@ -18,22 +19,28 @@ const FilaSenhas = ({ onChamarPaciente }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const carregarSenhas = () => {
-    const senhasSalvas = JSON.parse(localStorage.getItem('senhas') || '[]');
-    const senhasAguardando = senhasSalvas.filter(s => s.status === 'aguardando');
-    
-    // Ordenar: prioridade primeiro, depois por hora de geração
-    const senhasOrdenadas = senhasAguardando.sort((a, b) => {
-      if (a.tipo !== b.tipo) {
-        return a.tipo === 'prioridade' ? -1 : 1;
+  const carregarSenhas = async () => {
+    try {
+      const response = await api.get('/senhas');
+      if (response.data.success) {
+        const senhasAguardando = response.data.data.filter(s => s.status === 'AGUARDANDO');
+        
+        // Ordenar: prioridade primeiro, depois por hora de geração
+        const senhasOrdenadas = senhasAguardando.sort((a, b) => {
+          if (a.tipo !== b.tipo) {
+            return a.tipo === 'PRIORIDADE' ? -1 : 1;
+          }
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        });
+        
+        setSenhas(senhasOrdenadas);
       }
-      return new Date(a.horaGeracao) - new Date(b.horaGeracao);
-    });
-    
-    setSenhas(senhasOrdenadas);
+    } catch (error) {
+      console.error('Erro ao carregar senhas:', error);
+    }
   };
 
-  const chamarProximaSenha = () => {
+  const chamarProximaSenha = async () => {
     if (senhas.length === 0) {
       showError('Não há senhas aguardando na fila');
       return;
@@ -43,22 +50,23 @@ const FilaSenhas = ({ onChamarPaciente }) => {
     setSenhaAtual(proximaSenha);
     setShowDialog(true);
 
-    // Marcar como chamada
-    const todasSenhas = JSON.parse(localStorage.getItem('senhas') || '[]');
-    const senhasAtualizadas = todasSenhas.map(s => 
-      s.id === proximaSenha.id ? { ...s, status: 'chamada', horaChamada: new Date().toISOString() } : s
-    );
-    localStorage.setItem('senhas', JSON.stringify(senhasAtualizadas));
+    try {
+      // Marcar como chamada na API
+      await api.put(`/senhas/${proximaSenha.id}/chamar`);
+      
+      // Atualizar estado local
+      await carregarSenhas();
+      
+      showToast(`Senha ${proximaSenha.numero} chamada!`);
 
-    // Atualizar estado local
-    carregarSenhas();
-
-    // Notificar componente pai (cadastro)
-    if (onChamarPaciente) {
-      onChamarPaciente(proximaSenha);
+      // Notificar componente pai (cadastro)
+      if (onChamarPaciente) {
+        onChamarPaciente(proximaSenha);
+      }
+    } catch (error) {
+      console.error('Erro ao chamar senha:', error);
+      showError('Erro ao chamar senha. Tente novamente.');
     }
-
-    showToast(`Senha ${proximaSenha.prefixo}${proximaSenha.numero.toString().padStart(3, '0')} chamada!`);
   };
 
   const iniciarCadastro = () => {

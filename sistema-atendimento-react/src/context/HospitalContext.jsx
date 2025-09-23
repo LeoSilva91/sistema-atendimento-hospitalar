@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
+import api from '../services/api';
 
 const SistemaAtendimentoContext = createContext();
 
@@ -132,43 +133,85 @@ export const SistemaAtendimentoProvider = ({ children }) => {
   }, []);
 
   // 1. Cadastrar paciente (Módulo de Cadastro da Recepção)
-  const cadastrarPaciente = useCallback((dadosPaciente) => {
-    const numeroProntuario = gerarNumeroProntuario();
-    
-    const novoPaciente = {
-      id: proximoId,
-      numeroProntuario,
-      ...dadosPaciente,
-      status: "aguardando_triagem", // Status inicial: aguarda triagem
-      horaCadastro: new Date().toISOString(),
-      // Campos obrigatórios validados
-      nome: dadosPaciente.nome?.trim(),
-      cpf: dadosPaciente.cpf?.replace(/\D/g, ''),
-      dataNascimento: dadosPaciente.dataNascimento,
-      sexo: dadosPaciente.sexo,
-      endereco: dadosPaciente.endereco?.trim(),
-      telefone: dadosPaciente.telefone?.replace(/\D/g, ''),
-      contatoEmergencia: dadosPaciente.contatoEmergencia?.trim(),
-      // Campos opcionais
-      rg: dadosPaciente.rg || '',
-      email: dadosPaciente.email || '',
-      convenio: dadosPaciente.convenio || 'SUS',
-      numeroCarteirinha: dadosPaciente.numeroCarteirinha || '',
-      motivoVisita: dadosPaciente.motivoVisita?.trim(),
-      sintomas: dadosPaciente.sintomas || []
-    };
+  const cadastrarPaciente = useCallback(async (dadosPaciente) => {
+    try {
+      // Função para formatar CPF
+      const formatarCPF = (cpf) => {
+        const numeros = cpf.replace(/\D/g, '');
+        return numeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+      };
 
-    setPacientes(prev => [...prev, novoPaciente]);
-    setProximoId(prev => prev + 1);
+      // Função para formatar data para ISO-8601
+      const formatarData = (data) => {
+        if (!data) return null;
+        // Se já é uma string ISO, retorna como está
+        if (typeof data === 'string' && data.includes('T')) {
+          return data;
+        }
+        // Se é um objeto Date, converte para ISO
+        if (data instanceof Date) {
+          return data.toISOString();
+        }
+        // Se é uma string no formato DD/MM/YYYY, converte
+        if (typeof data === 'string' && data.includes('/')) {
+          const [dia, mes, ano] = data.split('/');
+          return new Date(ano, mes - 1, dia).toISOString();
+        }
+        // Se é uma string no formato YYYY-MM-DD, adiciona horário
+        if (typeof data === 'string' && data.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          return new Date(data + 'T00:00:00.000Z').toISOString();
+        }
+        return data;
+      };
 
-    // Adicionar à fila de triagem (FIFO)
-    setFilaTriagem(prev => [...prev, novoPaciente.id]);
+      // Função para mapear valores de sexo do frontend para backend
+      const mapearSexo = (sexo) => {
+        const mapeamento = {
+          'M': 'MASCULINO',
+          'F': 'FEMININO', 
+          'O': 'OUTRO'
+        };
+        return mapeamento[sexo] || sexo;
+      };
 
-    // Emitir ficha automaticamente
-    emitirFicha(novoPaciente);
+      // Fazer chamada para a API
+      const response = await api.post('/pacientes', {
+        nome: dadosPaciente.nome?.trim(),
+        cpf: formatarCPF(dadosPaciente.cpf), // Formatar CPF antes de enviar
+        dataNascimento: formatarData(dadosPaciente.dataNascimento), // Formatar data antes de enviar
+        sexo: mapearSexo(dadosPaciente.sexo), // Mapear sexo do frontend para backend
+        endereco: dadosPaciente.endereco?.trim(),
+        telefone: dadosPaciente.telefone,
+        contatoEmergencia: dadosPaciente.contatoEmergencia,
+        rg: dadosPaciente.rg || '',
+        email: dadosPaciente.email || '',
+        convenio: dadosPaciente.convenio,
+        numeroCarteirinha: dadosPaciente.numeroCarteirinha || '',
+        motivoVisita: dadosPaciente.motivoVisita,
+        sintomas: dadosPaciente.sintomas
+      });
 
-    return novoPaciente;
-  }, [proximoId, gerarNumeroProntuario]);
+      if (response.data.success) {
+        const novoPaciente = response.data.data;
+        
+        // Atualizar estado local
+        setPacientes(prev => [...prev, novoPaciente]);
+
+        // Adicionar à fila de triagem (FIFO)
+        setFilaTriagem(prev => [...prev, novoPaciente.id]);
+
+        // Emitir ficha automaticamente
+        emitirFicha(novoPaciente);
+
+        return novoPaciente;
+      } else {
+        throw new Error(response.data.message || 'Erro ao cadastrar paciente');
+      }
+    } catch (error) {
+      console.error('Erro ao cadastrar paciente:', error);
+      throw error;
+    }
+  }, [gerarNumeroProntuario]);
 
   // 2. Chamar próximo paciente para triagem (FIFO)
   const chamarProximoPacienteTriagem = useCallback(() => {
@@ -487,10 +530,20 @@ export const SistemaAtendimentoProvider = ({ children }) => {
     sessionStorage.setItem("currentUser", JSON.stringify(userData));
   }, []);
 
-  const logout = useCallback(() => {
-    setCurrentUser(null);
-    sessionStorage.removeItem("currentUser");
-    setTelaAtiva("cadastro");
+  const logout = useCallback(async () => {
+    try {
+      // Fazer logout no backend
+      await api.post('/auth/logout');
+    } catch (error) {
+      console.error('Erro no logout:', error);
+    } finally {
+      // Limpar dados locais
+      setCurrentUser(null);
+      sessionStorage.removeItem("currentUser");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      setTelaAtiva("cadastro");
+    }
   }, []);
 
   // Navegação
@@ -499,21 +552,39 @@ export const SistemaAtendimentoProvider = ({ children }) => {
   }, []);
 
   const verificarAcesso = useCallback((tela) => {
-    if (!currentUser) return false;
+    console.log('🔍 verificarAcesso:', { currentUser, tela });
+    if (!currentUser) {
+      console.log('❌ Usuário não logado');
+      return false;
+    }
     const acessos = {
       recepcionista: ["cadastro", "publico", "fichas", "senhas"],
       enfermeiro: ["triagem", "publico", "fichas"],
       medico: ["medico", "historico", "publico", "fichas"],
       admin: ["cadastro", "triagem", "medico", "historico", "publico", "fichas", "senhas"],
     };
-    return acessos[currentUser.tipo]?.includes(tela) || false;
+    const acessosPermitidos = acessos[currentUser.tipo] || [];
+    const temAcesso = acessosPermitidos.includes(tela);
+    console.log('🔍 Acesso verificado:', { 
+      tipo: currentUser.tipo, 
+      acessosPermitidos, 
+      tela, 
+      temAcesso 
+    });
+    return temAcesso;
   }, [currentUser]);
 
   // Verificar usuário logado
   useEffect(() => {
+    console.log('🔄 Carregando usuário do sessionStorage...');
     const sessionUser = sessionStorage.getItem("currentUser");
+    console.log('📦 SessionStorage user:', sessionUser);
     if (sessionUser) {
-      setCurrentUser(JSON.parse(sessionUser));
+      const userData = JSON.parse(sessionUser);
+      console.log('👤 Usuário carregado:', userData);
+      setCurrentUser(userData);
+    } else {
+      console.log('❌ Nenhum usuário encontrado no sessionStorage');
     }
   }, []);
 

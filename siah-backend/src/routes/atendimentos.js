@@ -1,7 +1,12 @@
 import express from 'express';
 import { AtendimentoController } from '../controllers/atendimentoController.js';
-import { authenticateToken, authorize } from '../middlewares/auth.js';
-import { validateAtendimento } from '../middlewares/validation.js';
+import { authenticateToken } from '../middlewares/auth.js';
+import { validate } from '../middlewares/validation.js';
+import { 
+  iniciarAtendimentoSchema, 
+  finalizarAtendimentoSchema, 
+  getAtendimentoEstatisticasSchema 
+} from '../dto/atendimento.dto.js';
 
 const router = express.Router();
 const atendimentoController = new AtendimentoController();
@@ -9,76 +14,37 @@ const atendimentoController = new AtendimentoController();
 // Middleware de autenticação para todas as rotas
 router.use(authenticateToken);
 
-// ========================================
-// ROTAS DE ATENDIMENTOS
-// ========================================
-
-// GET /api/atendimentos - Listar atendimentos
-router.get('/', 
-  authorize('MEDICO', 'ADMINISTRADOR', 'ENFERMEIRO'),
-  atendimentoController.listarAtendimentos
+// POST /api/atendimentos/iniciar - Iniciar atendimento
+router.post('/iniciar', 
+  validate(iniciarAtendimentoSchema), 
+  atendimentoController.iniciarAtendimento.bind(atendimentoController)
 );
 
-// GET /api/atendimentos/:id - Buscar atendimento por ID
-router.get('/:id',
-  authorize('MEDICO', 'ADMINISTRADOR', 'ENFERMEIRO'),
-  atendimentoController.buscarAtendimento
+// POST /api/atendimentos/finalizar - Finalizar atendimento
+router.post('/finalizar', 
+  validate(finalizarAtendimentoSchema), 
+  atendimentoController.finalizarAtendimento.bind(atendimentoController)
 );
 
-// POST /api/atendimentos - Criar novo atendimento
-router.post('/',
-  authorize('MEDICO', 'ADMINISTRADOR'),
-  validateAtendimento,
-  atendimentoController.criarAtendimento
+// GET /api/atendimentos/fila - Listar fila de médico
+router.get('/fila', 
+  atendimentoController.listarFilaMedico.bind(atendimentoController)
 );
 
-// PUT /api/atendimentos/:id - Atualizar atendimento
-router.put('/:id',
-  authorize('MEDICO', 'ADMINISTRADOR'),
-  validateAtendimento,
-  atendimentoController.atualizarAtendimento
+// GET /api/atendimentos/estatisticas - Obter estatísticas de atendimento
+router.get('/estatisticas', 
+  validate(getAtendimentoEstatisticasSchema, 'query'), 
+  atendimentoController.obterEstatisticasAtendimento.bind(atendimentoController)
 );
 
-// PATCH /api/atendimentos/:id/status - Atualizar status do atendimento
-router.patch('/:id/status',
-  authorize('MEDICO', 'ADMINISTRADOR', 'ENFERMEIRO'),
-  atendimentoController.atualizarStatus
+// GET /api/atendimentos/paciente/:pacienteId - Buscar atendimentos por paciente
+router.get('/paciente/:pacienteId', 
+  atendimentoController.buscarAtendimentoPorPaciente.bind(atendimentoController)
 );
 
-// DELETE /api/atendimentos/:id - Cancelar atendimento
-router.delete('/:id',
-  authorize('MEDICO', 'ADMINISTRADOR'),
-  atendimentoController.cancelarAtendimento
-);
-
-// GET /api/atendimentos/paciente/:pacienteId - Atendimentos de um paciente
-router.get('/paciente/:pacienteId',
-  authorize('MEDICO', 'ADMINISTRADOR', 'ENFERMEIRO'),
-  atendimentoController.atendimentosPorPaciente
-);
-
-// GET /api/atendimentos/medico/:medicoId - Atendimentos de um médico
-router.get('/medico/:medicoId',
-  authorize('MEDICO', 'ADMINISTRADOR'),
-  atendimentoController.atendimentosPorMedico
-);
-
-// GET /api/atendimentos/hoje - Atendimentos do dia
-router.get('/hoje/agenda',
-  authorize('MEDICO', 'ADMINISTRADOR', 'ENFERMEIRO'),
-  atendimentoController.atendimentosHoje
-);
-
-// POST /api/atendimentos/:id/iniciar - Iniciar atendimento
-router.post('/:id/iniciar',
-  authorize('MEDICO', 'ADMINISTRADOR'),
-  atendimentoController.iniciarAtendimento
-);
-
-// POST /api/atendimentos/:id/finalizar - Finalizar atendimento
-router.post('/:id/finalizar',
-  authorize('MEDICO', 'ADMINISTRADOR'),
-  atendimentoController.finalizarAtendimento
+// GET /api/atendimentos/prontuarios/:pacienteId - Buscar prontuários por paciente
+router.get('/prontuarios/:pacienteId', 
+  atendimentoController.buscarProntuariosPorPaciente.bind(atendimentoController)
 );
 
 export default router;

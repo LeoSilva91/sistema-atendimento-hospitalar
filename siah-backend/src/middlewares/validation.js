@@ -1,31 +1,46 @@
 // Joi importado para uso nos DTOs
-import { authSchema, registerSchema } from '../dto/auth.dto.js';
-import { pacienteSchema, atualizarPacienteSchema } from '../dto/pacientes.dto.js';
+import { loginSchema, registerSchema, updateUsuarioSchema } from '../dto/auth.dto.js';
 import { 
-  criarAtendimentoSchema, 
-  atualizarAtendimentoSchema, 
-  atualizarStatusAtendimentoSchema,
-  finalizarAtendimentoSchema,
-  cancelarAtendimentoSchema 
-} from '../dto/atendimentos.dto.js';
+  createPacienteSchema, 
+  updatePacienteSchema, 
+  getPacientesSchema,
+  getPacienteByIdSchema,
+  getFilaTriagemSchema,
+  getFilaMedicoSchema
+} from '../dto/pacientes.dto.js';
 import { 
-  criarTriagemSchema, 
-  atualizarTriagemSchema, 
-  classificarRiscoSchema 
+  iniciarAtendimentoSchema, 
+  finalizarAtendimentoSchema, 
+  getAtendimentoEstatisticasSchema
+} from '../dto/atendimento.dto.js';
+import { 
+  iniciarTriagemSchema, 
+  finalizarTriagemSchema, 
+  getTriagemEstatisticasSchema
 } from '../dto/triagem.dto.js';
 import { 
-  gerarSenhaSchema, 
-  atualizarSenhaSchema, 
-  atualizarStatusSenhaSchema,
-  cancelarSenhaSchema 
+  createSenhaSchema, 
+  updateSenhaStatusSchema, 
+  chamarSenhaSchema,
+  getSenhasSchema
 } from '../dto/senhas.dto.js';
 import { 
-  criarProntuarioSchema, 
-  atualizarProntuarioSchema, 
-  adicionarEvolucaoSchema 
-} from '../dto/prontuarios.dto.js';
+  emitirFichaSchema, 
+  getFichasSchema, 
+  getFichaByIdSchema
+} from '../dto/fichas.dto.js';
+import { 
+  createChamadaSchema, 
+  finalizarChamadaSchema, 
+  getChamadasAtivasSchema
+} from '../dto/chamadas.dto.js';
+import { 
+  getEstatisticasSchema, 
+  getPainelPublicoSchema, 
+  getRelatorioSchema
+} from '../dto/dashboard.dto.js';
 
-export const validateRequest = (schema, property = 'body') => {
+export const validate = (schema, property = 'body') => {
   return (req, res, next) => {
     const { error } = schema.validate(req[property]);
     
@@ -43,32 +58,45 @@ export const validateRequest = (schema, property = 'body') => {
 };
 
 // Validações de autenticação
-export const validateAuth = validateRequest(authSchema);
-export const validateRegister = validateRequest(registerSchema);
+export const validateAuth = validate(loginSchema);
+export const validateRegister = validate(registerSchema);
+export const validateUpdateUsuario = validate(updateUsuarioSchema);
 
 // Validações de pacientes
-export const validatePaciente = validateRequest(pacienteSchema);
-export const validateAtualizarPaciente = validateRequest(atualizarPacienteSchema);
+export const validateCreatePaciente = validate(createPacienteSchema);
+export const validateUpdatePaciente = validate(updatePacienteSchema);
+export const validateGetPacientes = validate(getPacientesSchema, 'query');
+export const validateGetPacienteById = validate(getPacienteByIdSchema, 'params');
+export const validateFilaTriagem = validate(getFilaTriagemSchema, 'query');
+export const validateFilaMedico = validate(getFilaMedicoSchema, 'query');
 
 // Validações de atendimentos
-export const validateAtendimento = validateRequest(criarAtendimentoSchema);
-export const validateAtualizarAtendimento = validateRequest(atualizarAtendimentoSchema);
-export const validateStatusAtendimento = validateRequest(atualizarStatusAtendimentoSchema);
-export const validateFinalizarAtendimento = validateRequest(finalizarAtendimentoSchema);
-export const validateCancelarAtendimento = validateRequest(cancelarAtendimentoSchema);
+export const validateIniciarAtendimento = validate(iniciarAtendimentoSchema);
+export const validateFinalizarAtendimento = validate(finalizarAtendimentoSchema);
+export const validateAtendimentoEstatisticas = validate(getAtendimentoEstatisticasSchema, 'query');
 
 // Validações de triagem
-export const validateTriagem = validateRequest(criarTriagemSchema);
-export const validateAtualizarTriagem = validateRequest(atualizarTriagemSchema);
-export const validateClassificarRisco = validateRequest(classificarRiscoSchema);
+export const validateIniciarTriagem = validate(iniciarTriagemSchema);
+export const validateFinalizarTriagem = validate(finalizarTriagemSchema);
+export const validateTriagemEstatisticas = validate(getTriagemEstatisticasSchema, 'query');
 
 // Validações de senhas
-export const validateSenha = validateRequest(gerarSenhaSchema);
-export const validateAtualizarSenha = validateRequest(atualizarSenhaSchema);
-export const validateStatusSenha = validateRequest(atualizarStatusSenhaSchema);
-export const validateCancelarSenha = validateRequest(cancelarSenhaSchema);
+export const validateCreateSenha = validate(createSenhaSchema);
+export const validateUpdateSenhaStatus = validate(updateSenhaStatusSchema);
+export const validateChamarSenha = validate(chamarSenhaSchema);
+export const validateGetSenhas = validate(getSenhasSchema, 'query');
 
-// Validações de prontuários
-export const validateProntuario = validateRequest(criarProntuarioSchema);
-export const validateAtualizarProntuario = validateRequest(atualizarProntuarioSchema);
-export const validateAdicionarEvolucao = validateRequest(adicionarEvolucaoSchema);
+// Validações de fichas
+export const validateEmitirFicha = validate(emitirFichaSchema);
+export const validateGetFichas = validate(getFichasSchema, 'query');
+export const validateGetFichaById = validate(getFichaByIdSchema, 'params');
+
+// Validações de chamadas
+export const validateCreateChamada = validate(createChamadaSchema);
+export const validateFinalizarChamada = validate(finalizarChamadaSchema);
+export const validateGetChamadasAtivas = validate(getChamadasAtivasSchema, 'query');
+
+// Validações de dashboard
+export const validateEstatisticas = validate(getEstatisticasSchema, 'query');
+export const validatePainelPublico = validate(getPainelPublicoSchema, 'query');
+export const validateRelatorio = validate(getRelatorioSchema);

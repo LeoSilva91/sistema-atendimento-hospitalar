@@ -1,129 +1,12 @@
-import { database } from '../utils/database.js';
-import { logger } from '../utils/logger.js';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export class AtendimentoService {
-  constructor() {
-    this.prisma = database.getPrisma();
-  }
-
-  async listarAtendimentos({ page, limit, filtros }) {
+  async iniciarAtendimento(pacienteId, usuarioId) {
     try {
-      const skip = (page - 1) * limit;
-      
-      const where = this.buildWhereClause(filtros);
-
-      const [atendimentos, total] = await Promise.all([
-        this.prisma.atendimento.findMany({
-          where,
-          include: {
-            paciente: {
-              select: {
-                id: true,
-                nome: true,
-                cpf: true,
-                dataNascimento: true,
-                sexo: true,
-                telefone: true
-              }
-            },
-            usuario: {
-              select: {
-                id: true,
-                nome: true,
-                tipo: true
-              }
-            },
-            prontuarios: {
-              select: {
-                id: true,
-                evolucao: true,
-                diagnostico: true,
-                createdAt: true
-              },
-              orderBy: {
-                createdAt: 'desc'
-              }
-            }
-          },
-          orderBy: {
-            dataHora: 'desc'
-          },
-          skip,
-          take: limit
-        }),
-        this.prisma.atendimento.count({ where })
-      ]);
-
-      return {
-        atendimentos,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit)
-        }
-      };
-    } catch (error) {
-      logger.error('Erro ao listar atendimentos:', error);
-      throw error;
-    }
-  }
-
-  async buscarAtendimento(id) {
-    try {
-      const atendimento = await this.prisma.atendimento.findUnique({
-        where: { id },
-        include: {
-          paciente: {
-            select: {
-              id: true,
-              nome: true,
-              cpf: true,
-              dataNascimento: true,
-              sexo: true,
-              telefone: true,
-              email: true,
-              endereco: true
-            }
-          },
-          usuario: {
-            select: {
-              id: true,
-              nome: true,
-              tipo: true,
-              email: true
-            }
-          },
-          prontuarios: {
-            include: {
-              usuario: {
-                select: {
-                  id: true,
-                  nome: true,
-                  tipo: true
-                }
-              }
-            },
-            orderBy: {
-              createdAt: 'desc'
-            }
-          }
-        }
-      });
-
-      return atendimento;
-    } catch (error) {
-      logger.error('Erro ao buscar atendimento:', error);
-      throw error;
-    }
-  }
-
-  async criarAtendimento(dadosAtendimento) {
-    try {
-      const { pacienteId, dataHora, observacoes, medicoId } = dadosAtendimento;
-
-      // Verificar se o paciente existe
-      const paciente = await this.prisma.paciente.findUnique({
+      // Verificar se paciente existe e está aguardando avaliação médica
+      const paciente = await prisma.paciente.findUnique({
         where: { id: pacienteId }
       });
 
@@ -131,458 +14,263 @@ export class AtendimentoService {
         throw new Error('Paciente não encontrado');
       }
 
-      // Verificar se o médico existe
-      const medico = await this.prisma.usuario.findUnique({
-        where: { id: medicoId }
-      });
-
-      if (!medico || !['MEDICO', 'ADMINISTRADOR'].includes(medico.tipo)) {
-        throw new Error('Médico não encontrado ou inválido');
+      if (paciente.status !== 'AGUARDANDO_AVALIACAO_MEDICA') {
+        throw new Error('Paciente não está aguardando avaliação médica');
       }
 
-      const atendimento = await this.prisma.atendimento.create({
+      // Atualizar status do paciente
+      const pacienteAtualizado = await prisma.paciente.update({
+        where: { id: pacienteId },
+        data: {
+          status: 'EM_CONSULTA',
+          horaInicioConsulta: new Date()
+        }
+      });
+
+      // Criar registro de atendimento
+      const atendimento = await prisma.atendimento.create({
         data: {
           pacienteId,
-          usuarioId: medicoId,
-          dataHora: new Date(dataHora),
-          observacoes,
-          status: 'AGENDADO'
-        },
-        include: {
-          paciente: {
-            select: {
-              id: true,
-              nome: true,
-              cpf: true,
-              dataNascimento: true,
-              sexo: true,
-              telefone: true
-            }
-          },
-          usuario: {
-            select: {
-              id: true,
-              nome: true,
-              tipo: true
-            }
-          }
+          usuarioId,
+          status: 'EM_ANDAMENTO'
         }
       });
 
-      logger.info(`Atendimento criado: ${atendimento.id} para paciente ${paciente.nome}`);
-      return atendimento;
+      return {
+        paciente: pacienteAtualizado,
+        atendimento
+      };
     } catch (error) {
-      logger.error('Erro ao criar atendimento:', error);
-      throw error;
+      throw new Error(`Erro ao iniciar atendimento: ${error.message}`);
     }
   }
 
-  async atualizarAtendimento(id, dadosAtualizacao) {
+  async finalizarAtendimento(dadosAtendimento, usuarioId) {
     try {
-      const atendimento = await this.prisma.atendimento.update({
-        where: { id },
-        data: {
-          ...dadosAtualizacao,
-          dataHora: dadosAtualizacao.dataHora ? new Date(dadosAtualizacao.dataHora) : undefined,
-          updatedAt: new Date()
-        },
-        include: {
-          paciente: {
-            select: {
-              id: true,
-              nome: true,
-              cpf: true,
-              dataNascimento: true,
-              sexo: true,
-              telefone: true
-            }
-          },
-          usuario: {
-            select: {
-              id: true,
-              nome: true,
-              tipo: true
-            }
-          }
-        }
+      const { 
+        pacienteId, 
+        diagnostico, 
+        condutas, 
+        prescricoes, 
+        exames, 
+        orientacoes, 
+        encaminhamento, 
+        dataRetorno, 
+        statusFinal 
+      } = dadosAtendimento;
+
+      // Verificar se paciente está em consulta
+      const paciente = await prisma.paciente.findUnique({
+        where: { id: pacienteId }
       });
 
-      logger.info(`Atendimento atualizado: ${id}`);
-      return atendimento;
-    } catch (error) {
-      logger.error('Erro ao atualizar atendimento:', error);
-      throw error;
-    }
-  }
-
-  async atualizarStatus(id, status) {
-    try {
-      const statusValidos = ['AGENDADO', 'EM_ANDAMENTO', 'CONCLUIDO', 'CANCELADO'];
-      
-      if (!statusValidos.includes(status)) {
-        throw new Error('Status inválido');
+      if (!paciente) {
+        throw new Error('Paciente não encontrado');
       }
 
-      const atendimento = await this.prisma.atendimento.update({
-        where: { id },
-        data: {
-          status,
-          updatedAt: new Date()
-        },
-        include: {
-          paciente: {
-            select: {
-              id: true,
-              nome: true,
-              cpf: true
-            }
-          },
-          usuario: {
-            select: {
-              id: true,
-              nome: true,
-              tipo: true
-            }
-          }
+      if (paciente.status !== 'EM_CONSULTA') {
+        throw new Error('Paciente não está em consulta');
+      }
+
+      // Buscar atendimento ativo
+      const atendimento = await prisma.atendimento.findFirst({
+        where: {
+          pacienteId,
+          status: 'EM_ANDAMENTO'
         }
       });
 
-      logger.info(`Status do atendimento ${id} atualizado para ${status}`);
-      return atendimento;
-    } catch (error) {
-      logger.error('Erro ao atualizar status:', error);
-      throw error;
-    }
-  }
+      if (!atendimento) {
+        throw new Error('Atendimento não encontrado');
+      }
 
-  async cancelarAtendimento(id, motivo) {
-    try {
-      const atendimento = await this.prisma.atendimento.update({
-        where: { id },
+      // Atualizar paciente com dados da consulta
+      const pacienteAtualizado = await prisma.paciente.update({
+        where: { id: pacienteId },
         data: {
-          status: 'CANCELADO',
-          observacoes: motivo ? `${atendimento.observacoes || ''}\n\nCancelado: ${motivo}` : atendimento.observacoes,
-          updatedAt: new Date()
+          status: statusFinal,
+          diagnostico,
+          condutas,
+          prescricoes: prescricoes || [],
+          exames: exames || [],
+          orientacoes,
+          encaminhamento,
+          dataRetorno: dataRetorno ? new Date(dataRetorno) : null,
+          horaFimConsulta: new Date()
         }
       });
 
-      logger.info(`Atendimento ${id} cancelado. Motivo: ${motivo || 'Não informado'}`);
-      return atendimento;
+      // Finalizar atendimento
+      const atendimentoFinalizado = await prisma.atendimento.update({
+        where: { id: atendimento.id },
+        data: {
+          status: 'CONCLUIDO'
+        }
+      });
+
+      // Criar prontuário
+      const prontuario = await prisma.prontuario.create({
+        data: {
+          pacienteId,
+          atendimentoId: atendimento.id,
+          usuarioId,
+          diagnostico,
+          condutas,
+          prescricoes: prescricoes || [],
+          exames: exames || [],
+          orientacoes,
+          encaminhamento,
+          dataRetorno: dataRetorno ? new Date(dataRetorno) : null,
+          statusFinal
+        }
+      });
+
+      return {
+        paciente: pacienteAtualizado,
+        atendimento: atendimentoFinalizado,
+        prontuario
+      };
     } catch (error) {
-      logger.error('Erro ao cancelar atendimento:', error);
-      throw error;
+      throw new Error(`Erro ao finalizar atendimento: ${error.message}`);
     }
   }
 
-  async atendimentosPorPaciente(pacienteId, { page, limit }) {
+  async listarFilaMedico() {
     try {
-      const skip = (page - 1) * limit;
+      const pacientes = await prisma.paciente.findMany({
+        where: { status: 'AGUARDANDO_AVALIACAO_MEDICA' },
+        orderBy: [
+          { corTriagem: 'desc' }, // Prioridade por cor de triagem
+          { horaFimTriagem: 'asc' } // FIFO dentro da mesma prioridade
+        ],
+        select: {
+          id: true,
+          nome: true,
+          cpf: true,
+          dataNascimento: true,
+          sexo: true,
+          motivoVisita: true,
+          queixaPrincipal: true,
+          corTriagem: true,
+          horaFimTriagem: true,
+          numeroProntuario: true,
+          sinaisVitais: true
+        }
+      });
 
-      const [atendimentos, total] = await Promise.all([
-        this.prisma.atendimento.findMany({
-          where: { pacienteId },
-          include: {
-            usuario: {
-              select: {
-                id: true,
-                nome: true,
-                tipo: true
-              }
-            },
-            prontuarios: {
-              select: {
-                id: true,
-                evolucao: true,
-                diagnostico: true,
-                createdAt: true
-              },
-              orderBy: {
-                createdAt: 'desc'
-              }
-            }
-          },
-          orderBy: {
-            dataHora: 'desc'
-          },
-          skip,
-          take: limit
+      return pacientes;
+    } catch (error) {
+      throw new Error(`Erro ao listar fila de médico: ${error.message}`);
+    }
+  }
+
+  async obterEstatisticasAtendimento(filtros = {}) {
+    try {
+      const { dataInicio, dataFim } = filtros;
+      
+      const where = {};
+      if (dataInicio && dataFim) {
+        where.horaFimConsulta = {
+          gte: new Date(dataInicio),
+          lte: new Date(dataFim)
+        };
+      }
+
+      const [
+        total,
+        porStatus,
+        porCorTriagem,
+        aguardandoMedico,
+        emConsulta,
+        atendidos
+      ] = await Promise.all([
+        prisma.paciente.count({ where: { horaFimConsulta: { not: null } } }),
+        prisma.paciente.groupBy({
+          by: ['status'],
+          _count: { status: true }
         }),
-        this.prisma.atendimento.count({ where: { pacienteId } })
+        prisma.paciente.groupBy({
+          by: ['corTriagem'],
+          where: { corTriagem: { not: null } },
+          _count: { corTriagem: true }
+        }),
+        prisma.paciente.count({ where: { status: 'AGUARDANDO_AVALIACAO_MEDICA' } }),
+        prisma.paciente.count({ where: { status: 'EM_CONSULTA' } }),
+        prisma.paciente.count({ where: { status: 'ATENDIMENTO_CONCLUIDO' } })
       ]);
 
       return {
-        atendimentos,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit)
-        }
+        total,
+        aguardandoMedico,
+        emConsulta,
+        atendidos,
+        porStatus: porStatus.reduce((acc, item) => {
+          acc[item.status] = item._count.status;
+          return acc;
+        }, {}),
+        porCorTriagem: porCorTriagem.reduce((acc, item) => {
+          acc[item.corTriagem] = item._count.corTriagem;
+          return acc;
+        }, {})
       };
     } catch (error) {
-      logger.error('Erro ao listar atendimentos do paciente:', error);
-      throw error;
+      throw new Error(`Erro ao obter estatísticas de atendimento: ${error.message}`);
     }
   }
 
-  async atendimentosPorMedico(medicoId, { page, limit, dataInicio, dataFim }) {
+  async buscarAtendimentoPorPaciente(pacienteId) {
     try {
-      const skip = (page - 1) * limit;
-      
-      const where = {
-        usuarioId: medicoId
-      };
-
-      if (dataInicio || dataFim) {
-        where.dataHora = {};
-        if (dataInicio) where.dataHora.gte = new Date(dataInicio);
-        if (dataFim) where.dataHora.lte = new Date(dataFim);
-      }
-
-      const [atendimentos, total] = await Promise.all([
-        this.prisma.atendimento.findMany({
-          where,
-          include: {
-            paciente: {
-              select: {
-                id: true,
-                nome: true,
-                cpf: true,
-                dataNascimento: true,
-                sexo: true,
-                telefone: true
-              }
-            },
-            prontuarios: {
-              select: {
-                id: true,
-                evolucao: true,
-                diagnostico: true,
-                createdAt: true
-              },
-              orderBy: {
-                createdAt: 'desc'
-              }
-            }
-          },
-          orderBy: {
-            dataHora: 'desc'
-          },
-          skip,
-          take: limit
-        }),
-        this.prisma.atendimento.count({ where })
-      ]);
-
-      return {
-        atendimentos,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit)
-        }
-      };
-    } catch (error) {
-      logger.error('Erro ao listar atendimentos do médico:', error);
-      throw error;
-    }
-  }
-
-  async atendimentosHoje(medicoId) {
-    try {
-      const hoje = new Date();
-      const inicioDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-      const fimDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1);
-
-      const where = {
-        dataHora: {
-          gte: inicioDia,
-          lt: fimDia
-        }
-      };
-
-      if (medicoId) {
-        where.usuarioId = medicoId;
-      }
-
-      const atendimentos = await this.prisma.atendimento.findMany({
-        where,
+      const atendimentos = await prisma.atendimento.findMany({
+        where: { pacienteId },
+        orderBy: { createdAt: 'desc' },
         include: {
-          paciente: {
-            select: {
-              id: true,
-              nome: true,
-              cpf: true,
-              dataNascimento: true,
-              sexo: true,
-              telefone: true
-            }
-          },
           usuario: {
             select: {
               id: true,
               nome: true,
-              tipo: true
+              tipo: true,
+              especialidade: true
             }
+          },
+          prontuarios: {
+            orderBy: { createdAt: 'desc' }
           }
-        },
-        orderBy: {
-          dataHora: 'asc'
         }
       });
 
       return atendimentos;
     } catch (error) {
-      logger.error('Erro ao listar atendimentos de hoje:', error);
-      throw error;
+      throw new Error(`Erro ao buscar atendimentos: ${error.message}`);
     }
   }
 
-  async iniciarAtendimento(id, medicoId) {
+  async buscarProntuariosPorPaciente(pacienteId) {
     try {
-      const atendimento = await this.prisma.atendimento.findUnique({
-        where: { id }
-      });
-
-      if (!atendimento) {
-        throw new Error('Atendimento não encontrado');
-      }
-
-      if (atendimento.status !== 'AGENDADO') {
-        throw new Error('Atendimento não pode ser iniciado no status atual');
-      }
-
-      if (atendimento.usuarioId !== medicoId) {
-        throw new Error('Apenas o médico responsável pode iniciar o atendimento');
-      }
-
-      const atendimentoAtualizado = await this.prisma.atendimento.update({
-        where: { id },
-        data: {
-          status: 'EM_ANDAMENTO',
-          updatedAt: new Date()
-        },
+      const prontuarios = await prisma.prontuario.findMany({
+        where: { pacienteId },
+        orderBy: { createdAt: 'desc' },
         include: {
-          paciente: {
-            select: {
-              id: true,
-              nome: true,
-              cpf: true,
-              dataNascimento: true,
-              sexo: true,
-              telefone: true
-            }
-          },
           usuario: {
             select: {
               id: true,
               nome: true,
-              tipo: true
+              tipo: true,
+              especialidade: true
+            }
+          },
+          atendimento: {
+            select: {
+              id: true,
+              dataHora: true,
+              status: true
             }
           }
         }
       });
 
-      logger.info(`Atendimento ${id} iniciado pelo médico ${medicoId}`);
-      return atendimentoAtualizado;
+      return prontuarios;
     } catch (error) {
-      logger.error('Erro ao iniciar atendimento:', error);
-      throw error;
+      throw new Error(`Erro ao buscar prontuários: ${error.message}`);
     }
-  }
-
-  async finalizarAtendimento(id, dadosFinalizacao) {
-    try {
-      const atendimento = await this.prisma.atendimento.findUnique({
-        where: { id }
-      });
-
-      if (!atendimento) {
-        throw new Error('Atendimento não encontrado');
-      }
-
-      if (atendimento.status !== 'EM_ANDAMENTO') {
-        throw new Error('Apenas atendimentos em andamento podem ser finalizados');
-      }
-
-      const atendimentoAtualizado = await this.prisma.atendimento.update({
-        where: { id },
-        data: {
-          status: 'CONCLUIDO',
-          observacoes: dadosFinalizacao.observacoes || atendimento.observacoes,
-          updatedAt: new Date()
-        },
-        include: {
-          paciente: {
-            select: {
-              id: true,
-              nome: true,
-              cpf: true,
-              dataNascimento: true,
-              sexo: true,
-              telefone: true
-            }
-          },
-          usuario: {
-            select: {
-              id: true,
-              nome: true,
-              tipo: true
-            }
-          }
-        }
-      });
-
-      // Criar prontuário se houver dados
-      if (dadosFinalizacao.diagnostico || dadosFinalizacao.prescricao) {
-        await this.prisma.prontuario.create({
-          data: {
-            pacienteId: atendimento.pacienteId,
-            atendimentoId: id,
-            usuarioId: dadosFinalizacao.finalizadoPor,
-            evolucao: dadosFinalizacao.observacoes || '',
-            diagnostico: dadosFinalizacao.diagnostico || '',
-            prescricao: dadosFinalizacao.prescricao || '',
-            exames: '',
-            observacoes: ''
-          }
-        });
-      }
-
-      logger.info(`Atendimento ${id} finalizado pelo médico ${dadosFinalizacao.finalizadoPor}`);
-      return atendimentoAtualizado;
-    } catch (error) {
-      logger.error('Erro ao finalizar atendimento:', error);
-      throw error;
-    }
-  }
-
-  buildWhereClause(filtros) {
-    const where = {};
-
-    if (filtros.status) {
-      where.status = filtros.status;
-    }
-
-    if (filtros.medicoId) {
-      where.usuarioId = filtros.medicoId;
-    }
-
-    if (filtros.pacienteId) {
-      where.pacienteId = filtros.pacienteId;
-    }
-
-    if (filtros.dataInicio || filtros.dataFim) {
-      where.dataHora = {};
-      if (filtros.dataInicio) {
-        where.dataHora.gte = new Date(filtros.dataInicio);
-      }
-      if (filtros.dataFim) {
-        where.dataHora.lte = new Date(filtros.dataFim);
-      }
-    }
-
-    return where;
   }
 }

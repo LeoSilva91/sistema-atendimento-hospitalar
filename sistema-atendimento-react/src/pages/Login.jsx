@@ -7,6 +7,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { FloatLabel } from 'primereact/floatlabel';
+import api from '../services/api';
 import 'primeicons/primeicons.css';
 
 const Login = () => {
@@ -33,31 +34,51 @@ const Login = () => {
     }
     setIsLoading(true);
     try {
-      const credenciaisValidas = {
-        'recepcionista': { usuario: 'recepcionista', senha: '123456' },
-        'enfermeiro': { usuario: 'enfermeiro', senha: '123456' },
-        'medico': { usuario: 'medico', senha: '123456' },
-        'admin': { usuario: 'admin', senha: '123456' }
-      };
-      // Corrigir para aceitar tanto objeto quanto string
       const tipoValue = formData.tipo.value ? formData.tipo.value : formData.tipo;
-      const credencial = credenciaisValidas[tipoValue];
-      if (
-        credencial &&
-        credencial.usuario === formData.usuario &&
-        credencial.senha === formData.senha
-      ) {
+      
+      // Mapear tipos do frontend para o backend
+      const tipoMap = {
+        'recepcionista': 'RECEPCIONISTA',
+        'enfermeiro': 'ENFERMEIRO', 
+        'medico': 'MEDICO',
+        'admin': 'ADMINISTRADOR'
+      };
+      
+      // Fazer chamada para o backend
+      const response = await api.post('/auth/login', {
+        email: formData.usuario, // Usar email completo como digitado pelo usuário
+        senha: formData.senha
+      });
+
+      const data = response.data;
+
+      if (data.success) {
+        // Salvar token no localStorage
+        localStorage.setItem('accessToken', data.data.accessToken);
+        localStorage.setItem('refreshToken', data.data.refreshToken);
+        
+        // Mapear tipos do backend para o frontend
+        const tipoMap = {
+          'ADMINISTRADOR': 'admin',
+          'MEDICO': 'medico',
+          'ENFERMEIRO': 'enfermeiro',
+          'RECEPCIONISTA': 'recepcionista'
+        };
+        
         login({
-          nome: formData.usuario,
-          tipo: tipoValue,
-          consultorio: tipoValue === 'medico' ? 'Consultório 1' : undefined,
+          id: data.data.usuario.id,
+          nome: data.data.usuario.nome,
+          email: data.data.usuario.email,
+          tipo: tipoMap[data.data.usuario.tipo] || data.data.usuario.tipo.toLowerCase(),
+          consultorio: data.data.usuario.tipo === 'MEDICO' ? 'Consultório 1' : undefined,
           timestamp: new Date().toISOString()
         });
       } else {
         alert('Credenciais inválidas');
       }
     } catch (error) {
-      alert('Erro ao fazer login: ' + error.message);
+      console.error('Erro na autenticação:', error);
+      alert('Erro ao conectar com o servidor. Verifique se o backend está rodando.');
     } finally {
       setIsLoading(false);
     }

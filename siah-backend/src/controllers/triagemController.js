@@ -6,208 +6,101 @@ export class TriagemController {
     this.triagemService = new TriagemService();
   }
 
-  async listarTriagens(req, res, next) {
+  async iniciarTriagem(req, res) {
     try {
-      const { 
-        page = 1, 
-        limit = 10, 
-        nivelRisco, 
-        dataInicio, 
-        dataFim,
-        enfermeiroId,
-        pacienteId 
-      } = req.query;
+      const { pacienteId } = req.body;
+      const { id: usuarioId } = req.user;
 
-      const filtros = {
-        nivelRisco,
-        dataInicio,
-        dataFim,
-        enfermeiroId,
-        pacienteId
-      };
+      const paciente = await this.triagemService.iniciarTriagem(pacienteId, usuarioId);
 
-      const result = await this.triagemService.listarTriagens({
-        page: parseInt(page),
-        limit: parseInt(limit),
-        filtros
-      });
-
+      logger.info(`Triagem iniciada para paciente ${pacienteId} pelo usuário ${usuarioId}`);
       res.json({
         success: true,
-        data: result,
-        message: 'Triagens listadas com sucesso'
+        data: paciente,
+        message: 'Triagem iniciada com sucesso'
       });
     } catch (error) {
-      logger.error('Erro ao listar triagens:', error);
-      next(error);
+      logger.error('Erro ao iniciar triagem:', error);
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
     }
   }
 
-  async buscarTriagem(req, res, next) {
+  async finalizarTriagem(req, res) {
     try {
-      const { id } = req.params;
-      const triagem = await this.triagemService.buscarTriagem(id);
+      const dadosTriagem = req.body;
+      const { id: usuarioId } = req.user;
 
-      if (!triagem) {
-        return res.status(404).json({
-          success: false,
-          error: 'Triagem não encontrada'
-        });
-      }
+      const resultado = await this.triagemService.finalizarTriagem(dadosTriagem, usuarioId);
 
+      logger.info(`Triagem finalizada para paciente ${dadosTriagem.pacienteId} pelo usuário ${usuarioId}`);
       res.json({
         success: true,
-        data: triagem,
-        message: 'Triagem encontrada com sucesso'
+        data: resultado,
+        message: 'Triagem finalizada com sucesso'
       });
     } catch (error) {
-      logger.error('Erro ao buscar triagem:', error);
-      next(error);
+      logger.error('Erro ao finalizar triagem:', error);
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
     }
   }
 
-  async criarTriagem(req, res, next) {
+  async listarFilaTriagem(req, res) {
     try {
-      const dadosTriagem = {
-        ...req.body,
-        enfermeiroId: req.user.id // Enfermeiro logado
-      };
-
-      const triagem = await this.triagemService.criarTriagem(dadosTriagem);
-
-      res.status(201).json({
-        success: true,
-        data: triagem,
-        message: 'Triagem criada com sucesso'
-      });
-    } catch (error) {
-      logger.error('Erro ao criar triagem:', error);
-      next(error);
-    }
-  }
-
-  async atualizarTriagem(req, res, next) {
-    try {
-      const { id } = req.params;
-      const dadosAtualizacao = req.body;
-
-      const triagem = await this.triagemService.atualizarTriagem(id, dadosAtualizacao);
+      const { limit = 50 } = req.query;
+      const pacientes = await this.triagemService.listarFilaTriagem(parseInt(limit));
 
       res.json({
         success: true,
-        data: triagem,
-        message: 'Triagem atualizada com sucesso'
+        data: pacientes
       });
     } catch (error) {
-      logger.error('Erro ao atualizar triagem:', error);
-      next(error);
+      logger.error('Erro ao listar fila de triagem:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
     }
   }
 
-  async triagensPorPaciente(req, res, next) {
+  async obterEstatisticasTriagem(req, res) {
     try {
-      const { pacienteId } = req.params;
-      const { page = 1, limit = 10 } = req.query;
-
-      const result = await this.triagemService.triagensPorPaciente(pacienteId, {
-        page: parseInt(page),
-        limit: parseInt(limit)
-      });
+      const filtros = req.query;
+      const estatisticas = await this.triagemService.obterEstatisticasTriagem(filtros);
 
       res.json({
         success: true,
-        data: result,
-        message: 'Triagens do paciente listadas com sucesso'
-      });
-    } catch (error) {
-      logger.error('Erro ao listar triagens do paciente:', error);
-      next(error);
-    }
-  }
-
-  async triagensHoje(req, res, next) {
-    try {
-      const { enfermeiroId } = req.query;
-      const triagens = await this.triagemService.triagensHoje(enfermeiroId);
-
-      res.json({
-        success: true,
-        data: triagens,
-        message: 'Triagens de hoje listadas com sucesso'
-      });
-    } catch (error) {
-      logger.error('Erro ao listar triagens de hoje:', error);
-      next(error);
-    }
-  }
-
-  async filaTriagem(req, res, next) {
-    try {
-      const fila = await this.triagemService.filaTriagem();
-
-      res.json({
-        success: true,
-        data: fila,
-        message: 'Fila de triagem obtida com sucesso'
-      });
-    } catch (error) {
-      logger.error('Erro ao obter fila de triagem:', error);
-      next(error);
-    }
-  }
-
-  async classificarRisco(req, res, next) {
-    try {
-      const { id } = req.params;
-      const { nivelRisco, observacoes } = req.body;
-
-      const triagem = await this.triagemService.classificarRisco(id, nivelRisco, observacoes);
-
-      res.json({
-        success: true,
-        data: triagem,
-        message: 'Risco classificado com sucesso'
-      });
-    } catch (error) {
-      logger.error('Erro ao classificar risco:', error);
-      next(error);
-    }
-  }
-
-  async estatisticasTriagem(req, res, next) {
-    try {
-      const { dataInicio, dataFim } = req.query;
-      const estatisticas = await this.triagemService.estatisticasTriagem(dataInicio, dataFim);
-
-      res.json({
-        success: true,
-        data: estatisticas,
-        message: 'Estatísticas de triagem obtidas com sucesso'
+        data: estatisticas
       });
     } catch (error) {
       logger.error('Erro ao obter estatísticas de triagem:', error);
-      next(error);
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
     }
   }
 
-  async triagensPorRisco(req, res, next) {
+  async buscarTriagemPorPaciente(req, res) {
     try {
-      const { nivelRisco } = req.params;
-      const { page = 1, limit = 10 } = req.query;
-
-      const result = await this.triagemService.triagensPorRisco(nivelRisco, {
-        page: parseInt(page),
-        limit: parseInt(limit)
-      });
+      const { pacienteId } = req.params;
+      const triagem = await this.triagemService.buscarTriagemPorPaciente(pacienteId);
 
       res.json({
         success: true,
-        data: result,
-        message: `Triagens de risco ${nivelRisco} listadas com sucesso`
+        data: triagem
       });
     } catch (error) {
-      logger.error('Erro ao listar triagens por risco:', error);
-      next(error);
+      logger.error('Erro ao buscar triagem:', error);
+      res.status(404).json({
+        success: false,
+        message: error.message
+      });
     }
   }
 }

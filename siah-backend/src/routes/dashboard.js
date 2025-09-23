@@ -15,19 +15,19 @@ router.use(authenticateToken);
 // GET /api/dashboard/overview - Visão geral do sistema
 router.get('/overview',
   authorize('MEDICO', 'ADMINISTRADOR', 'ENFERMEIRO', 'RECEPCIONISTA'),
-  dashboardController.overview
+  dashboardController.overview.bind(dashboardController).bind(dashboardController)
 );
 
 // GET /api/dashboard/estatisticas - Estatísticas gerais
 router.get('/estatisticas',
   authorize('MEDICO', 'ADMINISTRADOR', 'ENFERMEIRO', 'RECEPCIONISTA'),
-  dashboardController.estatisticas
+  dashboardController.estatisticas.bind(dashboardController)
 );
 
 // GET /api/dashboard/filas - Status das filas
 router.get('/filas',
   authorize('MEDICO', 'ADMINISTRADOR', 'ENFERMEIRO', 'RECEPCIONISTA'),
-  dashboardController.statusFilas
+  dashboardController.statusFilas.bind(dashboardController)
 );
 
 // GET /api/dashboard/atendimentos-hoje - Atendimentos do dia
@@ -70,6 +70,30 @@ router.get('/alertas',
 router.get('/relatorios',
   authorize('MEDICO', 'ADMINISTRADOR'),
   dashboardController.relatorios
+);
+
+// GET /api/dashboard/dados-filas - Dados das filas
+router.get('/dados-filas',
+  authorize('MEDICO', 'ADMINISTRADOR', 'ENFERMEIRO', 'RECEPCIONISTA'),
+  dashboardController.getDadosFilas
+);
+
+// GET /api/dashboard/painel-publico - Dados do painel público
+router.get('/painel-publico',
+  authorize('MEDICO', 'ADMINISTRADOR', 'ENFERMEIRO', 'RECEPCIONISTA'),
+  dashboardController.getPainelPublico
+);
+
+// POST /api/dashboard/gerar-relatorio - Gerar relatório
+router.post('/gerar-relatorio',
+  authorize('MEDICO', 'ADMINISTRADOR'),
+  dashboardController.gerarRelatorio
+);
+
+// GET /api/dashboard/metricas-tempo-real - Métricas em tempo real
+router.get('/metricas-tempo-real',
+  authorize('MEDICO', 'ADMINISTRADOR', 'ENFERMEIRO', 'RECEPCIONISTA'),
+  dashboardController.getMetricasTempoReal
 );
 
 export default router;

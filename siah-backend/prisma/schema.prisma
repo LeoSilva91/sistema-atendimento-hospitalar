@@ -1,0 +1,293 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===== ENTIDADES PRINCIPAIS =====
+
+model Usuario {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  senha        String
+  nome         String
+  tipo         TipoUsuario
+  crm          String?       // Para médicos
+  especialidade String?      // Para médicos
+  consultorio  String?       // Para médicos
+  ativo        Boolean       @default(true)
+  refreshToken String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  
+  // Relacionamentos
+  atendimentos Atendimento[]
+  prontuarios  Prontuario[]
+  triagens     Triagem[]
+  senhas       Senha[]
+  chamadas     Chamada[]
+
+  @@map("usuarios")
+}
+
+model Paciente {
+  id                String        @id @default(cuid())
+  numeroProntuario  String        @unique
+  nome              String
+  cpf               String        @unique
+  rg                String?
+  dataNascimento    DateTime
+  sexo              Sexo
+  nomeMae           String?
+  telefone          String?
+  email             String?
+  endereco          String?
+  cidade            String?
+  estado            String?
+  cep               String?
+  contatoEmergencia String?
+  convenio          String        @default("SUS")
+  numeroCarteirinha String?
+  motivoVisita      String?
+  sintomas          String[]      @default([])
+  ativo             Boolean       @default(true)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  // Status do atendimento
+  status            StatusPaciente @default(AGUARDANDO_TRIAGEM)
+  corTriagem        CorTriagem?
+  nivelDor          Int?          @default(0)
+  nivelConsciencia  NivelConsciencia? @default(ALERTA)
+  
+  // Timestamps do fluxo
+  horaCadastro      DateTime      @default(now())
+  horaInicioTriagem DateTime?
+  horaFimTriagem    DateTime?
+  horaInicioConsulta DateTime?
+  horaFimConsulta   DateTime?
+  
+  // Dados da triagem
+  sinaisVitais      Json?         // { pressaoArterial, temperatura, frequenciaCardiaca, etc }
+  queixaPrincipal   String?
+  observacoesTriagem String?
+  
+  // Dados da consulta médica
+  diagnostico       String?
+  condutas          String?
+  prescricoes       Json?         // Array de medicamentos
+  exames            Json?         // Array de exames solicitados
+  orientacoes       String?
+  encaminhamento    String?
+  dataRetorno       DateTime?
+  
+  // Relacionamentos
+  atendimentos      Atendimento[]
+  prontuarios       Prontuario[]
+  senhas            Senha[]
+  triagens          Triagem[]
+  fichas            Ficha[]
+  chamadas          Chamada[]
+
+  @@map("pacientes")
+}
+
+model Senha {
+  id           String        @id @default(cuid())
+  numero       Int
+  prefixo      String        // "N" para normal, "P" para prioridade
+  tipo         TipoSenha
+  status       StatusSenha   @default(AGUARDANDO)
+  prioridade   Prioridade    @default(MEDIA)
+  horaGeracao  DateTime      @default(now())
+  horaChamada  DateTime?
+  horaCadastro DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  
+  // Relacionamentos
+  pacienteId   String?
+  paciente     Paciente?     @relation(fields: [pacienteId], references: [id], onDelete: SetNull)
+  usuarioId    String?
+  usuario      Usuario?      @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@map("senhas")
+}
+
+model Triagem {
+  id                     String        @id @default(cuid())
+  pressaoArterial        String?
+  temperatura            Float?
+  frequenciaCardiaca     Int?
+  frequenciaRespiratoria Int?
+  saturacaoOxigenio      Float?
+  peso                   Float?
+  nivelRisco             CorTriagem    @default(VERDE)
+  queixaPrincipal        String?
+  nivelDor               Int           @default(0)
+  nivelConsciencia       NivelConsciencia @default(ALERTA)
+  observacoes            String?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  
+  // Relacionamentos
+  pacienteId             String
+  usuarioId              String
+  paciente               Paciente      @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+  usuario                Usuario       @relation(fields: [usuarioId], references: [id])
+
+  @@map("triagens")
+}
+
+model Atendimento {
+  id            String            @id @default(cuid())
+  status        StatusAtendimento @default(AGENDADO)
+  dataHora      DateTime          @default(now())
+  observacoes   String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  
+  // Relacionamentos
+  pacienteId    String
+  usuarioId     String
+  paciente      Paciente          @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+  usuario       Usuario           @relation(fields: [usuarioId], references: [id])
+  prontuarios   Prontuario[]
+
+  @@map("atendimentos")
+}
+
+model Prontuario {
+  id            String      @id @default(cuid())
+  evolucao      String?
+  diagnostico   String?
+  condutas      String?
+  prescricoes   Json?       // Array de medicamentos
+  exames        Json?       // Array de exames
+  orientacoes   String?
+  encaminhamento String?
+  dataRetorno   DateTime?
+  statusFinal   StatusPaciente?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  // Relacionamentos
+  pacienteId    String
+  atendimentoId String
+  usuarioId     String
+  atendimento   Atendimento @relation(fields: [atendimentoId], references: [id], onDelete: Cascade)
+  paciente      Paciente    @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+  usuario       Usuario     @relation(fields: [usuarioId], references: [id])
+
+  @@map("prontuarios")
+}
+
+model Ficha {
+  id              String   @id @default(cuid())
+  numeroFicha     String   @unique
+  horaEmissao     DateTime @default(now())
+  corTriagem      CorTriagem?
+  status          StatusPaciente @default(AGUARDANDO_TRIAGEM)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relacionamentos
+  pacienteId      String
+  paciente        Paciente @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+
+  @@map("fichas")
+}
+
+model Chamada {
+  id            String   @id @default(cuid())
+  tipo          TipoChamada
+  local         String
+  horaChamada   DateTime @default(now())
+  ativa         Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relacionamentos
+  pacienteId    String
+  usuarioId     String
+  paciente      Paciente @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
+
+  @@map("chamadas")
+}
+
+// ===== ENUMS =====
+
+enum TipoUsuario {
+  MEDICO
+  ENFERMEIRO
+  ADMINISTRADOR
+  RECEPCIONISTA
+}
+
+enum Sexo {
+  MASCULINO
+  FEMININO
+  OUTRO
+}
+
+enum TipoSenha {
+  NORMAL
+  PRIORIDADE
+}
+
+enum StatusSenha {
+  AGUARDANDO
+  CHAMADA
+  CADASTRADO
+  ATENDIDA
+  CANCELADA
+}
+
+enum Prioridade {
+  BAIXA
+  MEDIA
+  ALTA
+  CRITICA
+}
+
+enum CorTriagem {
+  VERMELHO    // Emergência
+  LARANJA     // Muito Urgente
+  AMARELO     // Urgente
+  VERDE       // Pouco Urgente
+  AZUL        // Não Urgente
+}
+
+enum NivelConsciencia {
+  ALERTA
+  SONOLENTO
+  CONFUSO
+  INCONSCIENTE
+}
+
+enum StatusPaciente {
+  AGUARDANDO_TRIAGEM
+  EM_TRIAGEM
+  AGUARDANDO_AVALIACAO_MEDICA
+  EM_CONSULTA
+  ATENDIMENTO_CONCLUIDO
+  AGUARDANDO_EXAME
+  INTERNADO
+  ENCAMINHADO
+}
+
+enum StatusAtendimento {
+  AGENDADO
+  EM_ANDAMENTO
+  CONCLUIDO
+  CANCELADO
+}
+
+enum TipoChamada {
+  TRIAGEM
+  CONSULTA
+}

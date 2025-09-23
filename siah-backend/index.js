@@ -16,6 +16,8 @@ import atendimentoRoutes from './src/routes/atendimentos.js';
 import triagemRoutes from './src/routes/triagem.js';
 import senhaRoutes from './src/routes/senhas.js';
 import prontuarioRoutes from './src/routes/prontuarios.js';
+import fichaRoutes from './src/routes/fichas.js';
+import chamadaRoutes from './src/routes/chamadas.js';
 import dashboardRoutes from './src/routes/dashboard.js';
 
 // Carregar variáveis de ambiente
@@ -51,11 +53,11 @@ app.use(cors({
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // máximo 100 requests por IP por janela
+  windowMs: 1 * 60 * 1000, // 1 minuto
+  max: 1000, // máximo 1000 requests por IP por janela (mais permissivo para desenvolvimento)
   message: {
     success: false,
-    error: 'Muitas tentativas. Tente novamente em 15 minutos.'
+    error: 'Muitas tentativas. Tente novamente em 1 minuto.'
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -95,10 +97,12 @@ app.use('/api/atendimentos', atendimentoRoutes);
 app.use('/api/triagem', triagemRoutes);
 app.use('/api/senhas', senhaRoutes);
 app.use('/api/prontuarios', prontuarioRoutes);
+app.use('/api/fichas', fichaRoutes);
+app.use('/api/chamadas', chamadaRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
 // Rota 404
-app.use('*', (req, res) => {
+app.use((req, res) => {
   res.status(404).json({
     success: false,
     error: 'Endpoint não encontrado',

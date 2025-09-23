@@ -1,7 +1,6 @@
 import express from 'express';
 import { ProntuarioController } from '../controllers/prontuarioController.js';
 import { authenticateToken, authorize } from '../middlewares/auth.js';
-import { validateProntuario } from '../middlewares/validation.js';
 
 const router = express.Router();
 const prontuarioController = new ProntuarioController();
@@ -28,14 +27,12 @@ router.get('/:id',
 // POST /api/prontuarios - Criar novo prontuário
 router.post('/',
   authorize('MEDICO', 'ADMINISTRADOR'),
-  validateProntuario,
   prontuarioController.criarProntuario
 );
 
 // PUT /api/prontuarios/:id - Atualizar prontuário
 router.put('/:id',
   authorize('MEDICO', 'ADMINISTRADOR'),
-  validateProntuario,
   prontuarioController.atualizarProntuario
 );
 

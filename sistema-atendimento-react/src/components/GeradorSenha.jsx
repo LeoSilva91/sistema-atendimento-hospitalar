@@ -3,12 +3,16 @@ import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { Tag } from 'primereact/tag';
+import api from '../services/api';
+import { useToast } from '../context/ToastProvider';
 
 const GeradorSenha = () => {
   const [senhaGerada, setSenhaGerada] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [ultimasSenhas, setUltimasSenhas] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { success: showToast, error: showError } = useToast();
 
   // Atualizar hora a cada segundo
   useEffect(() => {
@@ -18,32 +22,57 @@ const GeradorSenha = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const gerarSenha = (tipo) => {
-    const timestamp = new Date();
-    
-    // Gerar número sequencial baseado no tipo
-    const senhasExistentes = JSON.parse(localStorage.getItem('senhas') || '[]');
-    const senhasTipo = senhasExistentes.filter(s => s.tipo === tipo);
-    const numeroSenha = senhasTipo.length + 1;
-    
-    const novaSenha = {
-      id: Date.now(),
-      numero: numeroSenha,
-      tipo: tipo,
-      horaGeracao: timestamp.toISOString(),
-      status: 'aguardando',
-      prefixo: tipo === 'prioridade' ? 'P' : 'N'
-    };
+  // Carregar senhas da API
+  const carregarSenhas = async () => {
+    try {
+      const response = await api.get('/senhas');
+      if (response.data.success) {
+        const senhas = response.data.data;
+        // Pegar as últimas 4 senhas
+        setUltimasSenhas(senhas.slice(0, 4));
+      }
+    } catch (error) {
+      console.error('Erro ao carregar senhas:', error);
+    }
+  };
 
-    // Salvar no localStorage
-    const todasSenhas = [...senhasExistentes, novaSenha];
-    localStorage.setItem('senhas', JSON.stringify(todasSenhas));
+  // Carregar senhas ao montar o componente
+  useEffect(() => {
+    carregarSenhas();
+  }, []);
 
-    // Atualizar últimas senhas
-    setUltimasSenhas(prev => [novaSenha, ...prev.slice(0, 4)]);
+  const gerarSenha = async (tipo) => {
+    setIsLoading(true);
+    try {
+      // Mapear tipos do frontend para o backend
+      const tipoMap = {
+        'normal': 'NORMAL',
+        'prioridade': 'PRIORIDADE'
+      };
 
-    setSenhaGerada(novaSenha);
-    setShowDialog(true);
+      const response = await api.post('/senhas', {
+        tipo: tipoMap[tipo] || 'NORMAL'
+      });
+
+      if (response.data.success) {
+        const novaSenha = response.data.data;
+        
+        setSenhaGerada(novaSenha);
+        setShowDialog(true);
+        
+        // Recarregar senhas da API
+        await carregarSenhas();
+        
+        showToast(`Senha ${novaSenha.numero} gerada com sucesso!`);
+      } else {
+        showError(response.data.message || 'Erro ao gerar senha');
+      }
+    } catch (error) {
+      console.error('Erro ao gerar senha:', error);
+      showError('Erro ao gerar senha. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const imprimirSenha = (senha) => {
@@ -192,19 +221,21 @@ const GeradorSenha = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <button
             onClick={() => gerarSenha('normal')}
-            className="w-full h-32 sm:h-40 bg-green-500 hover:bg-green-600 text-white font-semibold text-lg sm:text-xl rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-300"
+            disabled={isLoading}
+            className={`w-full h-32 sm:h-40 ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} text-white font-semibold text-lg sm:text-xl rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-300`}
             aria-label="Emitir senha normal"
             type="button"
           >
-            NORMAL
+            {isLoading ? 'GERANDO...' : 'NORMAL'}
           </button>
           <button
             onClick={() => gerarSenha('prioridade')}
-            className="w-full h-32 sm:h-40 bg-red-500 hover:bg-red-600 text-white font-semibold text-lg sm:text-xl rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-300"
+            disabled={isLoading}
+            className={`w-full h-32 sm:h-40 ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'} text-white font-semibold text-lg sm:text-xl rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-300`}
             aria-label="Emitir senha prioridade"
             type="button"
           >
-            PRIORIDADE
+            {isLoading ? 'GERANDO...' : 'PRIORIDADE'}
           </button>
         </div>
 

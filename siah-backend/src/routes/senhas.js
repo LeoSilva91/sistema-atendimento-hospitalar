@@ -1,7 +1,13 @@
 import express from 'express';
 import { SenhaController } from '../controllers/senhaController.js';
-import { authenticateToken, authorize } from '../middlewares/auth.js';
-import { validateSenha } from '../middlewares/validation.js';
+import { authenticateToken } from '../middlewares/auth.js';
+import { validate } from '../middlewares/validation.js';
+import { 
+  createSenhaSchema, 
+  updateSenhaStatusSchema, 
+  chamarSenhaSchema, 
+  getSenhasSchema 
+} from '../dto/senhas.dto.js';
 
 const router = express.Router();
 const senhaController = new SenhaController();
@@ -9,88 +15,42 @@ const senhaController = new SenhaController();
 // Middleware de autenticação para todas as rotas
 router.use(authenticateToken);
 
-// ========================================
-// ROTAS DE SENHAS
-// ========================================
+// POST /api/senhas - Gerar nova senha
+router.post('/', 
+  validate(createSenhaSchema), 
+  senhaController.gerarSenha.bind(senhaController)
+);
 
-// GET /api/senhas - Listar senhas
+// GET /api/senhas/aguardando - Listar senhas aguardando
+router.get('/aguardando', 
+  senhaController.listarSenhasAguardando.bind(senhaController)
+);
+
+// POST /api/senhas/chamar - Chamar senha
+router.post('/chamar', 
+  validate(chamarSenhaSchema), 
+  senhaController.chamarSenha.bind(senhaController)
+);
+
+// POST /api/senhas/cadastrada - Marcar senha como cadastrada
+router.post('/cadastrada', 
+  senhaController.marcarSenhaCadastrada.bind(senhaController)
+);
+
+// GET /api/senhas - Listar senhas com filtros
 router.get('/', 
-  authorize('RECEPCIONISTA', 'ADMINISTRADOR', 'ENFERMEIRO', 'MEDICO'),
-  senhaController.listarSenhas
+  validate(getSenhasSchema, 'query'), 
+  senhaController.listarSenhas.bind(senhaController)
 );
 
 // GET /api/senhas/:id - Buscar senha por ID
-router.get('/:id',
-  authorize('RECEPCIONISTA', 'ADMINISTRADOR', 'ENFERMEIRO', 'MEDICO'),
-  senhaController.buscarSenha
+router.get('/:id', 
+  senhaController.buscarSenhaPorId.bind(senhaController)
 );
 
-// POST /api/senhas - Gerar nova senha
-router.post('/',
-  authorize('RECEPCIONISTA', 'ADMINISTRADOR'),
-  validateSenha,
-  senhaController.gerarSenha
-);
-
-// PUT /api/senhas/:id - Atualizar senha
-router.put('/:id',
-  authorize('RECEPCIONISTA', 'ADMINISTRADOR'),
-  validateSenha,
-  senhaController.atualizarSenha
-);
-
-// PATCH /api/senhas/:id/status - Atualizar status da senha
-router.patch('/:id/status',
-  authorize('RECEPCIONISTA', 'ADMINISTRADOR', 'ENFERMEIRO'),
-  senhaController.atualizarStatus
-);
-
-// DELETE /api/senhas/:id - Cancelar senha
-router.delete('/:id',
-  authorize('RECEPCIONISTA', 'ADMINISTRADOR'),
-  senhaController.cancelarSenha
-);
-
-// GET /api/senhas/fila/aguardando - Fila de senhas aguardando
-router.get('/fila/aguardando',
-  authorize('RECEPCIONISTA', 'ADMINISTRADOR', 'ENFERMEIRO'),
-  senhaController.filaAguardando
-);
-
-// GET /api/senhas/hoje - Senhas do dia
-router.get('/hoje/lista',
-  authorize('RECEPCIONISTA', 'ADMINISTRADOR', 'ENFERMEIRO', 'MEDICO'),
-  senhaController.senhasHoje
-);
-
-// POST /api/senhas/:id/chamar - Chamar senha
-router.post('/:id/chamar',
-  authorize('RECEPCIONISTA', 'ADMINISTRADOR'),
-  senhaController.chamarSenha
-);
-
-// POST /api/senhas/:id/atender - Marcar como atendida
-router.post('/:id/atender',
-  authorize('RECEPCIONISTA', 'ADMINISTRADOR', 'ENFERMEIRO', 'MEDICO'),
-  senhaController.atenderSenha
-);
-
-// GET /api/senhas/estatisticas - Estatísticas de senhas
-router.get('/estatisticas/geral',
-  authorize('RECEPCIONISTA', 'ADMINISTRADOR', 'ENFERMEIRO', 'MEDICO'),
-  senhaController.estatisticasSenhas
-);
-
-// GET /api/senhas/tipo/:tipo - Senhas por tipo
-router.get('/tipo/:tipo',
-  authorize('RECEPCIONISTA', 'ADMINISTRADOR', 'ENFERMEIRO', 'MEDICO'),
-  senhaController.senhasPorTipo
-);
-
-// GET /api/senhas/paciente/:pacienteId - Senhas de um paciente
-router.get('/paciente/:pacienteId',
-  authorize('RECEPCIONISTA', 'ADMINISTRADOR', 'ENFERMEIRO', 'MEDICO'),
-  senhaController.senhasPorPaciente
+// GET /api/senhas/estatisticas - Obter estatísticas de senhas
+router.get('/estatisticas', 
+  senhaController.obterEstatisticasSenhas.bind(senhaController)
 );
 
 export default router;
