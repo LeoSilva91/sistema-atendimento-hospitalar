@@ -57,7 +57,12 @@ export class TriagemService {
           usuarioId,
           nivelRisco: corTriagem,
           queixaPrincipal,
-          sinaisVitais: sinaisVitais || {},
+          pressaoArterial: sinaisVitais?.pressaoArterial || null,
+          temperatura: sinaisVitais?.temperatura ? parseFloat(sinaisVitais.temperatura) : null,
+          frequenciaCardiaca: sinaisVitais?.frequenciaCardiaca ? parseInt(sinaisVitais.frequenciaCardiaca) : null,
+          frequenciaRespiratoria: sinaisVitais?.frequenciaRespiratoria ? parseInt(sinaisVitais.frequenciaRespiratoria) : null,
+          saturacaoOxigenio: sinaisVitais?.saturacaoOxigenio ? parseFloat(sinaisVitais.saturacaoOxigenio) : null,
+          peso: sinaisVitais?.peso ? parseFloat(sinaisVitais.peso) : null,
           nivelDor,
           nivelConsciencia,
           observacoes

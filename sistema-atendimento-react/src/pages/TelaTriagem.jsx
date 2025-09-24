@@ -119,7 +119,8 @@ const TelaTriagem = () => {
     chamarProximoPacienteTriagem,
     finalizarTriagem,
     pacienteAtualTriagem,
-    currentUser
+    currentUser,
+    recarregarDadosBackend
   } = useSistemaAtendimento();
   
   const { success: showToast, error: showError } = useToast();
@@ -157,6 +158,17 @@ const TelaTriagem = () => {
     }
   }, [currentUser, showError]);
 
+  // Recarregar dados do backend periodicamente - DESABILITADO TEMPORARIAMENTE
+  // useEffect(() => {
+  //   if (!currentUser) return;
+
+  //   const interval = setInterval(() => {
+  //     recarregarDadosBackend();
+  //   }, 30000); // Recarregar a cada 30 segundos para evitar conflitos
+
+  //   return () => clearInterval(interval);
+  // }, [currentUser, recarregarDadosBackend]);
+
   const pacientesAguardandoTriagem = obterPacientesAguardandoTriagem;
 
   // Opções para dropdowns
@@ -175,13 +187,35 @@ const TelaTriagem = () => {
     { value: 'azul', label: '🔵 AZUL - Não Urgente', severity: 'info' }
   ];
 
-  const handleCallNextPatient = () => {
-    const result = chamarProximoPacienteTriagem();
-    if (result) {
-      showToast(`Paciente ${result.nome} chamado para triagem`);
-      setShowTriageForm(true);
-      setShowFila(false);
+  const handleCallNextPatient = async () => {
+    console.log('=== INÍCIO handleCallNextPatient ===');
+    console.log('Pacientes aguardando triagem:', pacientesAguardandoTriagem);
+    console.log('Fila de triagem:', filaTriagem);
+    console.log('Total de pacientes:', pacientes.length);
+    
+    // Se há pacientes aguardando, chamar o primeiro
+    if (pacientesAguardandoTriagem.length > 0) {
+      const primeiroPaciente = pacientesAguardandoTriagem[0];
+      console.log('Chamando primeiro paciente da lista:', primeiroPaciente);
+      
+      try {
+        const result = await chamarProximoPacienteTriagem(primeiroPaciente.id);
+        console.log('Resultado da chamada:', result);
+        
+        if (result) {
+          showToast(`Paciente ${result.nome} chamado para triagem`);
+          setShowTriageForm(true);
+          setShowFila(false);
+        } else {
+          console.log('ERRO: Nenhum resultado retornado da função chamarProximoPacienteTriagem');
+          showError('Erro ao chamar paciente');
+        }
+      } catch (error) {
+        console.error('Erro ao chamar paciente:', error);
+        showError('Erro ao chamar paciente: ' + error.message);
+      }
     } else {
+      console.log('ERRO: Nenhum paciente na lista de aguardando triagem');
       showError('Nenhum paciente na fila de triagem');
     }
   };
@@ -190,21 +224,28 @@ const TelaTriagem = () => {
     if (!pacienteAtualTriagem) return;
 
     try {
-      finalizarTriagem(pacienteAtualTriagem.id, triageData);
+      console.log('Finalizando triagem:', { pacienteId: pacienteAtualTriagem.id, dadosTriagem: triageData });
       
-      showToast(`Triagem de ${pacienteAtualTriagem.nome} finalizada! Classificação: ${triageData.corTriagem.toUpperCase()}`);
-      setShowSuccessModal(true);
-      setPacienteEtiqueta({
-        nome: pacienteAtualTriagem.nome,
-        dataNascimento: pacienteAtualTriagem.dataNascimento,
-        sexo: pacienteAtualTriagem.sexo,
-        numeroProntuario: pacienteAtualTriagem.numeroProntuario,
-        convenio: pacienteAtualTriagem.convenio || '',
-        dataHora: new Date().toLocaleString('pt-BR')
-      });
-      // Não fechar o formulário ainda
+      const resultado = await finalizarTriagem(pacienteAtualTriagem.id, triageData);
+      
+      if (resultado) {
+        showToast(`Triagem de ${pacienteAtualTriagem.nome} finalizada! Classificação: ${triageData.corTriagem.toUpperCase()}`);
+        setShowSuccessModal(true);
+        setPacienteEtiqueta({
+          nome: pacienteAtualTriagem.nome,
+          dataNascimento: pacienteAtualTriagem.dataNascimento,
+          sexo: pacienteAtualTriagem.sexo,
+          numeroProntuario: pacienteAtualTriagem.numeroProntuario,
+          convenio: pacienteAtualTriagem.convenio || '',
+          dataHora: new Date().toLocaleString('pt-BR')
+        });
+        // Não fechar o formulário ainda
+      } else {
+        showError('Erro ao finalizar triagem - paciente não encontrado');
+      }
     } catch (error) {
-      showError('Erro ao finalizar triagem');
+      console.error('Erro ao finalizar triagem:', error);
+      showError('Erro ao finalizar triagem: ' + error.message);
     }
   };
 
@@ -279,10 +320,28 @@ const TelaTriagem = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header minimalista */}
         <div className="mb-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Triagem de Pacientes</h1>
-          <div className="flex flex-col sm:flex-row sm:items-center text-gray-500 text-xs sm:text-sm mt-1 gap-1 sm:gap-0">
-            <span>{currentUser?.nome} - Enfermeiro</span>
-            <span className="sm:ml-auto">{new Date().toLocaleDateString('pt-BR')} {new Date().toLocaleTimeString('pt-BR')}</span>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Triagem de Pacientes</h1>
+              <div className="flex flex-col sm:flex-row sm:items-center text-gray-500 text-xs sm:text-sm mt-1 gap-1 sm:gap-0">
+                <span>{currentUser?.nome} - Enfermeiro</span>
+                <span className="sm:ml-auto">{new Date().toLocaleDateString('pt-BR')} {new Date().toLocaleTimeString('pt-BR')}</span>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                label="Atualizar"
+                icon="pi pi-refresh"
+                onClick={recarregarDadosBackend}
+                className="!bg-gray-600 !text-white !border-0 px-3 py-2 rounded-lg font-semibold transition-colors hover:!bg-gray-700 text-sm"
+              />
+              <Button
+                label={`Ver Fila (${pacientesAguardandoTriagem.length})`}
+                icon="pi pi-list"
+                onClick={() => setShowFila(true)}
+                className="!bg-blue-600 !text-white !border-0 px-3 py-2 rounded-lg font-semibold transition-colors hover:!bg-blue-700 text-sm"
+              />
+            </div>
           </div>
         </div>
 
@@ -495,8 +554,14 @@ const TelaTriagem = () => {
                         key={paciente.id}
                         className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer"
                         onClick={() => {
-                          chamarProximoPacienteTriagem(paciente.id);
-                          setShowTriageForm(true);
+                          console.log('=== CHAMANDO PACIENTE ESPECÍFICO ===');
+                          console.log('ID do paciente:', paciente.id);
+                          console.log('Status do paciente:', paciente.status);
+                          const result = chamarProximoPacienteTriagem(paciente.id);
+                          console.log('Resultado da chamada específica:', result);
+                          if (result) {
+                            setShowTriageForm(true);
+                          }
                         }}
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">

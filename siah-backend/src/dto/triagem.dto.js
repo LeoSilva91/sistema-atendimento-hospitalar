@@ -12,11 +12,26 @@ export const finalizarTriagemSchema = Joi.object({
   queixaPrincipal: Joi.string().max(1000).required(),
   sinaisVitais: Joi.object({
     pressaoArterial: Joi.string().max(20).optional(),
-    temperatura: Joi.number().min(30).max(45).optional(),
-    frequenciaCardiaca: Joi.number().integer().min(30).max(200).optional(),
-    frequenciaRespiratoria: Joi.number().integer().min(5).max(60).optional(),
-    saturacaoOxigenio: Joi.number().min(70).max(100).optional(),
-    peso: Joi.number().min(0.5).max(300).optional()
+    temperatura: Joi.alternatives().try(
+      Joi.number().min(30).max(45),
+      Joi.string().pattern(/^\d+(\.\d+)?$/)
+    ).optional(),
+    frequenciaCardiaca: Joi.alternatives().try(
+      Joi.number().integer().min(30).max(200),
+      Joi.string().pattern(/^\d+$/)
+    ).optional(),
+    frequenciaRespiratoria: Joi.alternatives().try(
+      Joi.number().integer().min(5).max(60),
+      Joi.string().pattern(/^\d+$/)
+    ).optional(),
+    saturacaoOxigenio: Joi.alternatives().try(
+      Joi.number().min(70).max(100),
+      Joi.string().pattern(/^\d+(\.\d+)?$/)
+    ).optional(),
+    peso: Joi.alternatives().try(
+      Joi.number().min(0.5).max(300),
+      Joi.string().pattern(/^\d+(\.\d+)?$/)
+    ).optional()
   }).optional(),
   nivelDor: Joi.number().integer().min(0).max(10).default(0),
   nivelConsciencia: Joi.string().valid('ALERTA', 'SONOLENTO', 'CONFUSO', 'INCONSCIENTE').default('ALERTA'),

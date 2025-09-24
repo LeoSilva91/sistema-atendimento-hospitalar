@@ -8,13 +8,31 @@ export class PacienteService {
 
   async createPaciente(data) {
     try {
-      // Validação de CPF único
+      // Verificar se paciente já existe
       const existingPaciente = await this.prisma.paciente.findUnique({
         where: { cpf: data.cpf }
       });
 
       if (existingPaciente) {
-        throw new Error('CPF já cadastrado');
+        // Se paciente já existe, verificar se está aguardando triagem
+        if (existingPaciente.status === 'AGUARDANDO_TRIAGEM') {
+          logger.info(`Paciente já existe e está aguardando triagem: ${existingPaciente.id}`);
+          return existingPaciente;
+        }
+        
+        // Se paciente existe mas não está aguardando triagem, atualizar status
+        const pacienteAtualizado = await this.prisma.paciente.update({
+          where: { id: existingPaciente.id },
+          data: {
+            status: 'AGUARDANDO_TRIAGEM',
+            horaCadastro: new Date(),
+            motivoVisita: data.motivoVisita || existingPaciente.motivoVisita,
+            sintomas: data.sintomas || existingPaciente.sintomas
+          }
+        });
+        
+        logger.info(`Paciente existente atualizado para aguardando triagem: ${pacienteAtualizado.id}`);
+        return pacienteAtualizado;
       }
 
       // Gerar número do prontuário
