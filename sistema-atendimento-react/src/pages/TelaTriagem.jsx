@@ -188,26 +188,20 @@ const TelaTriagem = () => {
   ];
 
   const handleCallNextPatient = async () => {
-    console.log('=== INÍCIO handleCallNextPatient ===');
-    console.log('Pacientes aguardando triagem:', pacientesAguardandoTriagem);
-    console.log('Fila de triagem:', filaTriagem);
-    console.log('Total de pacientes:', pacientes.length);
-    
+
     // Se há pacientes aguardando, chamar o primeiro
     if (pacientesAguardandoTriagem.length > 0) {
       const primeiroPaciente = pacientesAguardandoTriagem[0];
-      console.log('Chamando primeiro paciente da lista:', primeiroPaciente);
-      
+
       try {
         const result = await chamarProximoPacienteTriagem(primeiroPaciente.id);
-        console.log('Resultado da chamada:', result);
-        
+
         if (result) {
           showToast(`Paciente ${result.nome} chamado para triagem`);
           setShowTriageForm(true);
           setShowFila(false);
         } else {
-          console.log('ERRO: Nenhum resultado retornado da função chamarProximoPacienteTriagem');
+
           showError('Erro ao chamar paciente');
         }
       } catch (error) {
@@ -215,7 +209,7 @@ const TelaTriagem = () => {
         showError('Erro ao chamar paciente: ' + error.message);
       }
     } else {
-      console.log('ERRO: Nenhum paciente na lista de aguardando triagem');
+
       showError('Nenhum paciente na fila de triagem');
     }
   };
@@ -224,8 +218,7 @@ const TelaTriagem = () => {
     if (!pacienteAtualTriagem) return;
 
     try {
-      console.log('Finalizando triagem:', { pacienteId: pacienteAtualTriagem.id, dadosTriagem: triageData });
-      
+
       const resultado = await finalizarTriagem(pacienteAtualTriagem.id, triageData);
       
       if (resultado) {
@@ -554,11 +547,9 @@ const TelaTriagem = () => {
                         key={paciente.id}
                         className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer"
                         onClick={() => {
-                          console.log('=== CHAMANDO PACIENTE ESPECÍFICO ===');
-                          console.log('ID do paciente:', paciente.id);
-                          console.log('Status do paciente:', paciente.status);
+
                           const result = chamarProximoPacienteTriagem(paciente.id);
-                          console.log('Resultado da chamada específica:', result);
+
                           if (result) {
                             setShowTriageForm(true);
                           }

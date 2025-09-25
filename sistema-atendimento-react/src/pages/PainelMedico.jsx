@@ -82,14 +82,19 @@ const PainelMedico = () => {
 
   const pacientesAguardandoMedico = obterPacientesAguardandoAvaliacaoMedica;
 
-  const handleCallNextPatient = () => {
-    const result = chamarProximoPacienteMedico();
-    if (result) {
-      showToast(`Paciente ${result.nome} chamado para consulta`);
-      setShowEvolutionForm(true);
-      setShowFila(false);
-    } else {
-      showError('Nenhum paciente na fila de avaliação médica');
+  const handleCallNextPatient = async () => {
+    try {
+      const result = await chamarProximoPacienteMedico();
+      if (result) {
+        showToast(`Paciente ${result.nome} chamado para consulta`);
+        setShowEvolutionForm(true);
+        setShowFila(false);
+      } else {
+        showError('Nenhum paciente na fila de avaliação médica');
+      }
+    } catch (error) {
+      console.error('Erro ao chamar paciente:', error);
+      showError('Erro ao chamar paciente: ' + error.message);
     }
   };
 
@@ -111,7 +116,7 @@ const PainelMedico = () => {
         paciente: pacienteAtualMedico
       };
 
-      finalizarConsulta(pacienteAtualMedico.id, dadosConsulta);
+      await finalizarConsulta(pacienteAtualMedico.id, dadosConsulta);
       
       showToast(`Consulta de ${pacienteAtualMedico.nome} finalizada!`);
       setShowEvolutionForm(false);

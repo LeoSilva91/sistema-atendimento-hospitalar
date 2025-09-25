@@ -52,7 +52,6 @@ api.interceptors.response.use(
         }
       } catch (refreshError) {
         // Refresh token inválido, redirecionar para login
-        console.log('Refresh token inválido, redirecionando para login...');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         sessionStorage.removeItem('currentUser');

@@ -47,6 +47,7 @@ export class AtendimentoService {
 
   async finalizarAtendimento(dadosAtendimento, usuarioId) {
     try {
+
       const { 
         pacienteId, 
         diagnostico, 
@@ -64,12 +65,13 @@ export class AtendimentoService {
         where: { id: pacienteId }
       });
 
+
       if (!paciente) {
         throw new Error('Paciente não encontrado');
       }
 
       if (paciente.status !== 'EM_CONSULTA') {
-        throw new Error('Paciente não está em consulta');
+        throw new Error(`Paciente não está em consulta. Status atual: ${paciente.status}`);
       }
 
       // Buscar atendimento ativo
@@ -79,6 +81,7 @@ export class AtendimentoService {
           status: 'EM_ANDAMENTO'
         }
       });
+
 
       if (!atendimento) {
         throw new Error('Atendimento não encontrado');

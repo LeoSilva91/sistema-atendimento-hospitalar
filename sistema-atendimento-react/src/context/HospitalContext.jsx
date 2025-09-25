@@ -12,8 +12,6 @@ export const useSistemaAtendimento = () => {
 };
 
 export const SistemaAtendimentoProvider = ({ children }) => {
-  console.log("HospitalContext: Inicializando provider...");
-  
   // Estados principais
   const [pacientes, setPacientes] = useState([]);
   const [filaTriagem, setFilaTriagem] = useState([]); // Fila FIFO para triagem
@@ -25,17 +23,6 @@ export const SistemaAtendimentoProvider = ({ children }) => {
   const [proximoId, setProximoId] = useState(1);
   const [fichasEmitidas, setFichasEmitidas] = useState([]);
   const [chamadasAtivas, setChamadasAtivas] = useState([]);
-  
-
-  console.log("HospitalContext: Estados inicializados", {
-    pacientes: pacientes.length,
-    filaTriagem: filaTriagem.length,
-    filaAvaliacaoMedica: filaAvaliacaoMedica.length,
-    pacienteAtualTriagem: !!pacienteAtualTriagem,
-    pacienteAtualMedico: !!pacienteAtualMedico,
-    currentUser: !!currentUser,
-    telaAtiva
-  });
 
   // Carregar dados do localStorage na inicialização
   useEffect(() => {
@@ -264,41 +251,31 @@ export const SistemaAtendimentoProvider = ({ children }) => {
 
   // 2. Chamar próximo paciente para triagem (FIFO)
   const chamarProximoPacienteTriagem = useCallback(async (pacienteIdEspecifico = null) => {
-    console.log('=== CHAMAR PACIENTE PARA TRIAGEM ===');
-    console.log('Parâmetros:', { filaTriagem, pacientes: pacientes.length, pacienteIdEspecifico });
     
     let pacienteParaChamar = null;
     
     // Se foi especificado um ID, usar esse paciente
     if (pacienteIdEspecifico) {
       pacienteParaChamar = pacientes.find((p) => p.id === pacienteIdEspecifico);
-      console.log('Paciente específico encontrado:', pacienteParaChamar);
     } else {
       // Lógica FIFO - pegar primeiro da fila
       if (filaTriagem.length === 0) {
-        console.log('Fila de triagem vazia');
         return null;
       }
       
       const proximoId = filaTriagem[0];
       pacienteParaChamar = pacientes.find((p) => p.id === proximoId);
-      console.log('Próximo paciente FIFO:', { proximoId, paciente: pacienteParaChamar });
     }
     
     // Verificar se paciente pode ser chamado
     if (pacienteParaChamar && (pacienteParaChamar.status === "aguardando_triagem" || pacienteParaChamar.status === "AGUARDANDO_TRIAGEM")) {
-      console.log('Paciente pode ser chamado:', pacienteParaChamar);
-      
       try {
         // Primeiro, iniciar triagem no backend
-        console.log('Iniciando triagem no backend para paciente:', pacienteParaChamar.id);
         const response = await api.post('/triagem/iniciar', {
           pacienteId: pacienteParaChamar.id
         });
         
         if (response.data.success) {
-          console.log('Triagem iniciada no backend com sucesso');
-          
           const pacienteAtualizado = {
             ...pacienteParaChamar,
             status: "em_triagem",
@@ -328,8 +305,6 @@ export const SistemaAtendimentoProvider = ({ children }) => {
             nomeCompleto: pacienteParaChamar.nome
           };
           setChamadasAtivas(prev => [...prev, novaChamada]);
-
-          console.log('Paciente chamado com sucesso:', pacienteAtualizado);
           return pacienteAtualizado;
         } else {
           throw new Error(response.data.message || 'Erro ao iniciar triagem');
@@ -339,12 +314,6 @@ export const SistemaAtendimentoProvider = ({ children }) => {
         throw error;
       }
     }
-    
-    console.log('Paciente não pode ser chamado:', { 
-      paciente: pacienteParaChamar, 
-      status: pacienteParaChamar?.status,
-      podeSerChamado: pacienteParaChamar && (pacienteParaChamar.status === "aguardando_triagem" || pacienteParaChamar.status === "AGUARDANDO_TRIAGEM")
-    });
     return null;
   }, [filaTriagem, pacientes]);
 
@@ -354,8 +323,6 @@ export const SistemaAtendimentoProvider = ({ children }) => {
     
     if (paciente && (paciente.status === "em_triagem" || paciente.status === "EM_TRIAGEM")) {
       try {
-        console.log('Enviando dados de triagem para o backend:', { pacienteId, dadosTriagem });
-        
         // Enviar dados para o backend
         const dadosParaEnviar = {
           pacienteId,
@@ -366,19 +333,8 @@ export const SistemaAtendimentoProvider = ({ children }) => {
           nivelConsciencia: (dadosTriagem.nivelConsciencia || 'Alerta').toUpperCase(), // Converter para maiúsculo
           observacoes: dadosTriagem.observacoesTriagem || ''
         };
-        
-        console.log('Dados que serão enviados para o backend:', dadosParaEnviar);
-        console.log('URL da API:', '/triagem/finalizar');
-        console.log('Token de autenticação:', localStorage.getItem('accessToken') ? 'Presente' : 'Ausente');
-        
         const response = await api.post('/triagem/finalizar', dadosParaEnviar);
-        
-        console.log('Resposta do backend:', response.data);
-        console.log('Status da resposta:', response.status);
-
         if (response.data.success) {
-          console.log('Triagem salva no backend com sucesso:', response.data.data);
-          
           // Atualizar estado local com dados do backend
           const pacienteAtualizado = {
             ...paciente,
@@ -479,40 +435,52 @@ export const SistemaAtendimentoProvider = ({ children }) => {
   }, [pacientes]);
 
   // 4. Chamar próximo paciente para avaliação médica (priorizada)
-  const chamarProximoPacienteMedico = useCallback(() => {
+  const chamarProximoPacienteMedico = useCallback(async () => {
     if (filaAvaliacaoMedica.length === 0) return null;
 
     const proximoId = filaAvaliacaoMedica[0];
     const paciente = pacientes.find((p) => p.id === proximoId);
 
     if (paciente && (paciente.status === "aguardando_avaliacao_medica" || paciente.status === "AGUARDANDO_AVALIACAO_MEDICA")) {
-      const pacienteAtualizado = {
-        ...paciente,
-        status: "em_consulta",
-        horaInicioConsulta: new Date().toISOString()
-      };
+      try {
+        // Iniciar atendimento no backend
+        const response = await api.post('/atendimentos/iniciar', { pacienteId: proximoId });
+        
+        if (response.data.success) {
+          const pacienteAtualizado = {
+            ...paciente,
+            status: "em_consulta",
+            horaInicioConsulta: new Date().toISOString()
+          };
 
-      setPacientes(prev => prev.map((p) =>
-        p.id === proximoId ? pacienteAtualizado : p
-      ));
-      setFilaAvaliacaoMedica(prev => prev.filter((id) => id !== proximoId));
-      setPacienteAtualMedico(pacienteAtualizado);
+          setPacientes(prev => prev.map((p) =>
+            p.id === proximoId ? pacienteAtualizado : p
+          ));
+          setFilaAvaliacaoMedica(prev => prev.filter((id) => id !== proximoId));
+          setPacienteAtualMedico(pacienteAtualizado);
 
-      // Criar chamada ativa para consulta
-      const novaChamada = {
-        id: Date.now(),
-        pacienteId: proximoId,
-        pacienteNome: paciente.nome, // nome completo
-        numeroProntuario: paciente.numeroProntuario,
-        horaChamada: new Date().toISOString(),
-        tipo: 'consulta',
-        local: currentUser?.consultorio || 'Consultório Principal',
-        nomeCompleto: paciente.nome, // Para uso interno
-        corTriagem: paciente.corTriagem
-      };
-      setChamadasAtivas(prev => [...prev, novaChamada]);
+          // Criar chamada ativa para consulta
+          const novaChamada = {
+            id: Date.now(),
+            pacienteId: proximoId,
+            pacienteNome: paciente.nome, // nome completo
+            numeroProntuario: paciente.numeroProntuario,
+            horaChamada: new Date().toISOString(),
+            tipo: 'consulta',
+            local: currentUser?.consultorio || 'Consultório Principal',
+            nomeCompleto: paciente.nome, // Para uso interno
+            corTriagem: paciente.corTriagem
+          };
+          setChamadasAtivas(prev => [...prev, novaChamada]);
 
-      return pacienteAtualizado;
+          return pacienteAtualizado;
+        } else {
+          throw new Error(response.data.message || 'Erro ao iniciar atendimento');
+        }
+      } catch (error) {
+        console.error('Erro ao iniciar atendimento no backend:', error);
+        throw error;
+      }
     }
     return null;
   }, [filaAvaliacaoMedica, pacientes, currentUser]);
@@ -520,11 +488,8 @@ export const SistemaAtendimentoProvider = ({ children }) => {
   // 5. Finalizar consulta médica
   const finalizarConsulta = useCallback(async (pacienteId, dadosConsulta) => {
     const paciente = pacientes.find((p) => p.id === pacienteId);
-    
     if (paciente && (paciente.status === "em_consulta" || paciente.status === "EM_CONSULTA")) {
       try {
-        console.log('Enviando dados da consulta para o backend:', { pacienteId, dadosConsulta });
-        
         // Enviar dados para o backend
         const dadosParaEnviar = {
           pacienteId,
@@ -535,18 +500,10 @@ export const SistemaAtendimentoProvider = ({ children }) => {
           orientacoes: dadosConsulta.orientacoes || '',
           encaminhamento: dadosConsulta.encaminhamento || '',
           dataRetorno: dadosConsulta.dataRetorno || null,
-          statusFinal: (dadosConsulta.statusFinal || 'atendimento_concluido').toUpperCase()
+          statusFinal: (dadosConsulta.statusFinal || 'ATENDIMENTO_CONCLUIDO').toUpperCase()
         };
-        
-        console.log('Dados que serão enviados para o backend:', dadosParaEnviar);
-        
         const response = await api.post('/atendimentos/finalizar', dadosParaEnviar);
-        
-        console.log('Resposta do backend:', response.data);
-        
         if (response.data.success) {
-          console.log('Consulta salva no backend com sucesso:', response.data.data);
-          
           // Atualizar estado local com dados do backend
           const pacienteAtualizado = {
             ...paciente,
@@ -659,11 +616,9 @@ export const SistemaAtendimentoProvider = ({ children }) => {
             
             if (!jaExiste) {
               // Se paciente não existe, adicionar
-              console.log('Adicionando novo paciente do backend:', pacienteBackend.nome);
               pacientesAtualizados.push(pacienteBackend);
             } else {
               // Se paciente já existe, manter o existente (não sobrescrever)
-              console.log('Paciente já existe, mantendo versão local:', pacienteBackend.nome);
             }
           });
           
@@ -675,13 +630,6 @@ export const SistemaAtendimentoProvider = ({ children }) => {
           const idsBackend = pacientesTriagem.map(p => p.id);
           const idsExistentes = prev.filter(id => !idsBackend.includes(id));
           const idsNovos = idsBackend.filter(id => !prev.includes(id));
-          
-          console.log('Atualizando fila de triagem:', { 
-            idsExistentes: idsExistentes.length, 
-            idsNovos: idsNovos.length,
-            total: idsExistentes.length + idsNovos.length
-          });
-          
           return [...idsExistentes, ...idsNovos];
         });
       }
@@ -714,22 +662,13 @@ export const SistemaAtendimentoProvider = ({ children }) => {
     const resultado = filaTriagem
       .map((id) => {
         const paciente = pacientes.find((p) => p.id === id);
-        console.log('Mapeando ID da fila:', { id, paciente: paciente ? { id: paciente.id, nome: paciente.nome, status: paciente.status } : null });
         return paciente;
       })
       .filter(Boolean)
       .filter((p) => {
         const podeSerChamado = p.status === "AGUARDANDO_TRIAGEM" || p.status === "aguardando_triagem";
-        console.log('Filtrando paciente:', { id: p.id, nome: p.nome, status: p.status, podeSerChamado });
         return podeSerChamado;
       });
-    
-    console.log('=== RESULTADO FINAL obterPacientesAguardandoTriagem ===');
-    console.log('Fila de triagem:', filaTriagem);
-    console.log('Total de pacientes:', pacientes.length);
-    console.log('Pacientes encontrados:', resultado.length);
-    console.log('Pacientes:', resultado.map(p => ({ id: p.id, nome: p.nome, status: p.status })));
-    
     return resultado;
   }, [filaTriagem, pacientes]);
 
@@ -809,9 +748,7 @@ export const SistemaAtendimentoProvider = ({ children }) => {
   }, []);
 
   const verificarAcesso = useCallback((tela) => {
-    console.log('🔍 verificarAcesso:', { currentUser, tela });
     if (!currentUser) {
-      console.log('❌ Usuário não logado');
       return false;
     }
     const acessos = {
@@ -822,26 +759,16 @@ export const SistemaAtendimentoProvider = ({ children }) => {
     };
     const acessosPermitidos = acessos[currentUser.tipo] || [];
     const temAcesso = acessosPermitidos.includes(tela);
-    console.log('🔍 Acesso verificado:', { 
-      tipo: currentUser.tipo, 
-      acessosPermitidos, 
-      tela, 
-      temAcesso 
-    });
     return temAcesso;
   }, [currentUser]);
 
   // Verificar usuário logado
   useEffect(() => {
-    console.log('🔄 Carregando usuário do sessionStorage...');
     const sessionUser = sessionStorage.getItem("currentUser");
-    console.log('📦 SessionStorage user:', sessionUser);
     if (sessionUser) {
       const userData = JSON.parse(sessionUser);
-      console.log('👤 Usuário carregado:', userData);
       setCurrentUser(userData);
     } else {
-      console.log('❌ Nenhum usuário encontrado no sessionStorage');
     }
   }, []);
 

@@ -30,6 +30,7 @@ export class AtendimentoController {
 
   async finalizarAtendimento(req, res) {
     try {
+
       const dadosAtendimento = req.body;
       const { id: usuarioId } = req.user;
 
@@ -42,6 +43,7 @@ export class AtendimentoController {
         message: 'Atendimento finalizado com sucesso'
       });
     } catch (error) {
+      
       logger.error('Erro ao finalizar atendimento:', error);
       res.status(400).json({
         success: false,
