@@ -128,3 +128,8 @@ scripts/gerar-*.js
 scripts/test-*.js
 EXEMPLO-EXECUCAO-TESTES.md
 test-atendimento.*
+
+# Manter scripts úteis para produção
+!scripts/create-user.js
+!scripts/check-and-create-users.js
+!scripts/list-users.js
