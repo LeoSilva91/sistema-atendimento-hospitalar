@@ -121,5 +121,10 @@ Thumbs.db
 # Prisma
 prisma/migrations/
 
-# Scripts de teste
-scripts/
+# Scripts de teste e debug
+scripts/debug-*.js
+scripts/fix-*.js
+scripts/gerar-*.js
+scripts/test-*.js
+EXEMPLO-EXECUCAO-TESTES.md
+test-atendimento.*
