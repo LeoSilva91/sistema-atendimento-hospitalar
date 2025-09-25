@@ -2,6 +2,18 @@
 
 Backend do Sistema de Atendimento Hospitalar (SIAH) desenvolvido com Node.js, Express, Prisma e PostgreSQL.
 
+> **Status**: ✅ Sistema completo funcionando - Fluxo Senha → Cadastro → Triagem → Médico
+
+## 🎯 Sistema Funcionando
+
+O backend está **100% funcional** com todas as correções implementadas:
+
+- ✅ **DTOs corrigidos** - prescricao vs prescricoes (arrays estruturados)
+- ✅ **Validação robusta** - campos opcionais aceitos corretamente
+- ✅ **Autenticação JWT** - sistema de tokens funcionando
+- ✅ **Fluxo completo** - desde geração de senha até prontuário médico
+- ✅ **Código limpo** - console.log removidos, pronto para produção
+
 ## 🚀 Tecnologias
 
 - **Node.js** - Runtime JavaScript
@@ -104,57 +116,66 @@ O sistema utiliza JWT para autenticação com refresh tokens:
 
 ## 📝 API Endpoints
 
-### Autenticação
-- `POST /api/auth/login` - Login
-- `POST /api/auth/register` - Registro
-- `POST /api/auth/refresh` - Renovar token
+### 🔐 Autenticação
+- `POST /api/auth/login` - Login com rate limiting
+- `POST /api/auth/refresh` - Renovar token JWT
 - `POST /api/auth/logout` - Logout
 
-### Pacientes
+### 👥 Pacientes
 - `GET /api/pacientes` - Listar pacientes
-- `POST /api/pacientes` - Criar paciente
+- `POST /api/pacientes` - Criar paciente (validação completa)
 - `GET /api/pacientes/:id` - Buscar paciente
 - `PUT /api/pacientes/:id` - Atualizar paciente
 - `DELETE /api/pacientes/:id` - Excluir paciente
 
-### Atendimentos
+### 🏥 Atendimentos
 - `GET /api/atendimentos` - Listar atendimentos
-- `POST /api/atendimentos` - Criar atendimento
+- `POST /api/atendimentos/iniciar` - Iniciar atendimento médico
+- `POST /api/atendimentos/finalizar` - Finalizar atendimento (✅ **FUNCIONANDO**)
 - `GET /api/atendimentos/:id` - Buscar atendimento
-- `PUT /api/atendimentos/:id` - Atualizar atendimento
-- `PATCH /api/atendimentos/:id/status` - Atualizar status
-- `DELETE /api/atendimentos/:id` - Cancelar atendimento
+- `GET /api/atendimentos/estatisticas` - Estatísticas de atendimento
 
-### Triagem
+### 🩺 Triagem
 - `GET /api/triagem` - Listar triagens
-- `POST /api/triagem` - Criar triagem
+- `POST /api/triagem/iniciar` - Iniciar triagem (✅ **FUNCIONANDO**)
+- `POST /api/triagem/finalizar` - Finalizar triagem (✅ **FUNCIONANDO**)
 - `GET /api/triagem/:id` - Buscar triagem
 - `PUT /api/triagem/:id` - Atualizar triagem
-- `POST /api/triagem/:id/classificar` - Classificar risco
 
-### Senhas
+### 🎫 Senhas
 - `GET /api/senhas` - Listar senhas
 - `POST /api/senhas` - Gerar senha
 - `GET /api/senhas/:id` - Buscar senha
 - `PUT /api/senhas/:id` - Atualizar senha
-- `PATCH /api/senhas/:id/status` - Atualizar status
 - `POST /api/senhas/:id/chamar` - Chamar senha
 - `POST /api/senhas/:id/atender` - Atender senha
 
-### Prontuários
+### 📋 Prontuários
 - `GET /api/prontuarios` - Listar prontuários
-- `POST /api/prontuarios` - Criar prontuário
+- `POST /api/prontuarios` - Criar prontuário (✅ **ARRAYS ESTRUTURADOS**)
 - `GET /api/prontuarios/:id` - Buscar prontuário
 - `PUT /api/prontuarios/:id` - Atualizar prontuário
 - `POST /api/prontuarios/:id/evolucao` - Adicionar evolução
 
-### Dashboard
+### 📊 Dashboard
 - `GET /api/dashboard/overview` - Visão geral
 - `GET /api/dashboard/estatisticas` - Estatísticas
 - `GET /api/dashboard/filas` - Status das filas
 - `GET /api/dashboard/atendimentos-hoje` - Atendimentos do dia
 - `GET /api/dashboard/triagens-hoje` - Triagens do dia
 - `GET /api/dashboard/senhas-hoje` - Senhas do dia
+
+### 📞 Chamadas
+- `GET /api/chamadas` - Listar chamadas ativas
+- `POST /api/chamadas` - Realizar chamada
+- `PUT /api/chamadas/:id` - Atualizar chamada
+- `DELETE /api/chamadas/:id` - Finalizar chamada
+
+### 📄 Fichas
+- `GET /api/fichas` - Listar fichas
+- `POST /api/fichas` - Emitir ficha
+- `GET /api/fichas/:id` - Buscar ficha
+- `PUT /api/fichas/:id` - Atualizar ficha
 
 ## 🧪 Testes
 
@@ -177,6 +198,25 @@ O sistema utiliza Winston para logging com diferentes níveis:
 - **warn** - Avisos
 - **info** - Informações gerais
 - **debug** - Informações de debug
+
+## 🔧 Correções Implementadas
+
+### ✅ DTOs e Validação
+- **Problema resolvido**: Inconsistência entre `prescricao` (string) vs `prescricoes` (array)
+- **Solução**: DTOs atualizados para aceitar arrays estruturados de medicamentos e exames
+- **Campo `id`**: Aceito no frontend e removido automaticamente no backend (`.strip()`)
+- **Campos opcionais**: Strings vazias agora aceitas corretamente
+
+### ✅ Autenticação
+- **Token JWT**: Sistema de autenticação funcionando perfeitamente
+- **Rate limiting**: Proteção contra ataques de força bruta
+- **Refresh tokens**: Renovação automática de tokens
+
+### ✅ Fluxo Completo
+- **Senha → Cadastro**: Geração e uso de senhas
+- **Cadastro → Triagem**: Transição de status de pacientes
+- **Triagem → Médico**: Ordenação por prioridade
+- **Médico → Prontuário**: Finalização com dados estruturados
 
 ## 🔒 Segurança
 

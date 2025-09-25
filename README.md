@@ -43,7 +43,16 @@ O SIAH oferece um sistema integrado que:
 - **[VLibras](https://www.gov.br/governodigital/pt-br/vlibras)** - Tradução automática para Língua Brasileira de Sinais
 
 ### Armazenamento
-- **LocalStorage** - Persistência de dados no navegador (solução temporária)
+- **PostgreSQL** - Banco de dados principal para produção
+- **LocalStorage** - Persistência temporária no frontend
+
+### Backend
+- **[Node.js](https://nodejs.org/)** - Runtime JavaScript para servidor
+- **[Express](https://expressjs.com/)** - Framework web rápido e minimalista
+- **[Prisma](https://www.prisma.io/)** - ORM moderno para banco de dados
+- **[PostgreSQL](https://www.postgresql.org/)** - Banco de dados relacional robusto
+- **[JWT](https://jwt.io/)** - Autenticação segura com tokens
+- **[Joi](https://joi.dev/)** - Validação de dados robusta
 
 ### Por que essas tecnologias?
 
@@ -51,6 +60,9 @@ O SIAH oferece um sistema integrado que:
 - **PrimeReact**: Componentes prontos para produção com acessibilidade nativa
 - **Tailwind CSS**: Desenvolvimento rápido com design responsivo mobile-first
 - **Vite**: Build e hot reload extremamente rápidos para desenvolvimento
+- **Node.js + Express**: Backend escalável e performático
+- **Prisma**: Type-safe database access com migrations automáticas
+- **PostgreSQL**: Banco confiável para dados críticos de saúde
 
 ## Pré-requisitos
 
@@ -207,15 +219,26 @@ O sistema prioriza a inclusão digital:
 - Sanitização de inputs
 - Controle de acesso por funcionalidade
 
+## ✅ Status Atual
+
+### Funcionalidades Implementadas
+- [x] **Integração com banco de dados real** - PostgreSQL + Prisma
+- [x] **API REST completa** - Backend Node.js + Express
+- [x] **Sistema de autenticação** - JWT com refresh tokens
+- [x] **Validação robusta** - DTOs com Joi
+- [x] **Fluxo completo funcionando** - Senha → Cadastro → Triagem → Médico
+- [x] **Rate limiting** - Proteção contra ataques
+- [x] **Logs estruturados** - Winston logging
+- [x] **Código limpo** - Pronto para produção
+
 ## Roadmap
 
 ### Próximas Funcionalidades
-- [ ] Integração com banco de dados real
-- [ ] API REST para backend
 - [ ] Sistema de notificações push
-- [ ] Relatórios e dashboards
+- [ ] Relatórios e dashboards avançados
 - [ ] Integração com sistemas hospitalares
 - [ ] App mobile nativo
+- [ ] Telemedicina
 
 ### Melhorias Planejadas
 - [ ] Cache inteligente
@@ -223,4 +246,5 @@ O sistema prioriza a inclusão digital:
 - [ ] Modo offline
 - [ ] Backup automático
 - [ ] Logs de auditoria
+- [ ] Testes automatizados
 **SIAH** - Transformando a saúde com tecnologia moderna e eficiência operacional. 
