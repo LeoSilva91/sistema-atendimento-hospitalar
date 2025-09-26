@@ -43,6 +43,23 @@ export class SenhaController {
     }
   }
 
+  async listarSenhasChamadasPublico(req, res) {
+    try {
+      const senhas = await this.senhaService.listarSenhasChamadas();
+
+      res.json({
+        success: true,
+        data: senhas
+      });
+    } catch (error) {
+      logger.error('Erro ao listar senhas chamadas (público):', error);
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
   async chamarSenha(req, res) {
     try {
       const { senhaId } = req.body;

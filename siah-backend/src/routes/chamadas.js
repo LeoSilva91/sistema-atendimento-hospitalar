@@ -11,7 +11,13 @@ import {
 const router = express.Router();
 const chamadaController = new ChamadaController();
 
-// Middleware de autenticação para todas as rotas
+// Rota pública para painel público (sem autenticação)
+// GET /api/chamadas/publico - Listar chamadas ativas para painel público
+router.get('/publico', 
+  chamadaController.listarChamadasAtivasPublico.bind(chamadaController)
+);
+
+// Middleware de autenticação para todas as outras rotas
 router.use(authenticateToken);
 
 // POST /api/chamadas - Criar chamada

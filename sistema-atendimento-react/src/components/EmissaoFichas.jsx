@@ -192,7 +192,7 @@ Esta ficha deve ser apresentada no momento da triagem.
                         >
                           <div className="flex items-center gap-2 min-w-0">
                             <span className="bg-blue-500 text-white font-bold text-xs px-2 py-0.5 rounded-full flex-shrink-0">
-                              {ficha.numeroFicha}
+                              F{String(ficha.numeroFicha).slice(-4)}
                             </span>
                             <span className="font-medium text-gray-800 text-sm truncate max-w-[120px]">
                               {ficha.pacienteNome}
@@ -232,7 +232,7 @@ Esta ficha deve ser apresentada no momento da triagem.
                         FICHA DE ATENDIMENTO HOSPITALAR
                       </h3>
                       <div className="text-lg font-semibold text-blue-600">
-                        {fichaSelecionada.numeroFicha}
+                        F{String(fichaSelecionada.numeroFicha).slice(-4)}
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -285,6 +285,9 @@ Esta ficha deve ser apresentada no momento da triagem.
                       <p className="text-sm text-gray-600 italic">
                         Esta ficha deve ser apresentada no momento da triagem
                       </p>
+                      <div className="mt-2 p-2 bg-gray-100 rounded text-xs text-gray-500 font-mono">
+                        ID Completo: {fichaSelecionada.numeroFicha}
+                      </div>
                     </div>
                   </Card>
                   {/* Ações */}

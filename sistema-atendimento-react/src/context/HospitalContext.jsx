@@ -305,6 +305,17 @@ export const SistemaAtendimentoProvider = ({ children }) => {
             nomeCompleto: pacienteParaChamar.nome
           };
           setChamadasAtivas(prev => [...prev, novaChamada]);
+
+          // Criar chamada no backend
+          try {
+            await api.post('/chamadas', {
+              pacienteId: pacienteParaChamar.id,
+              tipo: 'TRIAGEM',
+              local: 'Triagem'
+            });
+          } catch (error) {
+            console.error('Erro ao criar chamada no backend:', error);
+          }
           return pacienteAtualizado;
         } else {
           throw new Error(response.data.message || 'Erro ao iniciar triagem');
@@ -473,6 +484,17 @@ export const SistemaAtendimentoProvider = ({ children }) => {
           };
           setChamadasAtivas(prev => [...prev, novaChamada]);
 
+          // Criar chamada no backend
+          try {
+            await api.post('/chamadas', {
+              pacienteId: proximoId,
+              tipo: 'CONSULTA',
+              local: currentUser?.consultorio || 'Consultório Principal'
+            });
+          } catch (error) {
+            console.error('Erro ao criar chamada no backend:', error);
+          }
+
           return pacienteAtualizado;
         } else {
           throw new Error(response.data.message || 'Erro ao iniciar atendimento');
@@ -598,6 +620,40 @@ export const SistemaAtendimentoProvider = ({ children }) => {
     const interval = setInterval(limparChamadasAntigas, 60000);
     return () => clearInterval(interval);
   }, [limparChamadasAntigas]);
+
+  // Função para carregar chamadas ativas do backend
+  const carregarChamadasAtivasBackend = useCallback(async () => {
+    try {
+      const response = await api.get('/chamadas/publico');
+      
+      if (response.data.success) {
+        const chamadasBackend = response.data.data.map(chamada => ({
+          id: chamada.id,
+          pacienteId: chamada.pacienteId,
+          pacienteNome: chamada.paciente?.nome || 'Nome não disponível',
+          numeroProntuario: chamada.paciente?.numeroProntuario || 'N/A',
+          horaChamada: chamada.horaChamada,
+          tipo: chamada.tipo.toLowerCase(),
+          local: chamada.local,
+          nomeCompleto: chamada.paciente?.nome || 'Nome não disponível',
+          corTriagem: chamada.paciente?.corTriagem?.toLowerCase() || 'verde'
+        }));
+        
+        
+        // Atualizar chamadas ativas com dados do backend
+        setChamadasAtivas(chamadasBackend);
+      } else {
+        console.error('Backend retornou success: false');
+      }
+    } catch (error) {
+      console.error('Erro ao carregar chamadas ativas do backend:', error);
+      console.error('Detalhes do erro:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+    }
+  }, []);
 
   // Função para recarregar dados do backend
   const recarregarDadosBackend = useCallback(async () => {
@@ -793,6 +849,7 @@ export const SistemaAtendimentoProvider = ({ children }) => {
     finalizarConsulta,
     emitirFicha,
     recarregarDadosBackend,
+    carregarChamadasAtivasBackend,
     
     // Funções auxiliares
     obterPacientesAguardandoTriagem,
@@ -824,6 +881,7 @@ export const SistemaAtendimentoProvider = ({ children }) => {
     finalizarConsulta,
     emitirFicha,
     recarregarDadosBackend,
+    carregarChamadasAtivasBackend,
     obterPacientesAguardandoTriagem,
     obterPacientesAguardandoAvaliacaoMedica,
     obterEstatisticas,

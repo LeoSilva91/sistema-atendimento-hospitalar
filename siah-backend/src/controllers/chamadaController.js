@@ -46,6 +46,23 @@ export class ChamadaController {
     }
   }
 
+  async listarChamadasAtivasPublico(req, res) {
+    try {
+      const chamadas = await this.chamadaService.listarChamadasAtivas();
+
+      res.json({
+        success: true,
+        data: chamadas
+      });
+    } catch (error) {
+      logger.error('Erro ao listar chamadas ativas (público):', error);
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
   async finalizarChamada(req, res) {
     try {
       const { chamadaId } = req.body;

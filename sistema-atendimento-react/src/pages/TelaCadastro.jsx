@@ -528,7 +528,7 @@ const TelaCadastro = () => {
                     Cadastro: Senha {senhaAtual.prefixo}{senhaAtual.numero.toString().padStart(3, '0')}
                   </h2>
                   <p className="text-gray-600 text-sm sm:text-base">
-                    Tipo: {senhaAtual.tipo === 'prioridade' ? 'Prioridade' : 'Normal'}
+                    Tipo: {senhaAtual.tipo === 'PRIORIDADE' ? 'Prioridade' : 'Normal'}
                   </p>
                   <p className="text-xs sm:text-sm text-gray-500">
                     {senhaAtual.horaChamada ? `Chamada às ${formatarHora(senhaAtual.horaChamada)}` : `Gerada às ${formatarHora(senhaAtual.horaGeracao)}`}
@@ -734,8 +734,8 @@ const TelaCadastro = () => {
                           </div>
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                             <Tag
-                              value={senha.tipo === 'prioridade' ? 'Prioridade' : 'Normal'}
-                              severity={senha.tipo === 'prioridade' ? 'danger' : 'success'}
+                              value={senha.tipo === 'PRIORIDADE' ? 'Prioridade' : 'Normal'}
+                              severity={senha.tipo === 'PRIORIDADE' ? 'danger' : 'success'}
                               className="text-xs"
                             />
                             <Button

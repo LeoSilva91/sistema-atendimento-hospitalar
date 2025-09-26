@@ -172,10 +172,9 @@ const HistoricoMedico = () => {
                         onClick={() => handleSelecionarPaciente(paciente)}
                       >
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="bg-blue-500 text-white font-bold text-xs px-2 py-0.5 rounded-full flex-shrink-0">#{paciente.id}</span>
-                          <span className="font-medium text-gray-800 text-sm truncate max-w-[120px]">{paciente.nome}</span>
+                          <span className="font-medium text-gray-800 text-sm truncate max-w-[200px]">{paciente.nome}</span>
                           {isSelected && (
-                            <span className="ml-2 text-xs text-purple-600 font-semibold">Selecionado</span>
+                            <span className="ml-2 text-xs text-purple-600 font-semibold bg-purple-100 px-2 py-0.5 rounded-full">Selecionado</span>
                           )}
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-500">

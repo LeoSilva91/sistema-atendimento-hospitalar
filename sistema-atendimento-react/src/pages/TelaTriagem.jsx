@@ -313,28 +313,10 @@ const TelaTriagem = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header minimalista */}
         <div className="mb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Triagem de Pacientes</h1>
-              <div className="flex flex-col sm:flex-row sm:items-center text-gray-500 text-xs sm:text-sm mt-1 gap-1 sm:gap-0">
-                <span>{currentUser?.nome} - Enfermeiro</span>
-                <span className="sm:ml-auto">{new Date().toLocaleDateString('pt-BR')} {new Date().toLocaleTimeString('pt-BR')}</span>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                label="Atualizar"
-                icon="pi pi-refresh"
-                onClick={recarregarDadosBackend}
-                className="!bg-gray-600 !text-white !border-0 px-3 py-2 rounded-lg font-semibold transition-colors hover:!bg-gray-700 text-sm"
-              />
-              <Button
-                label={`Ver Fila (${pacientesAguardandoTriagem.length})`}
-                icon="pi pi-list"
-                onClick={() => setShowFila(true)}
-                className="!bg-blue-600 !text-white !border-0 px-3 py-2 rounded-lg font-semibold transition-colors hover:!bg-blue-700 text-sm"
-              />
-            </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Triagem de Pacientes</h1>
+          <div className="flex flex-col sm:flex-row sm:items-center text-gray-500 text-xs sm:text-sm mt-1 gap-1 sm:gap-0">
+            <span>{currentUser?.nome} - Enfermeira</span>
+            <span className="sm:ml-auto">{new Date().toLocaleDateString('pt-BR')} {new Date().toLocaleTimeString('pt-BR')}</span>
           </div>
         </div>
 

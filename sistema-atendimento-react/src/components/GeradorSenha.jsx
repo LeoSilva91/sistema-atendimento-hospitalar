@@ -122,12 +122,12 @@ const GeradorSenha = () => {
             .numero-senha {
               font-size: 28px;
               font-weight: bold;
-              color: ${senha.tipo === 'prioridade' ? '#000' : '#000'};
+              color: ${senha.tipo === 'PRIORIDADE' ? '#fff' : '#000'};
               margin: 8px 0;
               letter-spacing: 2px;
               border: 1px solid #000;
               padding: 5px;
-              background: ${senha.tipo === 'prioridade' ? '#f0f0f0' : '#fff'};
+              background: ${senha.tipo === 'PRIORIDADE' ? '#dc2626' : '#fff'};
             }
             .tipo-senha {
               font-size: 11px;
@@ -154,7 +154,7 @@ const GeradorSenha = () => {
         <body>
           <div class="senha-print">
             <div class="header">SIAH - Sistema Hospitalar</div>
-            <div class="tipo-senha">${senha.tipo === 'prioridade' ? '*** PRIORIDADE ***' : 'ATENDIMENTO NORMAL'}</div>
+            <div class="tipo-senha">${senha.tipo === 'PRIORIDADE' ? '*** PRIORIDADE ***' : 'ATENDIMENTO NORMAL'}</div>
             <div class="numero-senha">${senha.prefixo}${senha.numero.toString().padStart(3, '0')}</div>
             <div class="hora">${new Date(senha.horaGeracao).toLocaleString('pt-BR')}</div>
             <div class="instrucoes">Aguarde ser chamado<br/>Guarde este comprovante</div>
@@ -192,7 +192,7 @@ const GeradorSenha = () => {
   };
 
   const obterCorTipo = (tipo) => {
-    return tipo === 'prioridade' 
+    return tipo === 'PRIORIDADE' 
       ? { bg: 'bg-red-500', text: 'text-white', nome: 'PRIORIDADE' }
       : { bg: 'bg-green-500', text: 'text-white', nome: 'NORMAL' };
   };

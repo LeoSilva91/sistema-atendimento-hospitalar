@@ -80,6 +80,33 @@ export class SenhaService {
     }
   }
 
+  async listarSenhasChamadas() {
+    try {
+      const senhas = await prisma.senha.findMany({
+        where: {
+          status: 'CHAMADA'
+        },
+        orderBy: {
+          horaChamada: 'desc'
+        },
+        take: 3, // Apenas as últimas 3 chamadas
+        select: {
+          id: true,
+          prefixo: true,
+          numero: true,
+          tipo: true,
+          status: true,
+          horaChamada: true,
+          createdAt: true
+        }
+      });
+
+      return senhas;
+    } catch (error) {
+      throw new Error(`Erro ao listar senhas chamadas: ${error.message}`);
+    }
+  }
+
   async marcarSenhaCadastrada(senhaId, pacienteId) {
     try {
       const senha = await prisma.senha.update({

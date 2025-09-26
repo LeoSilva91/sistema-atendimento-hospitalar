@@ -93,7 +93,7 @@ const FilaSenhas = ({ onChamarPaciente }) => {
   };
 
   const obterCorTipo = (tipo) => {
-    return tipo === 'prioridade' 
+    return tipo === 'PRIORIDADE' 
       ? { bg: 'bg-red-500', text: 'text-white', nome: 'PRIORIDADE' }
       : { bg: 'bg-green-500', text: 'text-white', nome: 'NORMAL' };
   };

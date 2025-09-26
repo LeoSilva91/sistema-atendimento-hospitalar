@@ -12,7 +12,13 @@ import {
 const router = express.Router();
 const senhaController = new SenhaController();
 
-// Middleware de autenticação para todas as rotas
+// Rota pública para painel público (sem autenticação)
+// GET /api/senhas/chamadas-publico - Listar senhas chamadas para painel público
+router.get('/chamadas-publico', 
+  senhaController.listarSenhasChamadasPublico.bind(senhaController)
+);
+
+// Middleware de autenticação para todas as outras rotas
 router.use(authenticateToken);
 
 // POST /api/senhas - Gerar nova senha

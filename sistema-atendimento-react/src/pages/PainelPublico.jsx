@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSistemaAtendimento } from "../context/HospitalContext";
 import { Card } from 'primereact/card';
 import { Tag } from 'primereact/tag';
+import api from '../services/api';
 
 const PainelPublico = () => {
   const { 
@@ -9,7 +10,8 @@ const PainelPublico = () => {
     obterPacientesAguardandoAvaliacaoMedica,
     chamadasAtivas,
     formatarNomePublico,
-    obterEstatisticas
+    obterEstatisticas,
+    carregarChamadasAtivasBackend
   } = useSistemaAtendimento();
   
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -24,22 +26,31 @@ const PainelPublico = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Carregar senhas chamadas do localStorage
+  // Carregar senhas chamadas do backend
   useEffect(() => {
-    const carregarSenhasChamadas = () => {
-      const todasSenhas = JSON.parse(localStorage.getItem('senhas') || '[]');
-      const chamadas = todasSenhas
-        .filter(s => s.status === 'chamada')
-        .sort((a, b) => new Date(b.horaChamada) - new Date(a.horaChamada))
-        .slice(0, 3); // Mostrar apenas as últimas 3 chamadas
-      
-      setSenhasChamadas(chamadas);
+    const carregarSenhasChamadas = async () => {
+      try {
+        const response = await api.get('/senhas/chamadas-publico');
+        
+        if (response.data.success) {
+          setSenhasChamadas(response.data.data);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar senhas chamadas:', error);
+      }
     };
 
     carregarSenhasChamadas();
     const interval = setInterval(carregarSenhasChamadas, 3000); // Atualizar a cada 3 segundos
     return () => clearInterval(interval);
   }, []);
+
+  // Carregar chamadas ativas do backend
+  useEffect(() => {
+    carregarChamadasAtivasBackend();
+    const interval = setInterval(carregarChamadasAtivasBackend, 5000); // Atualizar a cada 5 segundos
+    return () => clearInterval(interval);
+  }, [carregarChamadasAtivasBackend]);
 
   // Detectar mudanças de tela
   useEffect(() => {
@@ -53,7 +64,7 @@ const PainelPublico = () => {
   }, []);
 
   const obterCorTipo = (tipo) => {
-    return tipo === 'prioridade' 
+    return tipo === 'PRIORIDADE' 
       ? { bg: 'bg-red-500', text: 'text-white', nome: 'PRIORIDADE' }
       : { bg: 'bg-green-500', text: 'text-white', nome: 'NORMAL' };
   };
@@ -67,13 +78,19 @@ const PainelPublico = () => {
 
   const obterCorDisplay = (cor) => {
     const cores = {
+      'VERMELHO': { bg: 'bg-red-500', text: 'text-white', nome: 'EMERGÊNCIA' },
+      'LARANJA': { bg: 'bg-orange-500', text: 'text-white', nome: 'MUITO URGENTE' },
+      'AMARELO': { bg: 'bg-yellow-500', text: 'text-black', nome: 'URGENTE' },
+      'VERDE': { bg: 'bg-green-500', text: 'text-white', nome: 'POUCO URGENTE' },
+      'AZUL': { bg: 'bg-blue-500', text: 'text-white', nome: 'NÃO URGENTE' },
+      // Fallback para valores em minúsculo (caso venham do frontend)
       'vermelho': { bg: 'bg-red-500', text: 'text-white', nome: 'EMERGÊNCIA' },
-      'laranja': { bg: 'bg-red-500', text: 'text-white', nome: 'MUITO URGENTE' },
+      'laranja': { bg: 'bg-orange-500', text: 'text-white', nome: 'MUITO URGENTE' },
       'amarelo': { bg: 'bg-yellow-500', text: 'text-black', nome: 'URGENTE' },
       'verde': { bg: 'bg-green-500', text: 'text-white', nome: 'POUCO URGENTE' },
-      'azul': { bg: 'bg-green-500', text: 'text-white', nome: 'NÃO URGENTE' }
+      'azul': { bg: 'bg-blue-500', text: 'text-white', nome: 'NÃO URGENTE' }
     };
-    return cores[cor] || cores['verde'];
+    return cores[cor] || cores['VERDE'];
   };
 
   const formatarData = (dataString) => {
@@ -241,9 +258,12 @@ const PainelPublico = () => {
                       {pacientesAguardandoTriagem.map((paciente, index) => (
                         <div key={paciente.id} className="bg-gray-50 rounded-lg p-2 sm:p-3 border border-gray-200">
                           <div className="flex items-center justify-between">
-                            <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
-                              #{index + 1}
-                            </span>
+                            <div className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-2.5 py-1 rounded-lg font-semibold shadow-sm">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                              </svg>
+                              <span className="font-mono">#{index + 1}</span>
+                            </div>
                             <span className="text-gray-400 text-xs">
                               {obterTempoEspera(paciente.horaCadastro)}
                             </span>
@@ -269,9 +289,12 @@ const PainelPublico = () => {
                         return (
                           <div key={paciente.id} className="bg-gray-50 rounded-lg p-2 sm:p-3 border border-gray-200">
                             <div className="flex items-center justify-between">
-                              <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
-                                #{index + 1}
-                              </span>
+                              <div className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-2.5 py-1 rounded-lg font-semibold shadow-sm">
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                </svg>
+                                <span className="font-mono">#{index + 1}</span>
+                              </div>
                               <span className="text-gray-400 text-xs">
                                 {obterTempoEspera(paciente.horaFimTriagem || paciente.horaCadastro)}
                               </span>

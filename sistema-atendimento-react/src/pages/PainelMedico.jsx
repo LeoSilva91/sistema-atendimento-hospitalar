@@ -296,9 +296,9 @@ const PainelMedico = () => {
                     <p className="text-gray-600">
                       {calcularIdade(pacienteAtualMedico.dataNascimento)} anos • {pacienteAtualMedico.sexo === 'M' ? 'Masculino' : pacienteAtualMedico.sexo === 'F' ? 'Feminino' : 'Outro'}
                     </p>
-                    <p className="text-sm text-gray-500">
-                      Prontuário: {pacienteAtualMedico.numeroProntuario}
-                    </p>
+                    <div className="mt-1">
+                      <span className="text-sm text-gray-500 font-mono">{pacienteAtualMedico.numeroProntuario}</span>
+                    </div>
                   </div>
                 <div className="flex gap-2">
                   <Button
@@ -698,7 +698,9 @@ const PainelMedico = () => {
                                 <span>•</span>
                                 <span>{sexoLabel}</span>
                               </div>
-                              <p className="text-xs text-gray-400 mt-0.5">Prontuário: {patient.numeroProntuario}</p>
+                              <div className="mt-1">
+                                <span className="text-xs text-gray-400 font-mono">{patient.numeroProntuario}</span>
+                              </div>
                             </div>
                           </div>
                           {/* Dados da triagem removidos */}
@@ -844,7 +846,12 @@ const PainelMedico = () => {
                       }`}
                     >
                       <div className="flex items-start min-w-0">
-                        <div className="bg-blue-500 text-white font-bold text-lg px-3 py-1 rounded-full flex-shrink-0 mt-1">#{index + 1}</div>
+                        <div className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold text-lg px-3 py-1 rounded-lg flex-shrink-0 mt-1 shadow-sm">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                          </svg>
+                          <span className="font-mono">#{index + 1}</span>
+                        </div>
                         <div className="ml-4 flex-1 min-w-0">
                           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between min-w-0">
                             <h3 className="font-medium text-gray-800 text-base sm:text-lg min-w-0" style={{display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis'}}>{patient.nome}</h3>
@@ -857,7 +864,9 @@ const PainelMedico = () => {
                             <span>•</span>
                             <span>{sexoLabel}</span>
                           </div>
-                          <p className="text-xs text-gray-400 mt-0.5">Prontuário: {patient.numeroProntuario}</p>
+                          <div className="mt-1">
+                            <span className="text-xs text-gray-400 font-mono">{patient.numeroProntuario}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
